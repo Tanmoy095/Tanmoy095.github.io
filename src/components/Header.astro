@@ -1,0 +1,44 @@
+---
+// Header component with navigation and theme toggle
+import ThemeToggle from './ThemeToggle.jsx';
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+  <nav class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="/" class="text-2xl font-bold gradient-text flex items-center gap-2">
+      <span class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold">
+        T
+      </span>
+      Tanmoy
+    </a>
+    
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class={currentPath === '/' ? 'text-primary font-semibold' : 'hover:text-primary transition'}>
+        Home
+      </a>
+      <a href="/about" class={currentPath === '/about' ? 'text-primary font-semibold' : 'hover:text-primary transition'}>
+        About
+      </a>
+      <a href="/projects" class={currentPath === '/projects' ? 'text-primary font-semibold' : 'hover:text-primary transition'}>
+        Projects
+      </a>
+      <a href="/blog" class={currentPath === '/blog' ? 'text-primary font-semibold' : 'hover:text-primary transition'}>
+        Blog
+      </a>
+      <a href="#contact" class="hover:text-primary transition">
+        Contact
+      </a>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <ThemeToggle client:load />
+      <button class="md:hidden p-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </nav>
+</header>

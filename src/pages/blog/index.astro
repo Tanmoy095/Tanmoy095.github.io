@@ -1,0 +1,58 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const sortedPosts = allPosts.sort((a, b) => 
+  new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+---
+
+<MainLayout title="Blog - Technical Articles & Insights">
+  <div class="section-container">
+    <div class="mb-12">
+      <h1 class="text-5xl font-bold mb-4 gradient-text">Technical Blog</h1>
+      <p class="text-xl text-slate-600 dark:text-slate-400">
+        Insights, tutorials, and deep dives into AI infrastructure, distributed systems, and platform engineering.
+      </p>
+    </div>
+
+    {sortedPosts.length === 0 ? (
+      <div class="text-center py-12">
+        <p class="text-slate-500 dark:text-slate-400">No posts yet. Check back soon!</p>
+      </div>
+    ) : (
+      <div class="space-y-6">
+        {sortedPosts.map((post) => (
+          <article class="card group cursor-pointer border-l-4 border-primary hover:border-secondary transition">
+            <div class="flex flex-col md:flex-row justify-between md:items-start gap-4">
+              <div class="flex-1">
+                <div class="flex flex-wrap gap-2 mb-2">
+                  {post.data.tags?.map(tag => (
+                    <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+                <time class="text-sm text-slate-500 dark:text-slate-400">
+                  {post.data.date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </time>
+                <h2 class="text-3xl font-bold mb-3 mt-1 group-hover:text-primary transition">
+                  <a href={`/blog/${post.slug}`}>{post.data.title}</a>
+                </h2>
+                <p class="text-slate-600 dark:text-slate-400 line-clamp-2">
+                  {post.data.description}
+                </p>
+              </div>
+              <span class="text-primary text-2xl group-hover:translate-x-2 transition hidden md:block">→</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </div>
+</MainLayout>

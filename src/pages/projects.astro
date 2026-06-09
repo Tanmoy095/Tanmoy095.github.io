@@ -1,0 +1,108 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Projects - Portfolio">
+  <div class="section-container">
+    <h1 class="text-5xl font-bold mb-4 gradient-text">Featured Projects</h1>
+    <p class="text-xl text-slate-600 dark:text-slate-400 mb-12 max-w-3xl">
+      Here are some of my most impactful projects that showcase my expertise in infrastructure, distributed systems, and ML engineering.
+    </p>
+
+    <div class="grid gap-12">
+      {[
+        {
+          title: 'Distributed ML Training Platform',
+          description: 'Built a scalable distributed training platform supporting multi-GPU and multi-node training for large language models. Reduced training time by 65% through optimized communication patterns and resource allocation.',
+          tags: ['Python', 'PyTorch', 'Kubernetes', 'Ray', 'gRPC'],
+          impact: '40% cost reduction, 65% faster training',
+          github: '#',
+          demo: '#',
+        },
+        {
+          title: 'GPU Resource Management System',
+          description: 'Developed an intelligent GPU scheduling system that automatically allocates GPU resources based on workload characteristics and demand. Features predictive scaling and automatic overcommit management.',
+          tags: ['Go', 'Kubernetes', 'NVIDIA DCGM', 'Prometheus'],
+          impact: '50% improvement in GPU utilization',
+          github: '#',
+          demo: '#',
+        },
+        {
+          title: 'Real-time Model Monitoring Dashboard',
+          description: 'Created a comprehensive monitoring solution for production ML models with real-time performance tracking, drift detection, and automatic alerting. Integrated with 10+ data sources.',
+          tags: ['TypeScript', 'React', 'Elasticsearch', 'Prometheus', 'Grafana'],
+          impact: 'Reduced model debugging time by 70%',
+          github: '#',
+          demo: '#',
+        },
+        {
+          title: 'Kubernetes Cost Optimizer',
+          description: 'Built an open-source tool that analyzes Kubernetes cluster spending and provides actionable recommendations for cost optimization. Saved teams $100k+ in annual cloud costs.',
+          tags: ['Go', 'Kubernetes', 'AWS', 'Machine Learning'],
+          impact: '$100k+ saved across all users',
+          github: '#',
+          demo: '#',
+        },
+        {
+          title: 'High-Performance Vector Database',
+          description: 'Designed and implemented a distributed vector database optimized for semantic search and similarity matching. Handles 1B+ vectors with sub-100ms query latency.',
+          tags: ['Rust', 'SIMD', 'Distributed Systems', 'gRPC'],
+          impact: 'Sub-100ms latency at 1B scale',
+          github: '#',
+          demo: '#',
+        },
+        {
+          title: 'ML Pipeline Orchestration Engine',
+          description: 'Created a robust pipeline orchestration system for managing complex ML workflows. Supports dynamic scheduling, fault recovery, and automatic resource optimization.',
+          tags: ['Python', 'Apache Airflow', 'Docker', 'PostgreSQL'],
+          impact: '99.9% pipeline success rate',
+          github: '#',
+          demo: '#',
+        },
+      ].map((project, idx) => (
+        <div key={idx} class="card group border-l-4 border-primary hover:border-secondary transition">
+          <div class="flex flex-col gap-4">
+            <div>
+              <h2 class="text-3xl font-bold mb-3 group-hover:text-primary transition">
+                {project.title}
+              </h2>
+              <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+                {project.description}
+              </p>
+            </div>
+
+            <div class="bg-primary/5 dark:bg-primary/10 rounded-lg p-4 border border-primary/20">
+              <p class="font-semibold text-primary">Impact:</p>
+              <p class="text-slate-700 dark:text-slate-300">{project.impact}</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              {project.tags.map(tag => (
+                <span class="text-sm bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 px-3 py-1 rounded-full">
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            <div class="flex gap-4 pt-4">
+              <a href={project.github} class="btn-primary text-sm">
+                View Code
+              </a>
+              <a href={project.demo} class="btn-secondary text-sm">
+                Live Demo
+              </a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-20 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-12 text-center">
+      <h2 class="text-3xl font-bold mb-4">Want to see more?</h2>
+      <p class="text-lg text-slate-600 dark:text-slate-400 mb-6">
+        Check out my GitHub for more projects, open-source contributions, and experiments.
+      </p>
+      <a href="#" class="btn-primary">Visit GitHub</a>
+    </div>
+  </div>
+</MainLayout>

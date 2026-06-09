@@ -1,0 +1,99 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="About Me - AI Infrastructure Engineer">
+  <div class="section-container">
+    <div class="max-w-3xl mx-auto">
+      <h1 class="text-5xl font-bold mb-8 gradient-text">About Me</h1>
+      
+      <div class="prose dark:prose-invert max-w-none">
+        <p class="text-xl leading-relaxed mb-6">
+          I'm a Senior AI Infrastructure Engineer with 8+ years of experience building and scaling distributed systems for machine learning workloads. My passion lies in designing elegant, robust infrastructure solutions that enable teams to focus on what matters most—creating impactful AI applications.
+        </p>
+
+        <h2 class="text-3xl font-bold mt-12 mb-6">Experience Highlights</h2>
+        
+        <div class="space-y-8">
+          {[
+            {
+              title: 'Senior ML Infrastructure Engineer',
+              company: 'Leading AI Company',
+              period: '2023 - Present',
+              description: 'Led infrastructure redesign for ML platform, reducing costs by 40% and improving deployment speed by 10x.'
+            },
+            {
+              title: 'Platform Engineer',
+              company: 'Cloud Infrastructure Startup',
+              period: '2020 - 2023',
+              description: 'Built Kubernetes infrastructure supporting 500+ ML models in production, handling billions of daily predictions.'
+            },
+            {
+              title: 'DevOps Engineer',
+              company: 'Tech Scale-up',
+              period: '2018 - 2020',
+              description: 'Implemented CI/CD pipelines and containerization strategies, improving deployment frequency by 50x.'
+            },
+          ].map(job => (
+            <div class="border-l-4 border-primary pl-6">
+              <h3 class="text-xl font-bold">{job.title}</h3>
+              <p class="text-primary font-semibold">{job.company}</p>
+              <p class="text-slate-500 dark:text-slate-400">{job.period}</p>
+              <p class="mt-2 text-slate-700 dark:text-slate-300">{job.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <h2 class="text-3xl font-bold mt-12 mb-6">Technical Expertise</h2>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+          {[
+            { title: 'AI/ML Infrastructure', skills: 'MLOps, Model Serving, CUDA, Distributed Training' },
+            { title: 'Cloud & Container', skills: 'AWS, GCP, Azure, Kubernetes, Docker' },
+            { title: 'Data Systems', skills: 'Elasticsearch, Apache Kafka, PostgreSQL, Ray' },
+            { title: 'Programming', skills: 'Python, Go, Rust, TypeScript, Bash' },
+          ].map(group => (
+            <div class="card">
+              <h4 class="font-bold mb-2">{group.title}</h4>
+              <p class="text-slate-600 dark:text-slate-400">{group.skills}</p>
+            </div>
+          ))}
+        </div>
+
+        <h2 class="text-3xl font-bold mt-12 mb-6">Education & Certifications</h2>
+        
+        <ul class="space-y-4">
+          <li class="flex items-start gap-3">
+            <span class="text-primary font-bold mt-1">→</span>
+            <span><strong>BS in Computer Science</strong> - State University (2018)</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="text-primary font-bold mt-1">→</span>
+            <span><strong>Kubernetes Application Developer Certified (CKAD)</strong> - CNCF (2022)</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="text-primary font-bold mt-1">→</span>
+            <span><strong>AWS Solutions Architect - Professional</strong> - Amazon (2021)</span>
+          </li>
+        </ul>
+
+        <h2 class="text-3xl font-bold mt-12 mb-6">What I'm Currently Focused On</h2>
+        
+        <ul class="space-y-2">
+          <li class="flex items-center gap-2">
+            <span class="text-primary">✓</span> Building next-gen ML observability tools
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-primary">✓</span> Optimizing GPU utilization in cloud environments
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-primary">✓</span> Contributing to open-source ML infrastructure projects
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-primary">✓</span> Writing about distributed systems and infrastructure challenges
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</MainLayout>
