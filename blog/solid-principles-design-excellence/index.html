@@ -1,0 +1,203 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SOLID Principles: Building Maintainable Software Systems</title><link rel="stylesheet" href="/_astro/about.C8zJdKQg.css"></head> <body> <article class="prose dark:prose-invert max-w-3xl mx-auto px-4 py-16"> <header class="mb-12"> <h1 class="text-4xl md:text-5xl font-bold mb-4">SOLID Principles: Building Maintainable Software Systems</h1> <img src="/blog-solid.jpg" alt="SOLID Principles: Building Maintainable Software Systems" class="rounded-lg mb-6 w-full h-auto object-cover max-h-96"> <div class="flex flex-wrap gap-4 text-slate-600 dark:text-slate-400 mb-4"> <time datetime="2026-06-12T00:00:00.000Z"> June 12, 2026 </time> <span>by Aunmoy Dey Tanmoy</span> </div> <div class="flex flex-wrap gap-2"> <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Software Design </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#SOLID </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Architecture </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Best Practices </span> </div> </header>  <h1 id="solid-principles-the-foundation-of-maintainable-code">SOLID Principles: The Foundation of Maintainable Code</h1>
+<p>When I started as a junior engineer, I wrote code that worked. But as systems grew and teams expanded, I realized my code became increasingly difficult to maintain. The turning point came when I discovered SOLID principles – a set of guidelines that fundamentally changed how I approached software design.</p>
+<h2 id="what-are-solid-principles">What are SOLID Principles?</h2>
+<p>SOLID is an acronym for five design principles that help developers create more maintainable, scalable, and flexible code:</p>
+<ul>
+<li><strong>S</strong>ingle Responsibility Principle</li>
+<li><strong>O</strong>pen/Closed Principle</li>
+<li><strong>L</strong>iskov Substitution Principle</li>
+<li><strong>I</strong>nterface Segregation Principle</li>
+<li><strong>D</strong>ependency Inversion Principle</li>
+</ul>
+<h2 id="dependency-inversion-principle-dip">Dependency Inversion Principle (DIP)</h2>
+<blockquote>
+<p>“High-level modules should not depend on low-level modules. Both should depend on abstractions.”</p>
+</blockquote>
+<h3 id="the-problem">The Problem</h3>
+<p>Consider a traditional layered architecture where higher-level business logic directly depends on lower-level database implementations:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> UserRepository</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> save_user</span><span style="color:#E1E4E8">(self, user):</span></span>
+<span class="line"><span style="color:#6A737D">        # Direct database implementation</span></span>
+<span class="line"><span style="color:#E1E4E8">        db.execute(</span><span style="color:#9ECBFF">"INSERT INTO users..."</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> UserService</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.repo </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> UserRepository()  </span><span style="color:#6A737D"># Tight coupling!</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> register_user</span><span style="color:#E1E4E8">(self, data):</span></span>
+<span class="line"><span style="color:#E1E4E8">        user </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> User(data)</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.repo.save_user(user)</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Problems with this approach:</strong></p>
+<ul>
+<li>🔴 High-level service depends on low-level repository</li>
+<li>🔴 Hard to test (can’t mock database easily)</li>
+<li>🔴 Difficult to switch database implementations</li>
+<li>🔴 Changes in database layer force changes in service layer</li>
+</ul>
+<h3 id="the-solution-invert-the-dependency">The Solution: Invert the Dependency</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> abc </span><span style="color:#F97583">import</span><span style="color:#79B8FF"> ABC</span><span style="color:#E1E4E8">, abstractmethod</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Abstraction (interface)</span></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> IUserRepository</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">ABC</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#B392F0">    @abstractmethod</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> save_user</span><span style="color:#E1E4E8">(self, user):</span></span>
+<span class="line"><span style="color:#F97583">        pass</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Low-level implementation</span></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> PostgresUserRepository</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">IUserRepository</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> save_user</span><span style="color:#E1E4E8">(self, user):</span></span>
+<span class="line"><span style="color:#E1E4E8">        db.execute(</span><span style="color:#9ECBFF">"INSERT INTO users..."</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> MongoUserRepository</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">IUserRepository</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> save_user</span><span style="color:#E1E4E8">(self, user):</span></span>
+<span class="line"><span style="color:#E1E4E8">        mongo.db.users.insert_one(user.to_dict())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># High-level service depends on abstraction</span></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> UserService</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, repo: IUserRepository):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.repo </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> repo  </span><span style="color:#6A737D"># Loose coupling via interface</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> register_user</span><span style="color:#E1E4E8">(self, data):</span></span>
+<span class="line"><span style="color:#E1E4E8">        user </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> User(data)</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.repo.save_user(user)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Usage: Easy to switch implementations</span></span>
+<span class="line"><span style="color:#6A737D"># prod_service = UserService(PostgresUserRepository())</span></span>
+<span class="line"><span style="color:#6A737D"># test_service = UserService(MockUserRepository())</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>✅ Easy to test with mock implementations</li>
+<li>✅ Simple to switch database systems</li>
+<li>✅ Changes are isolated to implementation layers</li>
+<li>✅ Services depend on stable abstractions, not volatile concrete implementations</li>
+</ul>
+<h2 id="liskov-substitution-principle-lsp">Liskov Substitution Principle (LSP)</h2>
+<blockquote>
+<p>“Objects of a superclass should be replaceable with objects of its subclasses without breaking the application.”</p>
+</blockquote>
+<h3 id="the-problem-1">The Problem</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> Bird</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> fly</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> "Flying..."</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> Penguin</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">Bird</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> fly</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> Exception</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Penguins can't fly!"</span><span style="color:#E1E4E8">)  </span><span style="color:#6A737D"># Violates LSP!</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># This breaks because Penguin violates the contract of Bird</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> make_bird_fly</span><span style="color:#E1E4E8">(bird: Bird):</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> bird.fly()  </span><span style="color:#6A737D"># Works for most birds, crashes for penguins</span></span>
+<span class="line"></span></code></pre>
+<h3 id="the-solution-respect-the-contract">The Solution: Respect the Contract</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> Bird</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> move</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#F97583">        pass</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> FlyingBird</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">Bird</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> move</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> "Flying..."</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> SwimmingBird</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">Bird</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> move</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> "Swimming..."</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> Penguin</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">SwimmingBird</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> move</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> "Waddling and swimming..."</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Now substitution works correctly</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> animal_moves</span><span style="color:#E1E4E8">(bird: Bird):</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> bird.move()  </span><span style="color:#6A737D"># Works for all bird types</span></span>
+<span class="line"></span></code></pre>
+<h3 id="real-world-example-database-migrations">Real-World Example: Database Migrations</h3>
+<p>In infrastructure code, LSP becomes critical:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> StorageBackend</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> read</span><span style="color:#E1E4E8">(self, key):</span></span>
+<span class="line"><span style="color:#F97583">        pass</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> write</span><span style="color:#E1E4E8">(self, key, value):</span></span>
+<span class="line"><span style="color:#F97583">        pass</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> S3Backend</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">StorageBackend</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> read</span><span style="color:#E1E4E8">(self, key):</span></span>
+<span class="line"><span style="color:#6A737D">        # Always consistent with interface</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> s3_client.get_object(key)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> write</span><span style="color:#E1E4E8">(self, key, value):</span></span>
+<span class="line"><span style="color:#6A737D">        # Always consistent with interface</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> s3_client.put_object(key, value)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> LocalBackend</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">StorageBackend</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> read</span><span style="color:#E1E4E8">(self, key):</span></span>
+<span class="line"><span style="color:#6A737D">        # Must maintain same contract</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> open</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"data/</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">key</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">).read()</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> write</span><span style="color:#E1E4E8">(self, key, value):</span></span>
+<span class="line"><span style="color:#6A737D">        # Must maintain same contract</span></span>
+<span class="line"><span style="color:#F97583">        with</span><span style="color:#79B8FF"> open</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"data/</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">key</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"w"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> f:</span></span>
+<span class="line"><span style="color:#E1E4E8">            f.write(value)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Any backend can be substituted without code changes</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> store_config</span><span style="color:#E1E4E8">(backend: StorageBackend, config):</span></span>
+<span class="line"><span style="color:#E1E4E8">    backend.write(</span><span style="color:#9ECBFF">"config.json"</span><span style="color:#E1E4E8">, config)  </span><span style="color:#6A737D"># Works everywhere</span></span>
+<span class="line"></span></code></pre>
+<h2 id="impact-on-production-systems">Impact on Production Systems</h2>
+<p>I’ve seen these principles save teams months of refactoring:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Aspect</th><th>Without SOLID</th><th>With SOLID</th></tr></thead><tbody><tr><td>Testing</td><td>2-3 hours per feature</td><td>15-20 minutes</td></tr><tr><td>Adding new DB</td><td>Rewrite services</td><td>Drop-in replacement</td></tr><tr><td>Fixing bugs</td><td>Cascading changes</td><td>Isolated fixes</td></tr><tr><td>Team velocity</td><td>Decreases over time</td><td>Stays consistent</td></tr></tbody></table>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol>
+<li><strong>DIP separates concerns</strong>: High-level logic doesn’t care about database details</li>
+<li><strong>LSP ensures reliability</strong>: Subclasses must honor their parent’s contracts</li>
+<li><strong>Abstraction over concreteness</strong>: Always code to interfaces, not implementations</li>
+<li><strong>Testability improves dramatically</strong>: Mock objects are your best friends</li>
+<li><strong>Future-proof systems</strong>: Easy to add new implementations without touching existing code</li>
+</ol>
+<h2 id="practical-steps">Practical Steps</h2>
+<p>Starting your SOLID journey:</p>
+<ol>
+<li><strong>Identify rigid dependencies</strong> in your codebase</li>
+<li><strong>Extract interfaces</strong> for key abstractions</li>
+<li><strong>Inject dependencies</strong> instead of hardcoding them</li>
+<li><strong>Write tests</strong> to verify substitutability</li>
+<li><strong>Refactor incrementally</strong> - don’t rewrite everything at once</li>
+</ol>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>SOLID principles aren’t just theoretical - they’re battle-tested guidelines that make code more maintainable, testable, and future-proof. By inverting dependencies and respecting substitution contracts, you build systems that can evolve with your business needs.</p>
+<p>The best time to apply SOLID was when you started the project. The second best time is right now.</p>  </article> </body></html>

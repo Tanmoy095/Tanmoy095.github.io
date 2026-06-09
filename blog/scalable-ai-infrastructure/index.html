@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Building Scalable AI Infrastructure: From Startup to Enterprise</title><link rel="stylesheet" href="/_astro/about.C8zJdKQg.css"></head> <body> <article class="prose dark:prose-invert max-w-3xl mx-auto px-4 py-16"> <header class="mb-12"> <h1 class="text-4xl md:text-5xl font-bold mb-4">Building Scalable AI Infrastructure: From Startup to Enterprise</h1>  <div class="flex flex-wrap gap-4 text-slate-600 dark:text-slate-400 mb-4"> <time datetime="2026-06-10T00:00:00.000Z"> June 10, 2026 </time> <span>by Your Name</span> </div> <div class="flex flex-wrap gap-2"> <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#MLOps </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Infrastructure </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Kubernetes </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Python </span> </div> </header>  <h1 id="building-scalable-ai-infrastructure">Building Scalable AI Infrastructure</h1>
+<p>When I started my journey in AI infrastructure, I was working with a small team of five people trying to serve our first ML model to production. Today, I’ll share the lessons we learned while growing to handle billions of predictions daily.</p>
+<h2 id="the-early-days-monolithic-approach">The Early Days: Monolithic Approach</h2>
+<p>Our first production setup was… let’s call it <strong>simple</strong>. We had:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># The original approach - Don't do this!</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> joblib</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> flask</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">model </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> joblib.load(</span><span style="color:#9ECBFF">'model.pkl'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@app.route</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'/predict'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">methods</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span><span style="color:#9ECBFF">'POST'</span><span style="color:#E1E4E8">])</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> predict</span><span style="color:#E1E4E8">():</span></span>
+<span class="line"><span style="color:#E1E4E8">    data </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> request.json</span></span>
+<span class="line"><span style="color:#E1E4E8">    prediction </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> model.predict([data])</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> {</span><span style="color:#9ECBFF">'prediction'</span><span style="color:#E1E4E8">: prediction[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]}</span></span>
+<span class="line"></span></code></pre>
+<p>This worked for 100 QPS. But as demand grew, we hit several critical issues:</p>
+<ol>
+<li><strong>Latency spikes</strong> during model retraining</li>
+<li><strong>Memory exhaustion</strong> from loading large models</li>
+<li><strong>No way to A/B test</strong> different versions</li>
+<li><strong>Manual deployments</strong> causing downtime</li>
+</ol>
+<h2 id="the-turning-point-infrastructure-as-a-priority">The Turning Point: Infrastructure as a Priority</h2>
+<p>We realized that <strong>infrastructure is not an afterthought</strong>—it’s fundamental to ML success.</p>
+<h3 id="architecture-evolution">Architecture Evolution</h3>
+<p>We evolved through three major phases:</p>
+<p><strong>Phase 1: Docker + Simple Load Balancing</strong></p>
+<ul>
+<li>Containerized the model serving</li>
+<li>Used nginx for basic load balancing</li>
+<li>Databases handled one model at a time</li>
+</ul>
+<p><strong>Phase 2: Kubernetes + Model Registry</strong></p>
+<ul>
+<li>Moved to Kubernetes for orchestration</li>
+<li>Implemented a model registry system</li>
+<li>Added monitoring and alerting</li>
+</ul>
+<p><strong>Phase 3: Distributed Serving + Advanced Orchestration</strong></p>
+<ul>
+<li>Multiple serving frameworks (TensorFlow Serving, KServe, Triton)</li>
+<li>Intelligent batching for throughput</li>
+<li>Dynamic resource allocation based on demand</li>
+</ul>
+<h2 id="key-learnings">Key Learnings</h2>
+<h3 id="1-model-serving-is-different-from-training">1. Model Serving is Different from Training</h3>
+<p>Don’t use the same framework for both. We now use:</p>
+<ul>
+<li><strong>Training</strong>: PyTorch for research and iteration</li>
+<li><strong>Serving</strong>: Optimized inference engines like ONNX Runtime</li>
+</ul>
+<h3 id="2-monitoring-is-critical">2. Monitoring is Critical</h3>
+<p>You need visibility into:</p>
+<ul>
+<li>Model performance (accuracy over time)</li>
+<li>System performance (latency, throughput)</li>
+<li>Data characteristics (input distributions)</li>
+</ul>
+<h3 id="3-graceful-degradation">3. Graceful Degradation</h3>
+<p>Always have a fallback:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># Canary deployment strategy</span></span>
+<span class="line"><span style="color:#85E89D">stages</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">validation</span></span>
+<span class="line"><span style="color:#85E89D">    percentage</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5</span></span>
+<span class="line"><span style="color:#85E89D">    timeout</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">5m</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">canary</span></span>
+<span class="line"><span style="color:#85E89D">    percentage</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">25</span></span>
+<span class="line"><span style="color:#85E89D">    threshold</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">99.5% success rate</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production</span></span>
+<span class="line"><span style="color:#85E89D">    percentage</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">100</span></span>
+<span class="line"></span></code></pre>
+<h3 id="4-resource-management-matters">4. Resource Management Matters</h3>
+<p>GPU utilization directly impacts cost. We reduced our costs by 40% through:</p>
+<ul>
+<li>Dynamic batching</li>
+<li>Request prioritization</li>
+<li>Automatic scaling policies</li>
+</ul>
+<h2 id="building-the-right-team">Building the Right Team</h2>
+<p>Infrastructure engineering is a team sport. You need:</p>
+<ol>
+<li><strong>ML Engineers</strong> who understand model requirements</li>
+<li><strong>Infrastructure Engineers</strong> who think at scale</li>
+<li><strong>DevOps specialists</strong> for operational excellence</li>
+<li><strong>Data Engineers</strong> for pipeline reliability</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>Scalable AI infrastructure doesn’t just happen—it’s built intentionally with clear principles:</p>
+<ul>
+<li>✓ Start simple, but plan for scale</li>
+<li>✓ Monitor everything</li>
+<li>✓ Invest in tooling early</li>
+<li>✓ Treat operations as a first-class concern</li>
+</ul>
+<p>The infrastructure you build today will determine how fast you can move tomorrow.</p>  </article> </body></html>
