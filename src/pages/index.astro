@@ -1,6 +1,6 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import { site } from '../config';
+import { site, social } from '../config';
 ---
 
 <MainLayout title="Home - Aunmoy Dey Tanmoy">
@@ -26,11 +26,11 @@ import { site } from '../config';
                 <div class="text-sm text-slate-600 dark:text-slate-400 mb-2">Phone</div>
                 <div class="font-mono text-sm">{site.phone}</div>
             </a>
-            <a href={site.social.linkedin} target="_blank" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 transition">
+            <a href={social.linkedin} target="_blank" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 transition">
                 <div class="text-sm text-slate-600 dark:text-slate-400 mb-2">LinkedIn</div>
                 <div class="font-medium text-sm">Profile</div>
             </a>
-            <a href={site.social.github} target="_blank" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 transition">
+            <a href={social.github} target="_blank" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 transition">
                 <div class="text-sm text-slate-600 dark:text-slate-400 mb-2">GitHub</div>
                 <div class="font-medium text-sm">Repository</div>
             </a>

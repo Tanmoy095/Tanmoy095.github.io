@@ -28,20 +28,70 @@ import MainLayout from '../layouts/MainLayout.astro';
         <section class="mb-12">
             <h2 class="text-3xl font-bold mb-6">Recent Learning</h2>
             <div class="space-y-4">
-                <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-lg">
-                    <h3 class="font-bold">Kafka Partition Rebalancing</h3>
-                    <p class="text-sm text-slate-600 dark:text-slate-400">Deep dive into consumer groups and rebalancing strategies</p>
-                    <div class="flex gap-2 mt-2 flex-wrap">
-                        <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded">Kafka</span>
-                        <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded">Distributed Systems</span>
+                <div class="learning-entry p-4 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg">Kafka Partition Rebalancing</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Deep dive into consumer groups and rebalancing strategies</p>
+                        </div>
+                        <span class="expand-icon text-2xl ml-4">+</span>
+                    </div>
+                    <div class="details hidden mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <h4 class="font-semibold mb-2">Key Learnings:</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-sm text-slate-600 dark:text-slate-400 mb-4">
+                            <li>Consumer groups coordinate rebalancing via group coordinator</li>
+                            <li>Stop-the-world rebalancing pauses message processing</li>
+                            <li>Rebalance listeners trigger on onPartitionsRevoked/Assigned</li>
+                            <li>Minimize rebalance time with session.timeout.ms tuning</li>
+                        </ul>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded">Kafka</span>
+                            <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded">Distributed Systems</span>
+                        </div>
                     </div>
                 </div>
-                <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-lg">
-                    <h3 class="font-bold">gRPC Performance Optimization</h3>
-                    <p class="text-sm text-slate-600 dark:text-slate-400">Benchmarking and tuning for high-throughput services</p>
-                    <div class="flex gap-2 mt-2 flex-wrap">
-                        <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">gRPC</span>
-                        <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Go</span>
+                <div class="learning-entry p-4 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg">gRPC Performance Optimization</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Benchmarking and tuning for high-throughput services</p>
+                        </div>
+                        <span class="expand-icon text-2xl ml-4">+</span>
+                    </div>
+                    <div class="details hidden mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <h4 class="font-semibold mb-2">Performance Insights:</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-sm text-slate-600 dark:text-slate-400 mb-4">
+                            <li>HTTP/2 multiplexing reduces connection overhead by 80%+</li>
+                            <li>Protocol Buffers binary format 3-10x faster than JSON</li>
+                            <li>Connection pooling with keepalive prevents handshake latency</li>
+                            <li>Message compression trade-off: CPU vs bandwidth</li>
+                        </ul>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">gRPC</span>
+                            <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Go</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="learning-entry p-4 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg">Kubernetes Resource Limits & Requests</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Understanding scheduler behavior and resource contention</p>
+                        </div>
+                        <span class="expand-icon text-2xl ml-4">+</span>
+                    </div>
+                    <div class="details hidden mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <h4 class="font-semibold mb-2">Core Concepts:</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-sm text-slate-600 dark:text-slate-400 mb-4">
+                            <li>Requests: scheduler uses these for placement decisions</li>
+                            <li>Limits: enforced at runtime via cgroups (OOMKill if exceeded)</li>
+                            <li>QoS classes: Guaranteed > Burstable > BestEffort</li>
+                            <li>Memory overcommit causes pod evictions during pressure</li>
+                        </ul>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">Kubernetes</span>
+                            <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">Infrastructure</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -93,5 +143,39 @@ import MainLayout from '../layouts/MainLayout.astro';
                 </div>
             </div>
         </section>
+
+        <section id="contact" class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800">
+            <h2 class="text-3xl font-bold mb-6">Get In Touch</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                    <h3 class="font-bold text-lg mb-2">Email</h3>
+                    <a href="mailto:adtanmoy95@gmail.com" class="text-indigo-600 dark:text-indigo-400 hover:underline">adtanmoy95@gmail.com</a>
+                </div>
+                <div class="p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <h3 class="font-bold text-lg mb-2">Phone</h3>
+                    <a href="tel:+8801850371329" class="text-purple-600 dark:text-purple-400 hover:underline">+8801850371329</a>
+                </div>
+                <div class="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <h3 class="font-bold text-lg mb-2">LinkedIn</h3>
+                    <a href="https://linkedin.com/in/aunmoy-dey-tanmoy095" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">View Profile →</a>
+                </div>
+                <div class="p-6 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
+                    <h3 class="font-bold text-lg mb-2">GitHub</h3>
+                    <a href="https://github.com/Tanmoy095" target="_blank" class="text-gray-600 dark:text-gray-400 hover:underline">View Projects →</a>
+                </div>
+            </div>
+        </section>
     </div>
+
+    <script>
+        document.querySelectorAll('.learning-entry').forEach(entry => {
+            entry.addEventListener('click', function() {
+                const details = this.querySelector('.details');
+                const icon = this.querySelector('.expand-icon');
+                
+                details.classList.toggle('hidden');
+                icon.textContent = details.classList.contains('hidden') ? '+' : '−';
+            });
+        });
+    </script>
 </MainLayout>
