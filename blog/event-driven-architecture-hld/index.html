@@ -1,0 +1,226 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Event-Driven Architecture (HLD): Saga Pattern, Outbox Pattern &amp; CQRS | Aunmoy Dey Tanmoy</title><meta name="description" content="A deep dive into Event-Driven Architecture (EDA) for high-scale distributed systems. Learn how to implement Saga workflows, the Transactional Outbox pattern, and CQRS."><!-- SEO Meta tags --><meta property="og:title" content="Event-Driven Architecture (HLD): Saga Pattern, Outbox Pattern &#38; CQRS"><meta property="og:description" content="A deep dive into Event-Driven Architecture (EDA) for high-scale distributed systems. Learn how to implement Saga workflows, the Transactional Outbox pattern, and CQRS."><meta property="og:type" content="website"><!-- Modern Typography --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><!-- Inline Tailwind Config for Custom Colors & Styles --><script>
+        // Inline script to prevent theme flash
+        const theme = (() => {
+            if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+            return 'light';
+        })();
+      
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script><link rel="stylesheet" href="/_astro/about.vhhCuO7c.css">
+<style>.markdown-body{font-size:1.05rem;line-height:1.8;color:#334155}.dark .markdown-body{color:#cbd5e1}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{color:#0f172a;font-weight:800;letter-spacing:-.025em;margin-top:2.25rem;margin-bottom:1rem;font-family:Outfit,sans-serif}.dark .markdown-body h1,.dark .markdown-body h2,.dark .markdown-body h3,.dark .markdown-body h4{color:#f8fafc}.markdown-body h1{font-size:2.25rem}.markdown-body h2{font-size:1.75rem;border-b:1px solid rgba(226,232,240,.4);padding-bottom:.5rem}.markdown-body h3{font-size:1.35rem}.markdown-body h4{font-size:1.15rem}.markdown-body p{margin-top:0;margin-bottom:1.5rem}.markdown-body pre{background-color:#0f172a;color:#f8fafc;border-radius:1rem;padding:1.25rem;margin:1.5rem 0;overflow-x:auto;border:1px solid rgba(255,255,255,.05);font-size:.9rem;line-height:1.6}.markdown-body code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em;background-color:#6366f11a;color:#4f46e5;padding:.15em .4em;border-radius:.375em}.dark .markdown-body code{background-color:#6366f133;color:#c7d2fe}.markdown-body pre code{background-color:transparent;color:inherit;padding:0;font-size:inherit;border-radius:0}.markdown-body ul,.markdown-body ol{margin-top:0;margin-bottom:1.5rem;padding-left:1.5rem}.markdown-body ul{list-style-type:disc}.markdown-body ol{list-style-type:decimal}.markdown-body li{margin-bottom:.5rem}.markdown-body table{width:100%;border-collapse:collapse;margin:2rem 0;font-size:.95rem}.markdown-body th,.markdown-body td{padding:.75rem 1rem;border-bottom:1px solid #e2e8f0;text-align:left}.dark .markdown-body th,.dark .markdown-body td{border-bottom:1px solid #1e293b}.markdown-body th{font-weight:700;background-color:#f1f5f9;color:#0f172a}.dark .markdown-body th{background-color:#0f172a;color:#f8fafc}.markdown-body blockquote{margin:1.5rem 0;padding:.5rem 0 .5rem 1.25rem;border-left:4px solid #6366f1;background-color:#6366f10d;border-radius:0 .5rem .5rem 0;font-style:italic}.dark .markdown-body blockquote{background-color:#6366f11a}
+</style></head> <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col"> <!-- Header --> <header class="sticky top-0 z-50 glass-header border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300"> <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"> <a href="/" class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"> Tanmoy </a> <!-- Desktop Navigation --> <div class="hidden md:flex gap-8 items-center"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Admin </a> <!-- Dark Mode Toggle --> <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-200 focus:outline-none" aria-label="Toggle theme"> <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg> <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg> </button> </div> <!-- Mobile Menu Toggle Button --> <div class="flex md:hidden items-center gap-4"> <button id="mobile-theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" aria-label="Toggle theme"> <span class="dark:hidden">🌙</span> <span class="hidden dark:inline">☀️</span> </button> <button id="menu-btn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg> </button> </div> </nav> <!-- Mobile Dropdown Menu --> <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex flex-col gap-4 bg-white/95 dark:bg-slate-950/95 transition-all duration-300"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Admin </a> </div> </header> <!-- Main Content --> <main class="flex-grow max-w-6xl w-full mx-auto px-6 py-12">  <div class="py-6 max-w-3xl mx-auto"> <!-- Back Link --> <a href="/blog" class="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm uppercase tracking-wider mb-8 transition-colors duration-200"> <span>←</span> Back to Blog
+</a> <div class="mb-8 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-sm"> <img src="/blog-assets/event-driven-architecture-hld.jpg" alt="Event-Driven Architecture (HLD): Saga Pattern, Outbox Pattern &#38; CQRS" class="w-full max-h-80 object-cover"> </div> <!-- Article Header --> <header class="mb-10 pb-8 border-b border-slate-200/50 dark:border-slate-800/50"> <div class="flex items-center gap-4 text-xs text-slate-400 mb-4"> <span>Published on June 8, 2026</span> <span>•</span> <span>By Aunmoy Dey Tanmoy</span> </div> <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight"> Event-Driven Architecture (HLD): Saga Pattern, Outbox Pattern &amp; CQRS </h1> <!-- Tags --> <div class="flex flex-wrap gap-2"> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> System Design </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Distributed Systems </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> EDA </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Kafka </span> </div> </header> <!-- Markdown Body --> <article class="markdown-body"> <h1 id="event-driven-architecture-eda-at-scale">Event-Driven Architecture (EDA) at Scale</h1>
+<p>In modern cloud systems, building highly available, decoupled, and horizontally scalable microservices is the standard. Traditional synchronous communication (REST/gRPC) is simple but creates strong coupling. If Service A calls Service B synchronously, and Service B is down, Service A fails too.</p>
+<p><strong>Event-Driven Architecture (EDA)</strong> solves this temporal coupling by introducing an asynchronous message broker (like Apache Kafka or RabbitMQ) between services. Instead of calling each other directly, services emit <strong>Events</strong>—immutable records of things that have happened in the past (e.g., <code>OrderCreated</code>, <code>PaymentAuthorized</code>).</p>
+<hr>
+<h2 id="core-patterns-in-event-driven-systems">Core Patterns in Event-Driven Systems</h2>
+<p>To build resilient and consistent event-driven systems, senior engineers rely on several critical patterns.</p>
+<h3 id="1-transactional-outbox-pattern">1. Transactional Outbox Pattern</h3>
+<h4 id="the-problem-dual-write-inconsistency">The Problem: Dual Write Inconsistency</h4>
+<p>When a service processes a business request, it often needs to do two things:</p>
+<ol>
+<li>Update its local database (e.g., save an order in the Orders DB).</li>
+<li>Publish an event to a message broker (e.g., send <code>OrderCreated</code> to Kafka).</li>
+</ol>
+<p>If the database write succeeds but the message broker publish fails, the system enters an inconsistent state. If you try to reverse the order, the publish succeeds but the database write fails—leaving downstream services reacting to an event that never existed in the source database.</p>
+<h4 id="the-solution-the-outbox-table">The Solution: The Outbox Table</h4>
+<p>Instead of publishing the event directly during the HTTP request, you save both the entity change and the event payload into the <strong>same database</strong> inside a single database transaction. The event is written to a special <code>outbox</code> table.</p>
+<p>Because this write is atomic (all-or-nothing), you guarantee that if the order is saved, the outbox record is also saved.</p>
+<p>An asynchronous process (like Debezium for Change Data Capture (CDC), or a polling worker) reads the <code>outbox</code> table, publishes the event to Kafka, and marks the outbox record as processed.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- Transactional Outbox Schema</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> TABLE</span><span style="color:#B392F0"> orders</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#E1E4E8">    id UUID </span><span style="color:#F97583">PRIMARY KEY</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    customer_id UUID </span><span style="color:#F97583">NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    total_amount </span><span style="color:#F97583">NUMERIC</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">12</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    status</span><span style="color:#F97583"> TEXT</span><span style="color:#F97583"> NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    created_at </span><span style="color:#F97583">TIMESTAMP</span><span style="color:#F97583"> NOT NULL</span><span style="color:#F97583"> DEFAULT</span><span style="color:#F97583"> NOW</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> TABLE</span><span style="color:#B392F0"> outbox</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#E1E4E8">    id UUID </span><span style="color:#F97583">PRIMARY KEY</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    aggregate_type </span><span style="color:#F97583">TEXT</span><span style="color:#F97583"> NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    aggregate_id </span><span style="color:#F97583">TEXT</span><span style="color:#F97583"> NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    event_type </span><span style="color:#F97583">TEXT</span><span style="color:#F97583"> NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    payload JSONB </span><span style="color:#F97583">NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    status</span><span style="color:#F97583"> TEXT</span><span style="color:#F97583"> NOT NULL</span><span style="color:#F97583"> DEFAULT</span><span style="color:#9ECBFF"> 'PENDING'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    created_at </span><span style="color:#F97583">TIMESTAMP</span><span style="color:#F97583"> NOT NULL</span><span style="color:#F97583"> DEFAULT</span><span style="color:#F97583"> NOW</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">);</span></span>
+<span class="line"></span></code></pre>
+<h4 id="outbox-publisher-in-go">Outbox Publisher in Go</h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">package</span><span style="color:#B392F0"> outbox</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">context</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">database/sql</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">encoding/json</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">github.com/google/uuid</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Order</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ID         </span><span style="color:#B392F0">uuid</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">UUID</span></span>
+<span class="line"><span style="color:#E1E4E8">    CustomerID </span><span style="color:#B392F0">uuid</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">UUID</span></span>
+<span class="line"><span style="color:#E1E4E8">    Total      </span><span style="color:#F97583">float64</span></span>
+<span class="line"><span style="color:#E1E4E8">    Status     </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> CreateOrderTx</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">db</span><span style="color:#F97583"> *</span><span style="color:#B392F0">sql</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">DB</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">order</span><span style="color:#F97583"> *</span><span style="color:#B392F0">Order</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    tx, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> db.</span><span style="color:#B392F0">BeginTx</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#79B8FF">nil</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    defer</span><span style="color:#E1E4E8"> tx.</span><span style="color:#B392F0">Rollback</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // 1. Insert order</span></span>
+<span class="line"><span style="color:#E1E4E8">    _, err </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> tx.</span><span style="color:#B392F0">ExecContext</span><span style="color:#E1E4E8">(ctx, </span></span>
+<span class="line"><span style="color:#9ECBFF">        "INSERT INTO orders (id, customer_id, total_amount, status) VALUES ($1, $2, $3, $4)"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">        order.ID, order.CustomerID, order.Total, order.Status,</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // 2. Prepare Outbox Event</span></span>
+<span class="line"><span style="color:#E1E4E8">    payload, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> json.</span><span style="color:#B392F0">Marshal</span><span style="color:#E1E4E8">(order)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    _, err </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> tx.</span><span style="color:#B392F0">ExecContext</span><span style="color:#E1E4E8">(ctx,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "INSERT INTO outbox (id, aggregate_type, aggregate_id, event_type, payload) VALUES ($1, $2, $3, $4, $5)"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">        uuid.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(), </span><span style="color:#9ECBFF">"Order"</span><span style="color:#E1E4E8">, order.ID.</span><span style="color:#B392F0">String</span><span style="color:#E1E4E8">(), </span><span style="color:#9ECBFF">"OrderCreated"</span><span style="color:#E1E4E8">, payload,</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> tx.</span><span style="color:#B392F0">Commit</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<hr>
+<h3 id="2-saga-pattern-distributed-transactions">2. Saga Pattern (Distributed Transactions)</h3>
+<p>In microservices, databases are split by service. We cannot use standard ACID transactions across multiple databases. If a user places an order, we need to:</p>
+<ol>
+<li>Reserve inventory (Inventory Service)</li>
+<li>Charge credit card (Payment Service)</li>
+<li>Ship goods (Shipment Service)</li>
+</ol>
+<p>If payment fails after inventory is reserved, we must release the inventory.</p>
+<p>A <strong>Saga</strong> is a sequence of local transactions. For every local transaction that executes, the Saga coordinator tracks progress. If a step fails, the Saga runs <strong>compensating transactions</strong> in reverse order to undo the changes.</p>
+<h4 id="choreography-vs-orchestration">Choreography vs. Orchestration</h4>
+<ul>
+<li><strong>Choreography:</strong> Services emit events and listen to other services’ events independently. Simple to set up but difficult to trace and debug as the system grows.</li>
+<li><strong>Orchestration:</strong> A central coordinator service (often built with workflow tools like <strong>Temporal</strong>) explicitly orchestrates the steps, handles retries, and triggers compensations. This is the preferred approach for complex business workflows (such as billing or fulfillment).</li>
+</ul>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Orchestrator] ──(Reserve Inventory)──> [Inventory Service]</span></span>
+<span class="line"><span>[Orchestrator] &#x3C;──(Inventory Reserved)── [Inventory Service]</span></span>
+<span class="line"><span>[Orchestrator] ──(Process Payment)──>   [Payment Service] (FAILS!)</span></span>
+<span class="line"><span>[Orchestrator] ──(Release Inventory)──> [Inventory Service] (COMPENSATION)</span></span>
+<span class="line"><span></span></span></code></pre>
+<hr>
+<h3 id="3-cqrs-command-query-responsibility-segregation">3. CQRS (Command Query Responsibility Segregation)</h3>
+<p>In highly concurrent systems, the write path (commands) and the read path (queries) have different performance and scaling requirements.</p>
+<ul>
+<li><strong>Writes</strong> require complex validation, consistency checks, and transaction boundaries.</li>
+<li><strong>Reads</strong> require fast aggregation, filtering, search, and denormalized views.</li>
+</ul>
+<p><strong>CQRS</strong> separates the write model from the read model:</p>
+<ul>
+<li>The <strong>Write DB</strong> (PostgreSQL/MySQL) processes commands.</li>
+<li>Whenever writes happen, an event is emitted.</li>
+<li>An event consumer project processes this event and updates the <strong>Read DB</strong> (Elasticsearch, Redis, or denormalized Postgres tables).</li>
+<li>Queries are served directly from the Read DB, making read APIs extremely fast.</li>
+</ul>
+<hr>
+<h2 id="core-messaging-brokers-kafka-vs-rabbitmq">Core Messaging Brokers: Kafka vs. RabbitMQ</h2>
+<p>When building EDA systems, picking the right messaging broker is vital:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Feature</th><th align="left">Apache Kafka</th><th align="left">RabbitMQ</th></tr></thead><tbody><tr><td align="left"><strong>Model</strong></td><td align="left">Log-based (Pull model)</td><td align="left">Message queue (Push model)</td></tr><tr><td align="left"><strong>Ordering</strong></td><td align="left">Guaranteed per partition</td><td align="left">Guaranteed only within a queue</td></tr><tr><td align="left"><strong>Persistence</strong></td><td align="left">Durable log (replays allowed)</td><td align="left">Ephemeral queues (deleted after ack)</td></tr><tr><td align="left"><strong>Scale</strong></td><td align="left">Multi-million messages/sec (High throughput)</td><td align="left">Hundreds of thousands/sec</td></tr><tr><td align="left"><strong>Best Used For</strong></td><td align="left">Stream processing, event logs, analytics</td><td align="left">Routing, work queues, tasks</td></tr></tbody></table>
+<hr>
+<h2 id="best-practices-for-event-driven-systems">Best Practices for Event-Driven Systems</h2>
+<ol>
+<li><strong>Idempotency is Mandatory:</strong> Message delivery is usually “at-least-once”. Consumers will receive duplicate events due to network retries. Ensure your database updates use deduplication keys or <code>UPSERT</code> semantics.</li>
+<li><strong>Schema Registry:</strong> Use Avro or Protobuf schemas and maintain a schema registry. This prevents breaking changes when event formats change.</li>
+<li><strong>Dead-Letter Queues (DLQ):</strong> If a consumer fails to process a message due to a bad payload (poison pill), do not block the queue. Route the message to a DLQ for offline debugging and alerts.</li>
+<li><strong>Distributed Tracing:</strong> Implement OpenTelemetry to inject trace IDs into event headers. This allows you to trace a single transaction as it propagates asynchronously across multiple services and message brokers.</li>
+</ol> </article> </div>  </main> <!-- Footer --> <footer class="bg-slate-900 dark:bg-black text-slate-300 dark:text-slate-400 border-t border-slate-800 py-12 mt-auto transition-colors duration-300"> <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left"> <div> <p class="font-bold text-white text-lg tracking-wide">Aunmoy Dey Tanmoy</p> <p class="text-sm text-slate-400 mt-1">AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer</p> </div> <div class="flex flex-col md:items-end text-sm gap-2"> <p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p> <p class="text-slate-500">adtanmoy95@gmail.com | +8801850371329</p> </div> </div> </footer> <!-- Theme & Menu Scripts --> <script>
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+
+        function updateIcons() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                themeToggleDarkIcon.classList.remove('hidden');
+                themeToggleLightIcon.classList.add('hidden');
+            }
+        }
+
+        updateIcons();
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateIcons();
+        }
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script> </body> </html> 

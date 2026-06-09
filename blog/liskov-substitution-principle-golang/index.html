@@ -1,0 +1,715 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Liskov Substitution Principle (LSP) in Go &amp; Distributed Systems | Aunmoy Dey Tanmoy</title><meta name="description" content="How the Liskov Substitution Principle translates to Go's implicit interfaces and distributed architectures, ensuring behavioral contracts aren't broken."><!-- SEO Meta tags --><meta property="og:title" content="Liskov Substitution Principle (LSP) in Go &#38; Distributed Systems"><meta property="og:description" content="How the Liskov Substitution Principle translates to Go's implicit interfaces and distributed architectures, ensuring behavioral contracts aren't broken."><meta property="og:type" content="website"><!-- Modern Typography --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><!-- Inline Tailwind Config for Custom Colors & Styles --><script>
+        // Inline script to prevent theme flash
+        const theme = (() => {
+            if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+            return 'light';
+        })();
+      
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script><link rel="stylesheet" href="/_astro/about.vhhCuO7c.css">
+<style>.markdown-body{font-size:1.05rem;line-height:1.8;color:#334155}.dark .markdown-body{color:#cbd5e1}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{color:#0f172a;font-weight:800;letter-spacing:-.025em;margin-top:2.25rem;margin-bottom:1rem;font-family:Outfit,sans-serif}.dark .markdown-body h1,.dark .markdown-body h2,.dark .markdown-body h3,.dark .markdown-body h4{color:#f8fafc}.markdown-body h1{font-size:2.25rem}.markdown-body h2{font-size:1.75rem;border-b:1px solid rgba(226,232,240,.4);padding-bottom:.5rem}.markdown-body h3{font-size:1.35rem}.markdown-body h4{font-size:1.15rem}.markdown-body p{margin-top:0;margin-bottom:1.5rem}.markdown-body pre{background-color:#0f172a;color:#f8fafc;border-radius:1rem;padding:1.25rem;margin:1.5rem 0;overflow-x:auto;border:1px solid rgba(255,255,255,.05);font-size:.9rem;line-height:1.6}.markdown-body code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em;background-color:#6366f11a;color:#4f46e5;padding:.15em .4em;border-radius:.375em}.dark .markdown-body code{background-color:#6366f133;color:#c7d2fe}.markdown-body pre code{background-color:transparent;color:inherit;padding:0;font-size:inherit;border-radius:0}.markdown-body ul,.markdown-body ol{margin-top:0;margin-bottom:1.5rem;padding-left:1.5rem}.markdown-body ul{list-style-type:disc}.markdown-body ol{list-style-type:decimal}.markdown-body li{margin-bottom:.5rem}.markdown-body table{width:100%;border-collapse:collapse;margin:2rem 0;font-size:.95rem}.markdown-body th,.markdown-body td{padding:.75rem 1rem;border-bottom:1px solid #e2e8f0;text-align:left}.dark .markdown-body th,.dark .markdown-body td{border-bottom:1px solid #1e293b}.markdown-body th{font-weight:700;background-color:#f1f5f9;color:#0f172a}.dark .markdown-body th{background-color:#0f172a;color:#f8fafc}.markdown-body blockquote{margin:1.5rem 0;padding:.5rem 0 .5rem 1.25rem;border-left:4px solid #6366f1;background-color:#6366f10d;border-radius:0 .5rem .5rem 0;font-style:italic}.dark .markdown-body blockquote{background-color:#6366f11a}
+</style></head> <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col"> <!-- Header --> <header class="sticky top-0 z-50 glass-header border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300"> <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"> <a href="/" class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"> Tanmoy </a> <!-- Desktop Navigation --> <div class="hidden md:flex gap-8 items-center"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Admin </a> <!-- Dark Mode Toggle --> <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-200 focus:outline-none" aria-label="Toggle theme"> <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg> <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg> </button> </div> <!-- Mobile Menu Toggle Button --> <div class="flex md:hidden items-center gap-4"> <button id="mobile-theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" aria-label="Toggle theme"> <span class="dark:hidden">🌙</span> <span class="hidden dark:inline">☀️</span> </button> <button id="menu-btn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg> </button> </div> </nav> <!-- Mobile Dropdown Menu --> <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex flex-col gap-4 bg-white/95 dark:bg-slate-950/95 transition-all duration-300"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Admin </a> </div> </header> <!-- Main Content --> <main class="flex-grow max-w-6xl w-full mx-auto px-6 py-12">  <div class="py-6 max-w-3xl mx-auto"> <!-- Back Link --> <a href="/blog" class="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm uppercase tracking-wider mb-8 transition-colors duration-200"> <span>←</span> Back to Blog
+</a> <div class="mb-8 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-sm"> <img src="/blog-assets/liskov-substitution-principle-golang.jpg" alt="Liskov Substitution Principle (LSP) in Go &#38; Distributed Systems" class="w-full max-h-80 object-cover"> </div> <!-- Article Header --> <header class="mb-10 pb-8 border-b border-slate-200/50 dark:border-slate-800/50"> <div class="flex items-center gap-4 text-xs text-slate-400 mb-4"> <span>Published on June 6, 2026</span> <span>•</span> <span>By Aunmoy Dey Tanmoy</span> </div> <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight"> Liskov Substitution Principle (LSP) in Go &amp; Distributed Systems </h1> <!-- Tags --> <div class="flex flex-wrap gap-2"> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Go </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> SOLID </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Distributed Systems </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Clean Code </span> </div> </header> <!-- Markdown Body --> <article class="markdown-body"> <h1 id="liskov-substitution-principle-lsp-in-go-lang">Liskov Substitution Principle (LSP) in Go Lang</h1>
+<p>Liskov Substitution Principle (LSP)</p>
+<p>In traditional object-oriented languages (like Java or C++), LSP is all about inheritance: “Derived classes must be substitutable for their base classes.”
+But Go does not have inheritance. There is no extends keyword. Instead, Go relies entirely on composition and Implicit Interfaces. Therefore, in Golang, LSP means one thing: Honoring the Behavioral Contract.
+When a High Level module depends on a Go Interface, It expects on some behaviors Guarantees and Invariants. If an implementation satisfied thew structural signature of the interface but does not satisfy or violates the underlying Semantic promises you have broken LSPThe Ultimate Litmus Test for an LSP ViolationIf you ever see code that looks like this inside your core business logic, LSP is dead:
+package main
+//This interface is too broad: it forces every store to implement Save,FindByID, and Delete. Postgres can do all three (✅).
+//But Redis cannot delete shipments (❌). But since Go requires all methods, Redis must implement Delete anyway.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentStore</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    Save(id string, payload []byte) error
+    FindByID(id string) ([]byte, error)
+    Delete(id string) error
+}</p>
+<p>// Postgres supports full CRUD</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> PostgresStore</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">p </span><span style="color:#F97583">*</span><span style="color:#B392F0">PostgresStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Save</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">payload</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Postgres: saving shipment"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">p </span><span style="color:#F97583">*</span><span style="color:#B392F0">PostgresStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">FindByID</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) ([]</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Postgres data for "</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> id), </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">p </span><span style="color:#F97583">*</span><span style="color:#B392F0">PostgresStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Delete</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Postgres: deleting shipment"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>// Redis cannot delete shipments</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> RedisStore</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RedisStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Save</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">payload</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Redis: caching shipment"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RedisStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">FindByID</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) ([]</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Redis cached data for "</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> id), </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>//Redis pretends to support Delete, but really it doesn’t.
+//This breaks the (LSP):the caller expects Delete to work, but Redis violates the promise.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RedisStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Delete</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> errors.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"operation not supported: Redis cannot delete"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>// Service depending on abstraction</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    store </span><span style="color:#B392F0">ShipmentStore</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">RemoveShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D"> //❌ Architectural crime: special-case handling .Service Must check using type </span></span>
+<span class="line"><span style="color:#6A737D">//That means the abstraction (ShipmentStore) is useless — the caller isn’t blind anymore.</span></span>
+<span class="line"><span style="color:#6A737D">//Every new store type (Mongo, Cloud, etc.) would force changes here.</span></span>
+<span class="line"><span style="color:#6A737D">//This is why it’s called an architectural crime: business logic is now tightly coupled to infrastructure details.</span></span>
+<span class="line"><span style="color:#F97583">    switch</span><span style="color:#E1E4E8"> impl </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.store.(</span><span style="color:#F97583">type</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    case</span><span style="color:#F97583"> *</span><span style="color:#B392F0">PostgresStore</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        impl.</span><span style="color:#B392F0">Delete</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"><span style="color:#F97583">    case</span><span style="color:#F97583"> *</span><span style="color:#B392F0">RedisStore</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Redis cannot delete shipments, skipping..."</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>}</p>
+<p>We split responsibilities so each store only promises what it can actually do
+Step 1: Define Contracts (Interfaces).
+// Core contracts</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentReader</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    FindByID(id string) ([]byte, error)
+}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentWriter</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    Save(id string, payload []byte) error
+}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentDeleter</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    Delete(id string) error
+}</p>
+<p>// Full-featured store (CRUD)
+Type ShipmentStore interface {
+     ShipmentReader
+     ShipmentWriter
+     ShipmentDeleter
+}</p>
+<p>Reader → for read-only stores (like cache).
+Writer → for stores that can persist shipments.
+Deleter → for stores that can remove shipments.
+ShipmentStore → full CRUD (Postgres, Mongo, etc.).
+🗄️ Step 2: Implementations:
+Postgres (full CRUD)
+go</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> PostgresStore</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">p </span><span style="color:#F97583">*</span><span style="color:#B392F0">PostgresStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Save</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">payload</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Postgres: saving shipment"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">p </span><span style="color:#F97583">*</span><span style="color:#B392F0">PostgresStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">FindByID</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) ([]</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Postgres data for "</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> id), </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">p </span><span style="color:#F97583">*</span><span style="color:#B392F0">PostgresStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Delete</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Postgres: deleting shipment"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>Redis (read + write, but no delete)</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> RedisStore</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RedisStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Save</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">payload</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Redis: caching shipment"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RedisStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">FindByID</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) ([]</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Redis cached data for "</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> id), </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>Cloud Storage (read + write, delete optional): Cloud supports full CRUD (like S3/Blob)</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> CloudStore</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">c </span><span style="color:#F97583">*</span><span style="color:#B392F0">CloudStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Save</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">payload</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Cloud: uploading shipment"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">c </span><span style="color:#F97583">*</span><span style="color:#B392F0">CloudStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">FindByID</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) ([]</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Cloud data for "</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> id), </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">c </span><span style="color:#F97583">*</span><span style="color:#B392F0">CloudStore</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Delete</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Cloud: deleting shipment"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>⚙️ Step 3: Services Depending on Abstractions: Business service that needs full CRUD
+// ShipmentService orchestrates DB + Cache</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    store </span><span style="color:#B392F0">ShipmentStore</span><span style="color:#6A737D">   // durable DB (Postgres/Cloud)</span></span>
+<span class="line"><span style="color:#E1E4E8">    cache </span><span style="color:#B392F0">ShipmentReader</span><span style="color:#6A737D">  // fast cache (Redis)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">CreateShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">payload</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Save to DB</span></span>
+<span class="line"><span style="color:#E1E4E8">    s.store.</span><span style="color:#B392F0">Save</span><span style="color:#E1E4E8">(id, payload)</span></span>
+<span class="line"><span style="color:#6A737D">    // Save to cache if supported</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> writer, ok </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.cache.(</span><span style="color:#B392F0">ShipmentWriter</span><span style="color:#E1E4E8">); ok {</span></span>
+<span class="line"><span style="color:#E1E4E8">        writer.</span><span style="color:#B392F0">Save</span><span style="color:#E1E4E8">(id, payload)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GetShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) ([]</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Try cache first</span></span>
+<span class="line"><span style="color:#E1E4E8">    data, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.cache.</span><span style="color:#B392F0">FindByID</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> nil</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#B392F0"> len</span><span style="color:#E1E4E8">(data) </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Cache hit"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> data, </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>    // Fallback to DB
+    fmt.Println(“Cache miss, hitting DB”)
+    data, err = s.store.FindByID(id)
+    if err != nil {
+        return nil, err
+    }</p>
+<p>    // Update cache for next time
+    if writer, ok := s.cache.(ShipmentWriter); ok {
+        writer.Save(id, data)
+    }
+    return data, nil
+}
+//Evist Redis so that Stale Data Isnt Served.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">RemoveShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    s.store.</span><span style="color:#B392F0">Delete</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> deleter, ok </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.cache.(</span><span style="color:#B392F0">ShipmentDeleter</span><span style="color:#E1E4E8">); ok {</span></span>
+<span class="line"><span style="color:#E1E4E8">        deleter.</span><span style="color:#B392F0">Delete</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>}</p>
+<p>Reporting service only needs reads</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ReportingService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    db    </span><span style="color:#B392F0">ShipmentReader</span><span style="color:#6A737D">   // durable source (Postgres/Cloud)</span></span>
+<span class="line"><span style="color:#E1E4E8">    cache </span><span style="color:#B392F0">ShipmentReader</span><span style="color:#6A737D">   // fast cache (Redis)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">ReportingService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GenerateReport</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Try cache first</span></span>
+<span class="line"><span style="color:#E1E4E8">    data, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> r.cache.</span><span style="color:#B392F0">FindByID</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> nil</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#B392F0"> len</span><span style="color:#E1E4E8">(data) </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Report (cache hit):"</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">string</span><span style="color:#E1E4E8">(data))</span></span>
+<span class="line"><span style="color:#F97583">        return</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>    // Fallback to DB
+    fmt.Println(“Cache miss, hitting DB”)
+    data, err = r.db.FindByID(id)
+    if err != nil {
+        fmt.Println(“Error fetching from DB:”, err)
+        return
+    }</p>
+<p>    // Update cache for next time
+    if writer, ok := r.cache.(ShipmentWriter); ok {
+        writer.Save(id, data)
+    }</p>
+<p>    fmt.Println(“Report (from DB):”, string(data))
+}
+Step 4: Main program</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    postgres </span><span style="color:#F97583">:=</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">PostgresStore</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"><span style="color:#E1E4E8">    redis </span><span style="color:#F97583">:=</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">RedisStore</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"><span style="color:#E1E4E8">    cloud </span><span style="color:#F97583">:=</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">CloudStore</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // ShipmentService with Postgres + Redis</span></span>
+<span class="line"><span style="color:#E1E4E8">    shipmentService </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> ShipmentService</span><span style="color:#E1E4E8">{store: postgres, cache: redis}</span></span>
+<span class="line"><span style="color:#E1E4E8">    shipmentService.</span><span style="color:#B392F0">CreateShipment</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"SHIP-123"</span><span style="color:#E1E4E8">, []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"payload"</span><span style="color:#E1E4E8">))</span></span>
+<span class="line"><span style="color:#E1E4E8">    shipmentService.</span><span style="color:#B392F0">GetShipment</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"SHIP-123"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    shipmentService.</span><span style="color:#B392F0">RemoveShipment</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"SHIP-123"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // Reporting service with Redis only</span></span>
+<span class="line"><span style="color:#E1E4E8">    reporting </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> ReportingService</span><span style="color:#E1E4E8">{reader: redis, db: postgres</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>    reporting.GenerateReport(“SHIP-456”)</p>
+<p>    // ShipmentService with Cloud + Redis
+    shipmentService2 := ShipmentService{store: cloud, cache: redis}
+    shipmentService2.CreateShipment(“SHIP-789”, []byte(“payload”))
+    shipmentService2.GetShipment(“SHIP-789”)
+    shipmentService2.RemoveShipment(“SHIP-789”)
+}</p>
+<p>In the context of our shipment example, the first design violated LSP because Redis was forced to implement a Delete method even though it cannot truly support deletion in the same way a database does. That meant the abstraction (ShipmentStore) was lying: the caller expected deletion to work, but substituting Redis broke the promise. This led to specialcase handling in the service layer, which is exactly what LSP warns against — the client should not need to check “is this Postgres or Redis?” to decide how to behave.
+By splitting responsibilities into smaller, capabilitybased interfaces (ShipmentReader, ShipmentWriter, ShipmentDeleter), each store only promises what it can actually do. Postgres and Cloud implement full CRUD, Redis implements only read and write, and services depend only on the capabilities they truly need. This way, Redis can be safely substituted wherever a Reader or Writer is expected, and Postgres or Cloud can be substituted wherever full CRUD is required. No fake methods, no broken promises, no typeswitch hacks — just clean abstractions.
+The theoretical takeaway is that LSP ensures substitutability without surprises. If a service depends on an abstraction, any implementation of that abstraction should behave consistently with the contract. Violating LSP forces the client to handle special cases and undermines the whole point of abstraction. Respecting LSP, as we did in the final design, keeps business logic decoupled from infrastructure details, makes the system easier to extend, and ensures that swapping one store for another does not break correctness</p>
+<h1 id="lsp-in-distributed-systems--microservices">LSP in Distributed Systems &#x26; Microservices</h1>
+<p>Liskov Substitution Principle (LSP) in Distributed Shipment Systems
+The Liskov Substitution Principle (LSP) is the L in SOLID.It says:
+Objects of a superclass should be replaceable with objects of its subclasses without affecting the correctness of the program.
+In distributed systems terms:If a component works with a base interface, you must be able to swap in any derived implementation – under high load, network partitions, and partial failures – without breaking the system’s business logic or safety guarantees.</p>
+<p>🚚 RealWorld Context: LogiSynapse Shipment Platform
+LogiSynapse handles millions of shipments daily across multiple carriers (FedEx, UPS, DHL, regional LTL, drone delivery). It also uses different routing engines, pricing calculators, and tracking providers.
+The business rules are highlevel:
+Create shipment → calculate price → assign carrier → track until delivery → handle exceptions
+These rules must not change when you swap:
+A pricing engine (flat rate → dynamic surcharge → zonebased)
+A carrier API (FedEx → UPS)
+A routing algorithm (Dijkstra → A* → timewindow constrained)
+LSP guarantees that every implementation of a given interface behaves in a way that the core orchestration logic can rely on – without specialcase if checks.</p>
+<p>❌ LSP Violation: The “Broken Carrier” Example
+Imagine you have a Carrier interface used by the ShipmentOrchestrator.
+go
+// Base abstraction</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Carrier</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>CreateShipment(shipment Shipment) (TrackingID, error)</span></span>
+<span class="line"><span>CancelShipment(trackingID TrackingID) error</span></span>
+<span class="line"><span>GetTrackingStatus(trackingID TrackingID) (Status, error)</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}
+Now two implementations:
+FedExCarrier – works correctly
+CheapRegionalCarrier – violates LSP
+go
+// FedEx implementation – follows expected behavior</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> FedExCarrier</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    client </span><span style="color:#F97583">*</span><span style="color:#B392F0">fedex</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">f </span><span style="color:#F97583">*</span><span style="color:#B392F0">FedExCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">CreateShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">s</span><span style="color:#B392F0"> Shipment</span><span style="color:#E1E4E8">) (</span><span style="color:#B392F0">TrackingID</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Always returns a valid tracking ID within 2 seconds</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> f.client.</span><span style="color:#B392F0">BookShipment</span><span style="color:#E1E4E8">(s)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">f </span><span style="color:#F97583">*</span><span style="color:#B392F0">FedExCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">CancelShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#B392F0"> TrackingID</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">    // Cancellation always works within 5 seconds</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> f.client.</span><span style="color:#B392F0">VoidShipment</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">f </span><span style="color:#F97583">*</span><span style="color:#B392F0">FedExCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GetTrackingStatus</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#B392F0"> TrackingID</span><span style="color:#E1E4E8">) (</span><span style="color:#B392F0">Status</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Returns one of: CREATED, IN_TRANSIT, DELIVERED, EXCEPTION</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> f.client.</span><span style="color:#B392F0">GetStatus</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>// RegionalCarrier implementation – VIOLATES LSP</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> RegionalCarrier</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    client </span><span style="color:#F97583">*</span><span style="color:#B392F0">regional</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RegionalCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">CreateShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">s</span><span style="color:#B392F0"> Shipment</span><span style="color:#E1E4E8">) (</span><span style="color:#B392F0">TrackingID</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Violation #1: Stronger precondition – cannot handle shipments > 50kg</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> s.WeightKg </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 50</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> ""</span><span style="color:#E1E4E8">, errors.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"weight limit exceeded"</span><span style="color:#E1E4E8">)  </span><span style="color:#6A737D">// New error type</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>// Violation #2: Sometimes returns empty string as tracking ID</span></span>
+<span class="line"><span>if s.Destination == "rural" {</span></span>
+<span class="line"><span>    return "", nil  // No error, but empty ID – unexpected</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span>return r.client.Book(s), nil</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RegionalCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">CancelShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#B392F0"> TrackingID</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">    // Violation #3: Cancellation not supported – throws new error type</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> errors.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"cancellation not allowed after 1 hour"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RegionalCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GetTrackingStatus</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#B392F0"> TrackingID</span><span style="color:#E1E4E8">) (</span><span style="color:#B392F0">Status</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Violation #4: Returns status values not in the original set</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> id </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> ""</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> "UNKNOWN"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">nil</span><span style="color:#6A737D">  // UNKNOWN not in base contract</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>return "PENDING", nil       // PENDING instead of CREATED – different semantics</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}
+Now the core orchestration logic:
+go</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentOrchestrator</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    carrier </span><span style="color:#B392F0">Carrier</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">o </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentOrchestrator</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">ProcessShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">req</span><span style="color:#F97583"> *</span><span style="color:#B392F0">ShipmentRequest</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">    // Step 1: Create shipment</span></span>
+<span class="line"><span style="color:#E1E4E8">    trackingID, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> o.carrier.</span><span style="color:#B392F0">CreateShipment</span><span style="color:#E1E4E8">(req.Shipment)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> fmt.</span><span style="color:#B392F0">Errorf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"create failed: </span><span style="color:#79B8FF">%w</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, err)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>if trackingID == "" {</span></span>
+<span class="line"><span>    // LSP violation: base contract never allows empty ID</span></span>
+<span class="line"><span>    panic("empty tracking ID")  // This should never happen</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>// Step 2: Store mapping (business rule)</span></span>
+<span class="line"><span>err = o.storeMapping(trackingID, req.OrderID)</span></span>
+<span class="line"><span>if err != nil {</span></span>
+<span class="line"><span>    // Attempt to cancel if store fails</span></span>
+<span class="line"><span>    _ = o.carrier.CancelShipment(trackingID)</span></span>
+<span class="line"><span>    return err</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>// Step 3: Start tracking goroutine (high concurrency)</span></span>
+<span class="line"><span>go o.monitorTracking(trackingID)</span></span>
+<span class="line"><span>return nil</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}
+What happens when you swap FedExCarrier for RegionalCarrier?
+Shipments over 50kg start failing with a new error type that the orchestrator never expected → retry loops → resource exhaustion.
+Rural shipments return empty trackingID → storeMapping fails → orchestrator panics.
+Cancellation after 1 hour fails silently (new error type is ignored by _ but should have been handled).
+Monitoring goroutine receives “PENDING” status, which the business logic doesn’t recognise → metrics break, alerts misfire.
+Result: The system becomes incorrect despite no change to the business logic. That’s an LSP violation.</p>
+<p>🔥 HighConcurrency Implications of LSP Violations
+In a distributed system doing 10k+ RPS, LSP violations cause subtle, catastrophic failures:
+Violation Type
+Behaviour Under Load
+Failure Mode
+Stronger precondition (e.g., weight limit)
+Requests start failing at rate of violated condition
+Circuit breaker opens → all shipments blocked
+Weaker postcondition (e.g., empty ID)
+Downstream stores receive invalid keys → DB constraint violation
+Cascading writes fail, transaction aborts
+New error type not in base
+Error handling code ignores it → resource leak (shipment never cancelled)
+Carrier bills you, customer never notified
+Different semantics (status values)
+Aggregators doublecount states → SLA dashboard shows 200% delivered
+Incorrect business decisions, customer complaints
+Hidden side effects (e.g., writes to local disk)
+Concurrent calls race on file → corruption, panics
+Whole service crashes intermittently
+Senior interview insight:“When you design an interface for a highthroughput system, you are not just defining method signatures. You are defining a behavioural contract that every implementation must honour – even under partial failures, retries, and concurrency.”</p>
+<p>✅ LSPCompliant Design for Shipment Carriers
+Step 1 – Define the contract (in code + tests)
+go
+// Carrier handles shipment lifecycle with a logistics provider.
+//
+// CONTRACT (all implementations must obey):
+// 1. CreateShipment:
+//    - Input: any Shipment (weight up to 2000kg, any origin/dest)
+//    - Returns: nonempty TrackingID (string length >= 6) or a welldefined error
+//    - Error types: only ErrNetwork, ErrAuth, ErrRateLimit – never ErrUnsupported
+//    - Must complete within 3 seconds (p99)
+//    - Must be idempotent for same Shipment (retry safety)
+//
+// 2. CancelShipment:
+//    - Input: valid TrackingID (from CreateShipment)
+//    - Returns: nil if cancelled or already delivered; error only for network/auth issues
+//    - Must be idempotent
+//    - Must complete within 2 seconds (p99)
+//
+// 3. GetTrackingStatus:
+//    - Returns: one of StatusCreated, StatusInTransit, StatusDelivered, StatusException
+//    - Never returns unknown or custom status strings
+//    - Must complete within 1 second (p99)
+//
+// 4. Concurrency: all methods are safe to call from multiple goroutines simultaneously.
+// 5. Backpressure: implementations must respect context cancellation and deadlines.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Carrier</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>CreateShipment(ctx context.Context, shipment Shipment) (TrackingID, error)</span></span>
+<span class="line"><span>CancelShipment(ctx context.Context, trackingID TrackingID) error</span></span>
+<span class="line"><span>GetTrackingStatus(ctx context.Context, trackingID TrackingID) (Status, error)</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}
+Step 2 – Implement each carrier respecting the contract
+go
+// FedExCarrier – follows contract</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> FedExCarrier</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    client </span><span style="color:#F97583">*</span><span style="color:#B392F0">fedex</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">    mu     </span><span style="color:#B392F0">sync</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">RWMutex</span><span style="color:#6A737D">  // for internal metrics, not needed for concurrency</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">f </span><span style="color:#F97583">*</span><span style="color:#B392F0">FedExCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">CreateShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">s</span><span style="color:#B392F0"> Shipment</span><span style="color:#E1E4E8">) (</span><span style="color:#B392F0">TrackingID</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Handle heavy shipments by splitting (internal adaptation)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> s.WeightKg </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 50</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        s </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> s.</span><span style="color:#B392F0">SplitIntoParcels</span><span style="color:#E1E4E8">()  </span><span style="color:#6A737D">// No error, just different implementation</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>id, err := f.client.BookWithContext(ctx, s)</span></span>
+<span class="line"><span>if err != nil {</span></span>
+<span class="line"><span>    if strings.Contains(err.Error(), "timeout") {</span></span>
+<span class="line"><span>        return "", ErrNetwork</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    return "", err</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span>if id == "" {</span></span>
+<span class="line"><span>    return "", errors.New("carrier returned empty ID")  // fail fast, never return empty</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span>return TrackingID(id), nil</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}</p>
+<p>// RegionalCarrier – fixed to obey LSP</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> RegionalCarrier</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    client   </span><span style="color:#F97583">*</span><span style="color:#B392F0">regional</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">    fallback </span><span style="color:#B392F0">Carrier</span><span style="color:#6A737D">  // for shipments beyond capability</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RegionalCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">CreateShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">s</span><span style="color:#B392F0"> Shipment</span><span style="color:#E1E4E8">) (</span><span style="color:#B392F0">TrackingID</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // No precondition – handle internally</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> s.WeightKg </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 50</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">        // Instead of error, use fallback carrier (LSPcompliant composition)</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> r.fallback.</span><span style="color:#B392F0">CreateShipment</span><span style="color:#E1E4E8">(ctx, s)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>id, err := r.client.Book(ctx, s)</span></span>
+<span class="line"><span>if err != nil {</span></span>
+<span class="line"><span>    return "", mapError(err)</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span>if id == "" {</span></span>
+<span class="line"><span>    // Generate a synthetic tracking ID to preserve contract</span></span>
+<span class="line"><span>    id = generateSyntheticID(s)</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span>return TrackingID(id), nil</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RegionalCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">CancelShipment</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">id</span><span style="color:#B392F0"> TrackingID</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">    // If cancellation not supported, noop (idempotent) but never error</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> time.</span><span style="color:#B392F0">Since</span><span style="color:#E1E4E8">(id.CreatedAt) </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 1</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">time.Hour {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> nil</span><span style="color:#6A737D">  // Silently ignore – still obeys contract</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>return r.client.Cancel(ctx, string(id))</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">RegionalCarrier</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GetTrackingStatus</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">id</span><span style="color:#B392F0"> TrackingID</span><span style="color:#E1E4E8">) (</span><span style="color:#B392F0">Status</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    raw, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> r.client.</span><span style="color:#B392F0">Status</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">string</span><span style="color:#E1E4E8">(id))</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> StatusUnknown, err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>// Map custom statuses to standard enum</span></span>
+<span class="line"><span>switch raw {</span></span>
+<span class="line"><span>case "PENDING", "CREATED":</span></span>
+<span class="line"><span>    return StatusCreated, nil</span></span>
+<span class="line"><span>case "MOVING", "EN_ROUTE":</span></span>
+<span class="line"><span>    return StatusInTransit, nil</span></span>
+<span class="line"><span>case "DONE":</span></span>
+<span class="line"><span>    return StatusDelivered, nil</span></span>
+<span class="line"><span>default:</span></span>
+<span class="line"><span>    return StatusException, nil</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}
+Now the ShipmentOrchestrator works identically for any carrier – FedEx, Regional, DHL, even a mock for testing – without any if carrier == regional checks.</p>
+<p>🧪 Testing LSP Under High Concurrency
+You must write propertybased or fuzz tests that verify substitutability:
+go</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> TestCarrierSubstitution</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">t</span><span style="color:#F97583"> *</span><span style="color:#B392F0">testing</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">T</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    carriers </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> []</span><span style="color:#B392F0">Carrier</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#F97583">        &#x26;</span><span style="color:#B392F0">FedExCarrier</span><span style="color:#E1E4E8">{},</span></span>
+<span class="line"><span style="color:#F97583">        &#x26;</span><span style="color:#B392F0">RegionalCarrier</span><span style="color:#E1E4E8">{fallback: </span><span style="color:#F97583">&#x26;</span><span style="color:#B392F0">FedExCarrier</span><span style="color:#E1E4E8">{}},</span></span>
+<span class="line"><span style="color:#F97583">        &#x26;</span><span style="color:#B392F0">MockCarrier</span><span style="color:#E1E4E8">{},</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>for _, carrier := range carriers {</span></span>
+<span class="line"><span>    t.Run(reflect.TypeOf(carrier).Name(), func(t *testing.T) {</span></span>
+<span class="line"><span>        t.Parallel()</span></span>
+<span class="line"><span>        // Run 1000 concurrent operations</span></span>
+<span class="line"><span>        var wg sync.WaitGroup</span></span>
+<span class="line"><span>        for i := 0; i &#x3C; 1000; i++ {</span></span>
+<span class="line"><span>            wg.Add(1)</span></span>
+<span class="line"><span>            go func() {</span></span>
+<span class="line"><span>                defer wg.Done()</span></span>
+<span class="line"><span>                ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)</span></span>
+<span class="line"><span>                defer cancel()</span></span>
+<span class="line"><span>                shipment := randomShipment()  // includes heavy, cross-border, rural</span></span>
+<span class="line"><span>                id, err := carrier.CreateShipment(ctx, shipment)</span></span>
+<span class="line"><span>                if err != nil {</span></span>
+<span class="line"><span>                    // Only allowed errors: network, auth, rate limit</span></span>
+<span class="line"><span>                    if !isAllowedError(err) {</span></span>
+<span class="line"><span>                        t.Errorf("unexpected error: %v", err)</span></span>
+<span class="line"><span>                    }</span></span>
+<span class="line"><span>                    return</span></span>
+<span class="line"><span>                }</span></span>
+<span class="line"><span>                if len(id) &#x3C; 6 {</span></span>
+<span class="line"><span>                    t.Errorf("tracking ID too short: %q", id)</span></span>
+<span class="line"><span>                }</span></span>
+<span class="line"><span>                // ... further checks</span></span>
+<span class="line"><span>            }()</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>        wg.Wait()</span></span>
+<span class="line"><span>    })</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}</p>
+<p>📦 RealWorld Distributed System Example: MultiCarrier Shipment Router
+LogiSynapse has a Shipment Router that chooses the cheapest carrier meeting delivery SLA. It works with a Carrier interface. Because all carriers obey LSP, the router can:
+Query each carrier in parallel for price and estimated transit time
+Select the best one
+Fallback gracefully when one carrier is slow or failing
+go</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> CarrierRouter</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    carriers []</span><span style="color:#B392F0">Carrier</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">CarrierRouter</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Route</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">shipment</span><span style="color:#B392F0"> Shipment</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">*</span><span style="color:#B392F0">Decision</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    type</span><span style="color:#B392F0"> result</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        carrier </span><span style="color:#B392F0">Carrier</span></span>
+<span class="line"><span style="color:#E1E4E8">        quote   </span><span style="color:#F97583">*</span><span style="color:#B392F0">Quote</span></span>
+<span class="line"><span style="color:#E1E4E8">        err     </span><span style="color:#F97583">error</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>results := make(chan result, len(r.carriers))</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>// Fanout to all carriers concurrently</span></span>
+<span class="line"><span>for _, c := range r.carriers {</span></span>
+<span class="line"><span>    go func(carrier Carrier) {</span></span>
+<span class="line"><span>        quote, err := carrier.GetQuote(ctx, shipment)  // LSP ensures consistent behaviour</span></span>
+<span class="line"><span>        results &#x3C;- result{carrier: carrier, quote: quote, err: err}</span></span>
+<span class="line"><span>    }(c)</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>// Collect with timeout</span></span>
+<span class="line"><span>ctx, cancel := context.WithTimeout(ctx, 2*time.Second)</span></span>
+<span class="line"><span>defer cancel()</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>var best *Quote</span></span>
+<span class="line"><span>var bestCarrier Carrier</span></span>
+<span class="line"><span>for i := 0; i &#x3C; len(r.carriers); i++ {</span></span>
+<span class="line"><span>    select {</span></span>
+<span class="line"><span>    case res := &#x3C;-results:</span></span>
+<span class="line"><span>        if res.err != nil {</span></span>
+<span class="line"><span>            continue  // Allowed errors – LSP guarantees no unexpected ones</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>        if best == nil || res.quote.Price &#x3C; best.Price {</span></span>
+<span class="line"><span>            best = res.quote</span></span>
+<span class="line"><span>            bestCarrier = res.carrier</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    case &#x3C;-ctx.Done():</span></span>
+<span class="line"><span>        break</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span>if best == nil {</span></span>
+<span class="line"><span>    return nil, ErrNoCarrierAvailable</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span>return &#x26;Decision{Carrier: bestCarrier, Quote: best}, nil</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>}
+Because every Carrier implements the same behavioural contract, this router works correctly even when some carriers are slow, return errors, or have internal complexities. No switch on carrier type needed.</p>
+<p>🔍 How to Detect LSP Violations in Your Codebase
+Code Smell
+Likely LSP Violation
+Type assertion or type switch on interface value
+Subtypes need special handling → not substitutable
+Method that returns error but only some implementations return that error
+Contract not honoured
+Comments like “this implementation doesn’t support X”
+Stronger precondition
+Unit tests that pass for one implementation but fail for another
+Postconditions differ
+Panic in production after swapping a dependency
+Hidden side effects or concurrency unsafety
+Retry loops that never succeed for certain inputs
+Unexpected error types or idempotency broken</p>
+<p>📌 Summary for a Senior System Design Interview
+LSP is not about syntax – it’s about semantics.
+“If you have a Carrier interface, swapping from FedEx to RegionalCarrier should not require changing any line of business logic, even under 10k RPS and network partitions.”
+Key takeaways for distributed systems:
+Define contracts explicitly – input ranges, output guarantees, error types, concurrency safety, latency bounds.
+Subtypes may only weaken preconditions and strengthen postconditions – never the opposite.
+Test substitutability under high concurrency – property tests, fuzz tests, chaos experiments.
+Use composition and fallbacks to adapt nonconforming implementations without breaking LSP.
+Remember: In a microservices world, your interfaces are APIs – swapping a client for another must not break the caller’s assumptions.
+The ultimate LSP test:Could you replace a core implementation with a completely different technology (gRPC → message queue, SQL → NoSQL, FedEx → drone swarm) without changing the orchestrator?If yes → you’ve followed LSP.If no → you have a design that will hurt you in production.</p> </article> </div>  </main> <!-- Footer --> <footer class="bg-slate-900 dark:bg-black text-slate-300 dark:text-slate-400 border-t border-slate-800 py-12 mt-auto transition-colors duration-300"> <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left"> <div> <p class="font-bold text-white text-lg tracking-wide">Aunmoy Dey Tanmoy</p> <p class="text-sm text-slate-400 mt-1">AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer</p> </div> <div class="flex flex-col md:items-end text-sm gap-2"> <p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p> <p class="text-slate-500">adtanmoy95@gmail.com | +8801850371329</p> </div> </div> </footer> <!-- Theme & Menu Scripts --> <script>
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+
+        function updateIcons() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                themeToggleDarkIcon.classList.remove('hidden');
+                themeToggleLightIcon.classList.add('hidden');
+            }
+        }
+
+        updateIcons();
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateIcons();
+        }
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script> </body> </html> 

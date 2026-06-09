@@ -1,0 +1,487 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dependency Inversion Principle (DIP) in Go: Writing Loose, Testable Code | Aunmoy Dey Tanmoy</title><meta name="description" content="Learn how to implement the Dependency Inversion Principle in Go, mapping abstractions to interfaces to decouple high-level logic from low-level details."><!-- SEO Meta tags --><meta property="og:title" content="Dependency Inversion Principle (DIP) in Go: Writing Loose, Testable Code"><meta property="og:description" content="Learn how to implement the Dependency Inversion Principle in Go, mapping abstractions to interfaces to decouple high-level logic from low-level details."><meta property="og:type" content="website"><!-- Modern Typography --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><!-- Inline Tailwind Config for Custom Colors & Styles --><script>
+        // Inline script to prevent theme flash
+        const theme = (() => {
+            if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+            return 'light';
+        })();
+      
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script><link rel="stylesheet" href="/_astro/about.vhhCuO7c.css">
+<style>.markdown-body{font-size:1.05rem;line-height:1.8;color:#334155}.dark .markdown-body{color:#cbd5e1}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{color:#0f172a;font-weight:800;letter-spacing:-.025em;margin-top:2.25rem;margin-bottom:1rem;font-family:Outfit,sans-serif}.dark .markdown-body h1,.dark .markdown-body h2,.dark .markdown-body h3,.dark .markdown-body h4{color:#f8fafc}.markdown-body h1{font-size:2.25rem}.markdown-body h2{font-size:1.75rem;border-b:1px solid rgba(226,232,240,.4);padding-bottom:.5rem}.markdown-body h3{font-size:1.35rem}.markdown-body h4{font-size:1.15rem}.markdown-body p{margin-top:0;margin-bottom:1.5rem}.markdown-body pre{background-color:#0f172a;color:#f8fafc;border-radius:1rem;padding:1.25rem;margin:1.5rem 0;overflow-x:auto;border:1px solid rgba(255,255,255,.05);font-size:.9rem;line-height:1.6}.markdown-body code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em;background-color:#6366f11a;color:#4f46e5;padding:.15em .4em;border-radius:.375em}.dark .markdown-body code{background-color:#6366f133;color:#c7d2fe}.markdown-body pre code{background-color:transparent;color:inherit;padding:0;font-size:inherit;border-radius:0}.markdown-body ul,.markdown-body ol{margin-top:0;margin-bottom:1.5rem;padding-left:1.5rem}.markdown-body ul{list-style-type:disc}.markdown-body ol{list-style-type:decimal}.markdown-body li{margin-bottom:.5rem}.markdown-body table{width:100%;border-collapse:collapse;margin:2rem 0;font-size:.95rem}.markdown-body th,.markdown-body td{padding:.75rem 1rem;border-bottom:1px solid #e2e8f0;text-align:left}.dark .markdown-body th,.dark .markdown-body td{border-bottom:1px solid #1e293b}.markdown-body th{font-weight:700;background-color:#f1f5f9;color:#0f172a}.dark .markdown-body th{background-color:#0f172a;color:#f8fafc}.markdown-body blockquote{margin:1.5rem 0;padding:.5rem 0 .5rem 1.25rem;border-left:4px solid #6366f1;background-color:#6366f10d;border-radius:0 .5rem .5rem 0;font-style:italic}.dark .markdown-body blockquote{background-color:#6366f11a}
+</style></head> <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col"> <!-- Header --> <header class="sticky top-0 z-50 glass-header border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300"> <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"> <a href="/" class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"> Tanmoy </a> <!-- Desktop Navigation --> <div class="hidden md:flex gap-8 items-center"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Admin </a> <!-- Dark Mode Toggle --> <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-200 focus:outline-none" aria-label="Toggle theme"> <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg> <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg> </button> </div> <!-- Mobile Menu Toggle Button --> <div class="flex md:hidden items-center gap-4"> <button id="mobile-theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" aria-label="Toggle theme"> <span class="dark:hidden">🌙</span> <span class="hidden dark:inline">☀️</span> </button> <button id="menu-btn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg> </button> </div> </nav> <!-- Mobile Dropdown Menu --> <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex flex-col gap-4 bg-white/95 dark:bg-slate-950/95 transition-all duration-300"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Admin </a> </div> </header> <!-- Main Content --> <main class="flex-grow max-w-6xl w-full mx-auto px-6 py-12">  <div class="py-6 max-w-3xl mx-auto"> <!-- Back Link --> <a href="/blog" class="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm uppercase tracking-wider mb-8 transition-colors duration-200"> <span>←</span> Back to Blog
+</a> <div class="mb-8 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-sm"> <img src="/blog-assets/dependency-inversion-principle-golang.jpg" alt="Dependency Inversion Principle (DIP) in Go: Writing Loose, Testable Code" class="w-full max-h-80 object-cover"> </div> <!-- Article Header --> <header class="mb-10 pb-8 border-b border-slate-200/50 dark:border-slate-800/50"> <div class="flex items-center gap-4 text-xs text-slate-400 mb-4"> <span>Published on June 6, 2026</span> <span>•</span> <span>By Aunmoy Dey Tanmoy</span> </div> <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight"> Dependency Inversion Principle (DIP) in Go: Writing Loose, Testable Code </h1> <!-- Tags --> <div class="flex flex-wrap gap-2"> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Design Patterns </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> SOLID </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Go </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Clean Code </span> </div> </header> <!-- Markdown Body --> <article class="markdown-body"> <p>Dependency Inversion Principle (DIP) in Golang</p>
+<p>The Dependency Inversion Principle (DIP) is the D in SOLID.  It says that
+High Level Modules should not depends on Low Level Modules, Both should depend on Abstraction.Now You Might ask what is High-level and Low-level? How do I know? and How do I Understand?for a moment think about Uber? how it works? its main business rule is
+Match Rider With Driver ------>  Calculate Fare ------> Track Ride
+So Uber exists Because of these. These are Business Rules.  That’s why this is High-Level
+Now think about these what tools uber actually use, obviously you are thinking about google maps API, Stripe SDK for payment, Kafka or Redis, Postgres for Database. So these are called Low-Level, cause These are tools, uber can change them tomorrow. Now you may understand what Low-Level and What is High-Level modules.
+MOST IMPORTANT RULE to remember:  If replacing it changes business meaning → high-level
+If replacing it changes only implementation → low-level
+So High-Level = Business Policy / Core Logic. It contains: Business rules, business decisions and application behavior. It answers: “WHAT the system does”</p>
+<p>And Low-Level = Technical Details / Infrastructure. It contains: SDKs, databases, APIs, frameworks, HTTP calls, Kafka clients, Redis drivers. It answers: “HOW it is done”
+Now back to the Topic, so DIP says, High Level Modules should not depends on Low Level Modules, Both should depend on Abstraction.
+And Abstraction should not depends on details, Details should depends on Abstraction
+This principle becomes critical when:
+external APIs change
+databases change
+Kafka/RabbitMQ changes
+payment providers change
+cloud vendors change
+AI providers change (OpenAI → Claude → Gemini)</p>
+<p>DIP says:
+“Your business logic should not care WHICH provider is used.”
+Instead:
+business logic depends on an interface
+implementations depend on that interface
+Most juniors think “DIP means using interfaces.” But NO. That is only 20%.
+Real DIP means: Business rules must remain stable while infrastructure changes freely.
+package shipment</p>
+<p>import “github.com/openai/openai-go”</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    client </span><span style="color:#F97583">*</span><span style="color:#B392F0">openai</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GenerateSummary</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">text</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    resp, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.client.</span><span style="color:#B392F0">ChatCompletion</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">...</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> ""</span><span style="color:#E1E4E8">, err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>    return resp.Content, nil
+}
+What happened there ? Now your core business logic depends directly on:
+OpenAI SDK
+OpenAI response structure
+OpenAI authentication
+OpenAI API contract
+But what If I want to add Gemini or claude or if OIpenAI api/Authentication change than ? I need to reWrite the whole service.  That violates Dip .
+The Resolution: Fixing the Code (The Go Way)
+In Golang, DIP is uniquely elegant because interfaces are satisfied implicitly means I don’t have to name it when use if I use its method it automatically satisfy the interface
+Crucially, to achieve true Dependency Inversion, the high-level component must own the interface. The business logic defines the contract of what it needs; the infrastructure layer adapts to it.
+Here is how you refactor your shipment service to be completely resilient against AI vendor churn:
+The High-Level Domain (Stable)</p>
+<p>package shipment</p>
+<p>import “context”</p>
+<p>// Summarizer is the PORT. The shipment service owns this contract.
+// It doesn’t care if it’s OpenAI, Gemini, or a shell script.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Summarizer</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    GenerateSummary(ctx context.Context, text string) (string, error)
+}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">    // High-level depends only on the abstraction</span></span>
+<span class="line"><span style="color:#E1E4E8">    summarizer </span><span style="color:#B392F0">Summarizer</span><span style="color:#E1E4E8"> </span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> NewService</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">s</span><span style="color:#B392F0"> Summarizer</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">{summarizer: s}</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">ProcessShipmentLog</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">logData</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Core business logic rules go here (e.g., validation, status checks)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    summary, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.summarizer.</span><span style="color:#B392F0">GenerateSummary</span><span style="color:#E1E4E8">(ctx, logData)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> ""</span><span style="color:#E1E4E8">, err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>   
+    return summary, nil
+Step 1 — Abstraction
+package ai or package Shipment</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Summarizer</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    Summarize(text string) (string, error)
+}</p>
+<p>WHAT IS THIS?
+This is:
+abstraction
+business contract
+boundary
+Notice: It says: “I need text summarized.”
+It DOES NOT say:
+OpenAI
+GPT
+Claude
+HTTP
+REST API
+That is critical.</p>
+<p>Step 2 — High-Level Module
+package shipment</p>
+<p>import “myapp/ai”</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    summarizer </span><span style="color:#B392F0">ai</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Summarizer</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> NewShipmentService</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">s</span><span style="color:#B392F0"> ai</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Summarizer</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">        summarizer: s,</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GenerateShipmentInsight</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">text</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> s.summarizer.</span><span style="color:#B392F0">Summarize</span><span style="color:#E1E4E8">(text)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>WHY IS ShipmentService HIGH-LEVEL?
+Because this is BUSINESS LOGIC.
+This service represents:
+shipment intelligence
+shipment analysis
+logistics workflow
+This is CORE DOMAIN behavior.
+Your company exists because of shipment business logic.
+NOT because of OpenAI.
+IMPORTANT
+ShipmentService says: “I need a summarizer.”NOT: “I need OpenAI SDK.” This is the key.
+NOW LOOK AT LOW-LEVEL MODULE
+package openaiimpl</p>
+<p>import (
+    openai “github.com/openai/openai-go”
+)</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> OpenAISummarizer</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    client </span><span style="color:#F97583">*</span><span style="color:#B392F0">openai</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>WHY IS THIS LOW-LEVEL?
+Because this is INFRASTRUCTURE DETAIL.
+This code deals with:
+external SDK
+HTTP APIs
+authentication
+request formatting
+response parsing
+These are implementation details.</p>
+<p>THIS IS THE BIGGEST KEY
+Your company/business does NOT care:
+how OpenAI API works
+how JSON is parsed
+what HTTP endpoint exists
+Those are technical details.
+WHERE DIP VIOLATION HAPPENS
+BAD DESIGN</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    client </span><span style="color:#F97583">*</span><span style="color:#B392F0">openai</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>LOOK carefully.
+Now:
+High-level module depends on low-level module
+Because:
+ShipmentService = business logic
+openai.Client = infrastructure detail
+This violates DIP.</p>
+<p>VISUALIZE IT</p>
+<p>BEFORE DIP (BAD)
+ShipmentService
+      ↓
+OpenAI SDK
+      ↓
+Business depends on detail
+      ↓
+If OpenAI changes
+      ↓
+business code changes
+BAD.</p>
+<p>AFTER DIP (GOOD)
+ShipmentService
+      ↓
+Summarizer Interface
+      ↑
+OpenAI Implementation
+NOW: implementation depends on abstraction . This is inversion.</p>
+<p>THE SENIOR GO CATCH: Consumer-Driven Interfaces
+In many languages (like Java or C#), interfaces are placed with the implementation. In junior designs, developers create a package ai containing the interface.
+This is a mistake in Go. In Go, the side that uses the behavior owns the interface. The interface belongs inside the high-level business package next to the code that calls it. Because Go interfaces are satisfied implicitly, the low-level infrastructure package doesn’t even need to know the high-level package exists!
+High-Level Domain Layer
+package shipment</p>
+<p>import “context”</p>
+<p>// Summarizer is the PORT/CONTRACT.
+// The shipment package OWN this because it defines what the shipment business needs.
+// Notice: It uses context.Context (critical for 2026 microservice tracing/timeouts).</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Summarizer</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    Summarize(ctx context.Context, text string) (string, error)
+}</p>
+<p>// ShipmentService is HIGH-LEVEL because it represents pure BUSINESS POLICY.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ShipmentService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    summarizer </span><span style="color:#B392F0">Summarizer</span><span style="color:#6A737D"> // Depends strictly on the abstraction</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> NewShipmentService</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">s</span><span style="color:#B392F0"> Summarizer</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">        summarizer: s,</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">ShipmentService</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GenerateShipmentInsight</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">text</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Core business logic rules happen here (e.g., validation, events logging)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> s.summarizer.</span><span style="color:#B392F0">Summarize</span><span style="color:#E1E4E8">(ctx, text)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>Step 2 — Low-Level Infrastructure Implements the Abstraction
+The infrastructure layer contains volatile details that change based on cloud vendors, cost optimizations, or API updates.</p>
+<p>Low-Level Infrastructure Layer (OpenAI Implementation)
+package openaiimpl</p>
+<p>import (
+    “context”
+    “fmt”
+    openai “github.com/openai/openai-go”
+)</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> OpenAISummarizer</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    client </span><span style="color:#F97583">*</span><span style="color:#B392F0">openai</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> NewOpenAISummarizer</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">client</span><span style="color:#F97583"> *</span><span style="color:#B392F0">openai</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">*</span><span style="color:#B392F0">OpenAISummarizer</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">OpenAISummarizer</span><span style="color:#E1E4E8">{client: client}</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>// Summarize satisfies shipment.Summarizer implicitly without importing the shipment package!</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">o </span><span style="color:#F97583">*</span><span style="color:#B392F0">OpenAISummarizer</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Summarize</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">text</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Technical details: SDK calls, JSON formatting, HTTP transport rules</span></span>
+<span class="line"><span style="color:#E1E4E8">    resp, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> o.client.Chat.Completions.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#B392F0">openai</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">ChatCompletionNewParams</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#6A737D">        // ... parameters</span></span>
+<span class="line"><span style="color:#E1E4E8">    })</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">        // SENIOR MOVE: Map infrastructure errors to clean domain errors</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> ""</span><span style="color:#E1E4E8">, fmt.</span><span style="color:#B392F0">Errorf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"openai provider failure: </span><span style="color:#79B8FF">%w</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, err)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>   
+    return resp.Choices[0].Message.Content, nil
+}</p>
+<p>Visualizing the Architectural Shift
+Before DIP (Tightly Coupled &#x26; Volatile)
+[ShipmentService (Business)] ───> Depends On ───> [OpenAI SDK (Detail)]
+Result: If OpenAI introduces a breaking change to their SDK or you want to switch to Gemini, your core business code breaks and requires a rewrite.
+After DIP (Inverted Control)
+[ShipmentService (Business)] ───> Uses ───> [Summarizer Interface (Contract)]
+▲
+Implements
+│
+[OpenAISummarizer (Detail)]
+Result: The dependency direction flipped. The infrastructure layer now adapts to the rules defined by your business.</p>
+<p>The Senior System Design Interview Playbook (2026 Meta)
+When interviewing for a Senior or Lead System Design role, DIP is not just an object-oriented coding rule; it is the fundamental tool for building Resilient, Scalable Distributed Systems.</p>
+<h2 id="1-handling-provider-churn--fallbacks-the-multi-llm-pattern">1. Handling Provider Churn &#x26; Fallbacks (The Multi-LLM Pattern)</h2>
+<p>In production, relying on a single external dependency (like OpenAI) creates a Single Point of Failure (SPOF). DIP allows you to write an architectural fallback engine at the infrastructure layer without changing one line of business logic.
+// FailoverAIAdapter implements shipment.Summarizer</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> FailoverAIAdapter</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    primary   </span><span style="color:#B392F0">shipment</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Summarizer</span><span style="color:#6A737D"> // e.g., OpenAI</span></span>
+<span class="line"><span style="color:#E1E4E8">    secondary </span><span style="color:#B392F0">shipment</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Summarizer</span><span style="color:#6A737D"> // e.g., Gemini</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">f </span><span style="color:#F97583">*</span><span style="color:#B392F0">FailoverAIAdapter</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Summarize</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">text</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    res, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> f.primary.</span><span style="color:#B392F0">Summarize</span><span style="color:#E1E4E8">(ctx, text)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">        // Primary failed or rate-limited! Circuit breaker trips and falls back seamlessly.</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> f.secondary.</span><span style="color:#B392F0">Summarize</span><span style="color:#E1E4E8">(ctx, text)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>    return res, nil
+}
+Guarding the Domain Boundary against “Leakage”
+A common mistake seniors call out in code reviews is Data Model Leakage. If your business service passes or receives a database struct (like a GORM model) or an API response struct directly, your abstraction is broken.
+The Rule: Low-level adapters must map infrastructure data models into clean, decoupled Domain Entities before delivering them across the interface boundary to your High-Level service.</p>
+<h2 id="3-ultimate-testing-isolation">3. Ultimate Testing Isolation</h2>
+<p>When testing code adhering to DIP, you avoid complex mock generators or hitting real databases/live APIs. You can easily pass a lightweight test double right inside your testing file:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> MockSummarizer</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">text</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">m </span><span style="color:#B392F0">MockSummarizer</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Summarize</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">text</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> m</span><span style="color:#E1E4E8">(text)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> TestShipmentService</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">t</span><span style="color:#F97583"> *</span><span style="color:#B392F0">testing</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">T</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    mock </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> MockSummarizer</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">func</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">text</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#9ECBFF"> "mocked summary"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">    })</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    service </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> shipment.</span><span style="color:#B392F0">NewShipmentService</span><span style="color:#E1E4E8">(mock)</span></span>
+<span class="line"><span style="color:#6A737D">    // Execute tests rapidly in-memory with zero network or flaky IO dependencies</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>Core Identification Cheat Sheet
+Metric
+High-Level Modules
+Low-Level Modules
+Focus
+WHAT the system does (Policies &#x26; Workflows)
+HOW the system does it (Mechanisms &#x26; Tools)
+Volatility
+Highly Stable (Changes only when business models pivot)
+Highly Volatile (Changes when dependencies upgrade/swap)
+Examples
+OrderPipeline, FraudEngine, FareCalculator
+PostgresDriver, KafkaProducer, StripeSDK, gRPCClient
+Ownership
+Owns the business interfaces (Ports)
+Implements the interfaces (Adapters)
+Ultimate Mental Model
+“Our business exists to move shipments efficiently and compute routing logistics. It does not exist to run SQL queries, serialize Protobuf strings, or structure third-party JSON payloads. The tools must serve the architecture; the architecture must never surrender to the tools.”</p>
+<p>WHERE EXACTLY THE INVERSION HAPPENS
+THIS LINE:
+summarizer ai.Summarizer
+This changes dependency direction.
+Before:
+ShipmentService → OpenAI
+After:
+ShipmentService → Interface ← OpenAI
+Now OpenAI depends on YOUR abstraction.
+Not vice versa.
+That is Dependency INVERSION.</p>
+<p>THIS IS THE MOST IMPORTANT THING
+Originally:
+Business → Infrastructure
+After DIP:
+Infrastructure → Business Contract
+The dependency direction flipped.</p>
+<p>HOW TO IDENTIFY HIGH-LEVEL VS LOW-LEVEL
+Ask these questions:</p>
+<p>Question 1
+“Does this contain business policy?”
+If YES → High-level
+Examples:
+shipment rules
+pricing logic
+order workflow
+recommendation engine</p>
+<p>Question 2
+“Is this replaceable technology?”
+If YES → Low-level
+Examples:
+OpenAI
+Kafka
+Postgres
+Redis
+Stripe SDK</p>
+<p>Question 3
+“Would business survive if this changed?”
+If YES → low-level
+Example:
+Replace PostgreSQL with MongoDB
+Replace OpenAI with Claude
+Business still exists.
+Therefore infrastructure is low-level.</p>
+<p>Question 4
+“Does this describe WHAT or HOW?”</p>
+<p>WHAT = High-level
+Summarize shipment insightsProcess paymentTrack shipment</p>
+<p>HOW = Low-level
+HTTP POST requestKafka producerSQL queryRedis SET</p>
+<p>Another SUPER IMPORTANT Example</p>
+<p>BAD</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> OrderService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {db </span><span style="color:#F97583">*</span><span style="color:#B392F0">sql</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">DB</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>Why bad?
+Business depends directly on database technology.</p>
+<p>GOOD</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> OrderRepository</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span><span style="color:#B392F0">Save</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">order</span><span style="color:#B392F0"> Order</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>Now OrderService depends on business abstraction.</p>
+<p>WHY INTERFACE BELONGS TO HIGH-LEVEL
+This is subtle and VERY important.</p>
+<p>BAD THINKING
+Junior thinks:
+OpenAI created the API,so interface belongs near OpenAI.
+Wrong.</p>
+<p>CORRECT THINKING
+The business defines WHAT it needs.
+Business says:
+“I need summarization.”
+So business owns abstraction.</p>
+<p>Golden Rule
+The side that USES behavior should own the interface.
+NOT the side implementing it.</p>
+<p>REAL ENTERPRISE EXAMPLE
+In your AI Logistics SaaS:</p>
+<p>High-Level
+Shipment DomainTracking LogicETA PredictionFraud DetectionPricing Rules</p>
+<p>Low-Level
+KafkaPostgresRedisOpenAIAWS S3gRPC transport</p>
+<p>Senior Architect Mentality
+A senior engineer always asks:
+“What part changes often?”
+Those parts should become:
+low-level
+replaceable
+isolated behind abstractions</p>
+<p>FINAL GOLDEN MENTAL MODEL</p>
+<p>HIGH-LEVEL
+Business BrainStableLong-term logicCore company value</p>
+<p>LOW-LEVEL
+ToolsSDKsFrameworksExternal systemsReplaceable</p>
+<p>Ultimate DIP Sentence
+High-level policy should control low-level details.
+Low-level details should never control business logic.</p> </article> </div>  </main> <!-- Footer --> <footer class="bg-slate-900 dark:bg-black text-slate-300 dark:text-slate-400 border-t border-slate-800 py-12 mt-auto transition-colors duration-300"> <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left"> <div> <p class="font-bold text-white text-lg tracking-wide">Aunmoy Dey Tanmoy</p> <p class="text-sm text-slate-400 mt-1">AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer</p> </div> <div class="flex flex-col md:items-end text-sm gap-2"> <p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p> <p class="text-slate-500">adtanmoy95@gmail.com | +8801850371329</p> </div> </div> </footer> <!-- Theme & Menu Scripts --> <script>
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+
+        function updateIcons() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                themeToggleDarkIcon.classList.remove('hidden');
+                themeToggleLightIcon.classList.add('hidden');
+            }
+        }
+
+        updateIcons();
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateIcons();
+        }
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script> </body> </html> 

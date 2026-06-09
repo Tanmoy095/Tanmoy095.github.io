@@ -1,0 +1,244 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Daily Learning &amp; ADR - Knowledge Base | Aunmoy Dey Tanmoy</title><meta name="description" content="I design and build scalable backend systems, cloud-native platforms, and AI infrastructure using Go, Kubernetes, distributed systems, and modern LLM technologies. My expertise spans event-driven architectures, multi-tenant SaaS platforms, Kubernetes platform engineering, AI gateways, RAG systems, observability, and production-grade cloud infrastructure."><!-- SEO Meta tags --><meta property="og:title" content="Daily Learning &#38; ADR - Knowledge Base"><meta property="og:description" content="I design and build scalable backend systems, cloud-native platforms, and AI infrastructure using Go, Kubernetes, distributed systems, and modern LLM technologies. My expertise spans event-driven architectures, multi-tenant SaaS platforms, Kubernetes platform engineering, AI gateways, RAG systems, observability, and production-grade cloud infrastructure."><meta property="og:type" content="website"><!-- Modern Typography --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><!-- Inline Tailwind Config for Custom Colors & Styles --><script>
+        // Inline script to prevent theme flash
+        const theme = (() => {
+            if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+            return 'light';
+        })();
+      
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script><link rel="stylesheet" href="/_astro/about.vhhCuO7c.css">
+<style>.markdown-body{font-size:1.05rem;line-height:1.8;color:#334155}.dark .markdown-body{color:#cbd5e1}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{color:#0f172a;font-weight:800;letter-spacing:-.025em;margin-top:1.5rem;margin-bottom:.75rem;font-family:Outfit,sans-serif}.dark .markdown-body h1,.dark .markdown-body h2,.dark .markdown-body h3,.dark .markdown-body h4{color:#f8fafc}.markdown-body h3{font-size:1.2rem}.markdown-body p{margin-bottom:1rem}.markdown-body pre{background-color:#0f172a;color:#f8fafc;border-radius:1rem;padding:1.25rem;margin:1rem 0;overflow-x:auto;font-size:.9rem}.markdown-body code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em;background-color:#6366f11a;color:#4f46e5;padding:.15em .4em;border-radius:.375em}.dark .markdown-body code{background-color:#6366f133;color:#c7d2fe}.markdown-body pre code{background:transparent;color:inherit;padding:0}.markdown-body ul,.markdown-body ol{margin-bottom:1rem;padding-left:1.5rem}.markdown-body ul{list-style-type:disc}.markdown-body li{margin-bottom:.35rem}
+</style></head> <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col"> <!-- Header --> <header class="sticky top-0 z-50 glass-header border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300"> <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"> <a href="/" class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"> Tanmoy </a> <!-- Desktop Navigation --> <div class="hidden md:flex gap-8 items-center"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Admin </a> <!-- Dark Mode Toggle --> <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-200 focus:outline-none" aria-label="Toggle theme"> <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg> <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg> </button> </div> <!-- Mobile Menu Toggle Button --> <div class="flex md:hidden items-center gap-4"> <button id="mobile-theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" aria-label="Toggle theme"> <span class="dark:hidden">🌙</span> <span class="hidden dark:inline">☀️</span> </button> <button id="menu-btn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg> </button> </div> </nav> <!-- Mobile Dropdown Menu --> <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex flex-col gap-4 bg-white/95 dark:bg-slate-950/95 transition-all duration-300"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Admin </a> </div> </header> <!-- Main Content --> <main class="flex-grow max-w-6xl w-full mx-auto px-6 py-12">  <div class="py-6 max-w-4xl mx-auto"> <div class="mb-12 text-center md:text-left"> <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+Learning & <span class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">ADRs</span> </h1> <p class="text-slate-500 dark:text-slate-400 text-lg">My daily logs, technical breakthroughs, and Architecture Decision Records (ADRs) tracking platform engineering and systems architecture.</p> </div> <!-- Stats Grid --> <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"> <div class="bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/30 dark:border-indigo-900/30 p-6 rounded-2xl"> <div class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">6</div> <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Entries</p> </div> <div class="bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100/30 dark:border-purple-900/30 p-6 rounded-2xl"> <div class="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mb-1">2</div> <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Accepted ADRs</p> </div> <div class="bg-pink-50/50 dark:bg-pink-950/20 border border-pink-100/30 dark:border-pink-900/30 p-6 rounded-2xl"> <div class="text-3xl font-extrabold text-pink-600 dark:text-pink-400 mb-1">4</div> <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Topics Tracked</p> </div> <div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/30 dark:border-blue-900/30 p-6 rounded-2xl"> <div class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-1">14</div> <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Skills Advanced</p> </div> </div> <!-- Filters & Search --> <div class="mb-8 flex flex-col md:flex-row gap-6 justify-between items-center bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 p-6 rounded-2xl shadow-sm"> <!-- Search bar --> <div class="relative w-full md:w-80"> <input type="text" id="learning-search" placeholder="Search logs & ADRs..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-200"> <span class="absolute right-3.5 top-3.5 text-slate-400 text-xs">🔍</span> </div> <!-- Category Filters --> <div class="flex flex-wrap gap-2 items-center w-full md:w-auto"> <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Filter:</span> <button class="cat-filter-btn px-3 py-1.5 text-xs bg-indigo-600 text-white border border-indigo-600 rounded-xl font-medium active:scale-95 transition-all duration-200" data-category="all">
+All
+</button> <button class="cat-filter-btn px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded-xl font-medium hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-category="ADR">
+ADRs Only
+</button> <button class="cat-filter-btn px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded-xl font-medium hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-category="Go"> Go </button><button class="cat-filter-btn px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded-xl font-medium hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-category="Distributed Systems"> Distributed Systems </button><button class="cat-filter-btn px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded-xl font-medium hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-category="Kubernetes"> Kubernetes </button><button class="cat-filter-btn px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded-xl font-medium hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-category="ADR"> ADR </button> </div> </div> <!-- Learning Entries Accordion List --> <div id="learning-entries" class="space-y-4"> <div class="entry-card border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition duration-200" data-category="Go" data-title="go generics &#38; type constraints" data-tags="[&#34;Go&#34;,&#34;Generics&#34;,&#34;Type Safety&#34;]" data-is-adr="false"> <!-- Accordion Header --> <div class="accordion-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors select-none"> <div class="flex-1"> <div class="flex items-center gap-3 mb-2 flex-wrap"> <span class="text-xs font-semibold font-mono text-slate-400"> 06/10/2026 </span> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-indigo-100/30 dark:border-indigo-900/30"> Go </span>  </div> <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight"> Go Generics &amp; Type Constraints </h3> </div> <!-- Toggle icon --> <span class="toggle-icon text-2xl text-slate-400 ml-4 font-mono font-medium transition-transform duration-200">+</span> </div> <!-- Accordion Content (collapsible drawer) --> <div class="accordion-content hidden p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/10"> <div class="markdown-body"> <p>Mastered Go generics syntax and type constraints, enabling reusable algorithms while maintaining compile-time type safety.</p>
+<h3 id="key-learnings">Key Learnings:</h3>
+<ul>
+<li><strong>Type Parameters:</strong> Written in square brackets (e.g., <code>[T any]</code>) before parameter lists.</li>
+<li><strong>Constraints:</strong> Define what types are allowed. Standard constraints are in the <code>golang.org/x/exp/constraints</code> package (like <code>Ordered</code> for <code>&#x3C;</code> and <code>></code> comparisons).</li>
+<li><strong>The <code>any</code> constraint:</strong> An alias for <code>interface{}</code>.</li>
+<li><strong>The <code>comparable</code> constraint:</strong> A built-in interface that allows operations like <code>==</code> and <code>!=</code>.</li>
+<li><strong>Underlying types:</strong> Using the <code>~</code> symbol (e.g., <code>~int</code> matches any custom type whose underlying type is <code>int</code>).</li>
+</ul>
+<h3 id="real-world-code-example">Real-World Code Example</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">package</span><span style="color:#B392F0"> generics</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// MapKeys returns a slice of all keys in a map.</span></span>
+<span class="line"><span style="color:#6A737D">// Keys must be comparable, and values can be any type.</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> MapKeys</span><span style="color:#E1E4E8">[</span><span style="color:#FFAB70">K</span><span style="color:#B392F0"> comparable</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">V</span><span style="color:#B392F0"> any</span><span style="color:#E1E4E8">](</span><span style="color:#FFAB70">m</span><span style="color:#F97583"> map</span><span style="color:#E1E4E8">[</span><span style="color:#B392F0">K</span><span style="color:#E1E4E8">]</span><span style="color:#B392F0">V</span><span style="color:#E1E4E8">) []</span><span style="color:#B392F0">K</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    keys </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">([]</span><span style="color:#B392F0">K</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">, </span><span style="color:#B392F0">len</span><span style="color:#E1E4E8">(m))</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> k </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> m {</span></span>
+<span class="line"><span style="color:#E1E4E8">        keys </span><span style="color:#F97583">=</span><span style="color:#B392F0"> append</span><span style="color:#E1E4E8">(keys, k)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> keys</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>This utility function works on maps of strings to ints, ints to floats, or any comparable key, eliminating duplicate helper functions!</p> </div> <!-- Skills / Tags --> <div class="flex flex-wrap gap-1.5 mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50"> <span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Go </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Generics </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Type Safety </span> </div> </div> </div><div class="entry-card border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition duration-200" data-category="Distributed Systems" data-title="kafka partition rebalancing" data-tags="[&#34;Kafka&#34;,&#34;Distributed Systems&#34;,&#34;Scaling&#34;]" data-is-adr="false"> <!-- Accordion Header --> <div class="accordion-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors select-none"> <div class="flex-1"> <div class="flex items-center gap-3 mb-2 flex-wrap"> <span class="text-xs font-semibold font-mono text-slate-400"> 06/09/2026 </span> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-indigo-100/30 dark:border-indigo-900/30"> Distributed Systems </span>  </div> <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight"> Kafka Partition Rebalancing </h3> </div> <!-- Toggle icon --> <span class="toggle-icon text-2xl text-slate-400 ml-4 font-mono font-medium transition-transform duration-200">+</span> </div> <!-- Accordion Content (collapsible drawer) --> <div class="accordion-content hidden p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/10"> <div class="markdown-body"> <p>Deep dive into consumer groups and rebalancing strategies to optimize messaging performance and throughput in large-scale event-driven systems.</p>
+<h3 id="key-learnings">Key Learnings:</h3>
+<ul>
+<li><strong>Group Coordinator:</strong> A broker responsible for managing consumer group state and assigning partitions.</li>
+<li><strong>Stop-The-World Rebalancing:</strong> The traditional eager rebalance protocol revokes all partitions and pauses message processing during rebalance, which can cause latency spikes.</li>
+<li><strong>Cooperative Sticky Assignor:</strong> Introduced to allow consumers to keep their partitions while other partitions are reassigned, reducing downtime during scaling.</li>
+<li><strong>Tuning timeouts:</strong> Keep <code>session.timeout.ms</code> and <code>max.poll.interval.ms</code> properly adjusted to prevent false consumer failures.</li>
+<li><strong>Rebalance Listeners:</strong> Implement custom logic on partitions revoked and assigned to flush database changes or commit offsets before partition ownership shifts.</li>
+</ul> </div> <!-- Skills / Tags --> <div class="flex flex-wrap gap-1.5 mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50"> <span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Kafka </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Distributed Systems </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Scaling </span> </div> </div> </div><div class="entry-card border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition duration-200" data-category="Go" data-title="grpc performance optimization" data-tags="[&#34;gRPC&#34;,&#34;Go&#34;,&#34;Performance&#34;]" data-is-adr="false"> <!-- Accordion Header --> <div class="accordion-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors select-none"> <div class="flex-1"> <div class="flex items-center gap-3 mb-2 flex-wrap"> <span class="text-xs font-semibold font-mono text-slate-400"> 06/08/2026 </span> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-indigo-100/30 dark:border-indigo-900/30"> Go </span>  </div> <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight"> gRPC Performance Optimization </h3> </div> <!-- Toggle icon --> <span class="toggle-icon text-2xl text-slate-400 ml-4 font-mono font-medium transition-transform duration-200">+</span> </div> <!-- Accordion Content (collapsible drawer) --> <div class="accordion-content hidden p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/10"> <div class="markdown-body"> <p>Benchmarking and tuning gRPC services for high-throughput, low-latency microservices communication.</p>
+<h3 id="key-learnings">Key Learnings:</h3>
+<ul>
+<li><strong>HTTP/2 Multiplexing:</strong> Enables sending multiple requests and responses concurrently over a single TCP connection, reducing handshake overhead by 80%+.</li>
+<li><strong>Protocol Buffers:</strong> Binary encoding is 3-10x faster to serialize/deserialize than JSON and has a much smaller payload footprint.</li>
+<li><strong>Connection Pooling:</strong> In Go, client connections should be shared or pooled across goroutines to prevent active TCP connection thrashing.</li>
+<li><strong>Keepalive Pings:</strong> Setting up client-side and server-side keepalive parameters keeps connections warm and quickly catches dead TCP sockets.</li>
+<li><strong>Message Compression:</strong> Gzip/Snappy compression reduces network bandwidth but trades CPU cycles. Only compress larger payloads (>100KB).</li>
+</ul> </div> <!-- Skills / Tags --> <div class="flex flex-wrap gap-1.5 mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50"> <span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> gRPC </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Go </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Performance </span> </div> </div> </div><div class="entry-card border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition duration-200" data-category="Kubernetes" data-title="kubernetes resource limits &#38; requests" data-tags="[&#34;Kubernetes&#34;,&#34;DevOps&#34;,&#34;Infrastructure&#34;]" data-is-adr="false"> <!-- Accordion Header --> <div class="accordion-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors select-none"> <div class="flex-1"> <div class="flex items-center gap-3 mb-2 flex-wrap"> <span class="text-xs font-semibold font-mono text-slate-400"> 06/07/2026 </span> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-indigo-100/30 dark:border-indigo-900/30"> Kubernetes </span>  </div> <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight"> Kubernetes Resource Limits &amp; Requests </h3> </div> <!-- Toggle icon --> <span class="toggle-icon text-2xl text-slate-400 ml-4 font-mono font-medium transition-transform duration-200">+</span> </div> <!-- Accordion Content (collapsible drawer) --> <div class="accordion-content hidden p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/10"> <div class="markdown-body"> <p>Understanding scheduler placement behaviors, resource limits enforcement, cgroups, and pod eviction mechanisms under load.</p>
+<h3 id="key-learnings">Key Learnings:</h3>
+<ul>
+<li><strong>Requests:</strong> Used by the scheduler to place Pods on Nodes. If a Node has enough allocatable CPU/Memory to satisfy requests, the Pod is scheduled.</li>
+<li><strong>Limits:</strong> Enforced at runtime by the container runtime via Linux kernel <code>cgroups</code>.</li>
+<li><strong>CPU Throttling:</strong> If a container exceeds its CPU limit, it is throttled by the kernel using CPU shares. It does not crash.</li>
+<li><strong>OOM Killing:</strong> If a container exceeds its Memory limit, it is terminated with exit code 137 (Out Of Memory).</li>
+<li><strong>QoS Classes:</strong>
+<ul>
+<li><em>Guaranteed:</em> Requests equal limits for both CPU and memory. Least likely to be evicted.</li>
+<li><em>Burstable:</em> Requests are set and are less than limits. Medium eviction priority.</li>
+<li><em>BestEffort:</em> No requests or limits set. First to be evicted under resource pressure.</li>
+</ul>
+</li>
+<li><strong>Overcommit:</strong> Kubernetes allows overcommitting nodes (sum of limits > node size). This is cost-efficient but requires careful monitoring to prevent cascading failures.</li>
+</ul> </div> <!-- Skills / Tags --> <div class="flex flex-wrap gap-1.5 mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50"> <span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Kubernetes </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> DevOps </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Infrastructure </span> </div> </div> </div><div class="entry-card border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition duration-200" data-category="ADR" data-title="adr-002: grpc for internal communication" data-tags="[&#34;Architecture&#34;,&#34;ADR&#34;,&#34;gRPC&#34;]" data-is-adr="true"> <!-- Accordion Header --> <div class="accordion-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors select-none"> <div class="flex-1"> <div class="flex items-center gap-3 mb-2 flex-wrap"> <span class="text-xs font-semibold font-mono text-slate-400"> 06/06/2026 </span> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-indigo-100/30 dark:border-indigo-900/30"> ADR </span> <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border-emerald-100/30 dark:border-emerald-900/30">
+ADR: Accepted </span> </div> <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight"> ADR-002: gRPC for Internal Communication </h3> </div> <!-- Toggle icon --> <span class="toggle-icon text-2xl text-slate-400 ml-4 font-mono font-medium transition-transform duration-200">+</span> </div> <!-- Accordion Content (collapsible drawer) --> <div class="accordion-content hidden p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/10"> <div class="markdown-body"> <h3 id="context">Context</h3>
+<p>In a microservices architecture, services make frequent RPC calls to fetch lookup values, verify auth states, and trigger downstream processes. Using standard REST/JSON creates performance bottlenecks due to string serialization, lacks strict typing interfaces, and does not support streaming naturally.</p>
+<h3 id="decision">Decision</h3>
+<p>We will use <strong>gRPC</strong> with <strong>Protocol Buffers</strong> for all synchronous, internal service-to-service communication. External traffic from users will still enter through HTTP/JSON or GraphQL via our API Gateway, which will translate incoming payloads to internal gRPC requests.</p>
+<h3 id="consequences">Consequences</h3>
+<ul>
+<li><strong>Pros:</strong>
+<ul>
+<li>Highly optimized serialization and deserialization speeds.</li>
+<li>Multi-language support with automatic code generation from <code>.proto</code> definition files.</li>
+<li>Strongly typed communication contracts checked at compile-time.</li>
+<li>Out-of-the-box support for client, server, and bidirectional streaming.</li>
+</ul>
+</li>
+<li><strong>Cons:</strong>
+<ul>
+<li>Human readability is reduced compared to JSON (requires tools like <code>grpcurl</code> or UI debuggers like Postman/BloomRPC).</li>
+<li>Requires maintaining a schema definition workflow (e.g. shared repo or registry) to prevent breaking API contracts.</li>
+</ul>
+</li>
+</ul> </div> <!-- Skills / Tags --> <div class="flex flex-wrap gap-1.5 mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50"> <span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Architecture </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> ADR </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> gRPC </span> </div> </div> </div><div class="entry-card border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition duration-200" data-category="ADR" data-title="adr-001: microservices over monolith" data-tags="[&#34;Architecture&#34;,&#34;ADR&#34;,&#34;Microservices&#34;]" data-is-adr="true"> <!-- Accordion Header --> <div class="accordion-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors select-none"> <div class="flex-1"> <div class="flex items-center gap-3 mb-2 flex-wrap"> <span class="text-xs font-semibold font-mono text-slate-400"> 06/05/2026 </span> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-indigo-100/30 dark:border-indigo-900/30"> ADR </span> <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border-emerald-100/30 dark:border-emerald-900/30">
+ADR: Accepted </span> </div> <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight"> ADR-001: Microservices over Monolith </h3> </div> <!-- Toggle icon --> <span class="toggle-icon text-2xl text-slate-400 ml-4 font-mono font-medium transition-transform duration-200">+</span> </div> <!-- Accordion Content (collapsible drawer) --> <div class="accordion-content hidden p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/10"> <div class="markdown-body"> <h3 id="context">Context</h3>
+<p>Our core platform needs to scale horizontally to support millions of concurrent connections, isolate high-load components (like ML inference serving and real-time streaming), and enable multiple teams to deploy their services independently without coordination blockages.</p>
+<h3 id="decision">Decision</h3>
+<p>We will adopt a Microservices Architecture instead of a unified monolith. Each service will be responsible for a single domain (e.g., Shipment, Routing, Authentication, Billing), have its own database to ensure loose coupling, and run in isolated containers.</p>
+<h3 id="consequences">Consequences</h3>
+<ul>
+<li><strong>Pros:</strong>
+<ul>
+<li>Independent scaling of resource-heavy services (e.g. ML inference requires GPUs, auth requires memory-focused DB caching).</li>
+<li>Isolated failure domains; a crash in route calculation does not bring down billing or user login.</li>
+<li>Team autonomy and faster development cycles.</li>
+</ul>
+</li>
+<li><strong>Cons:</strong>
+<ul>
+<li>Increased network hop latency.</li>
+<li>Higher operational overhead (monitoring, distributed tracing, Kubernetes configuration).</li>
+<li>Complex transaction management (requires patterns like Saga or Outbox instead of local ACID transactions).</li>
+</ul>
+</li>
+</ul> </div> <!-- Skills / Tags --> <div class="flex flex-wrap gap-1.5 mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50"> <span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Architecture </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> ADR </span><span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold"> Microservices </span> </div> </div> </div> </div> <!-- Empty State --> <div id="learning-empty-state" class="hidden text-center py-20 bg-white dark:bg-slate-900/10 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl"> <div class="text-4xl mb-4">📖</div> <h3 class="text-xl font-bold text-slate-700 dark:text-slate-350 mb-1">No entries found</h3> <p class="text-slate-500 text-sm">Try adjusting your search query or topic filter.</p> </div> <!-- Contact Section --> <div id="contact" class="mt-16 pt-12 border-t border-slate-200 dark:border-slate-800"> <h2 class="text-3xl font-extrabold mb-3 tracking-tight">Let's Connect</h2> <p class="text-slate-500 dark:text-slate-400 mb-8 max-w-lg">Interested in my daily learnings or architecture decisions? Reach out for collaboration or technical discussions.</p> <div class="grid grid-cols-2 md:grid-cols-4 gap-4"> <a href="mailto:adtanmoy95@gmail.com" class="p-6 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 group"> <div class="text-2xl mb-3 group-hover:scale-110 transition-transform duration-200">✉️</div> <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email</div> <div class="font-mono text-xs text-slate-800 dark:text-slate-200 break-all">adtanmoy95@gmail.com</div> </a> <a href="tel:+8801850371329" class="p-6 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-md transition-all duration-200 group"> <div class="text-2xl mb-3 group-hover:scale-110 transition-transform duration-200">📱</div> <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Phone</div> <div class="font-mono text-xs text-slate-800 dark:text-slate-200">+8801850371329</div> </a> <a href="https://www.linkedin.com/in/aunmoy-dey-tanmoy095" target="_blank" rel="noopener noreferrer" class="p-6 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-pink-500 dark:hover:border-pink-500 hover:shadow-md transition-all duration-200 group"> <div class="text-2xl mb-3 group-hover:scale-110 transition-transform duration-200">💼</div> <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">LinkedIn</div> <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">View Profile</div> </a> <a href="https://github.com/Tanmoy095" target="_blank" rel="noopener noreferrer" class="p-6 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-slate-600 dark:hover:border-slate-400 hover:shadow-md transition-all duration-200 group"> <div class="text-2xl mb-3 group-hover:scale-110 transition-transform duration-200">💻</div> <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">GitHub</div> <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">View Projects</div> </a> </div> </div> </div>  <script>
+        // Accordion Toggle
+        const headers = document.querySelectorAll('.accordion-header');
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const parent = header.closest('.entry-card');
+                const content = parent.querySelector('.accordion-content');
+                const icon = parent.querySelector('.toggle-icon');
+                
+                // Toggle current entry
+                const isHidden = content.classList.contains('hidden');
+                
+                if (isHidden) {
+                    content.classList.remove('hidden');
+                    icon.textContent = '−';
+                    parent.classList.add('border-indigo-500/50', 'dark:border-indigo-500/50');
+                } else {
+                    content.classList.add('hidden');
+                    icon.textContent = '+';
+                    parent.classList.remove('border-indigo-500/50', 'dark:border-indigo-500/50');
+                }
+            });
+        });
+
+        // Filtering & Search
+        let activeCategory = 'all';
+        let searchQuery = '';
+        
+        const searchInput = document.getElementById('learning-search');
+        const filterBtns = document.querySelectorAll('.cat-filter-btn');
+        const cards = document.querySelectorAll('.entry-card');
+        const emptyState = document.getElementById('learning-empty-state');
+        
+        function filterLearning() {
+            let visibleCount = 0;
+            
+            cards.forEach(card => {
+                const category = card.dataset.category || '';
+                const title = card.dataset.title || '';
+                const tags = JSON.parse(card.dataset.tags || '[]');
+                
+                const isADR = card.dataset.isAdr === 'true';
+                const matchesCategory = activeCategory === 'all' || 
+                                        category === activeCategory || 
+                                        (activeCategory === 'ADR' && isADR);
+                                        
+                const matchesSearch = title.includes(searchQuery) || 
+                                      category.toLowerCase().includes(searchQuery) || 
+                                      tags.some(t => t.toLowerCase().includes(searchQuery));
+                                      
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+            
+            if (visibleCount === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+        
+        // Search Input listener
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            filterLearning();
+        });
+        
+        // Filter button listeners
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+                    b.classList.add('bg-slate-50', 'dark:bg-slate-950', 'text-slate-600', 'dark:text-slate-400', 'border-slate-200', 'dark:border-slate-850');
+                });
+                
+                btn.classList.remove('bg-slate-50', 'dark:bg-slate-950', 'text-slate-600', 'dark:text-slate-400', 'border-slate-200', 'dark:border-slate-850');
+                btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+                
+                activeCategory = btn.dataset.category;
+                filterLearning();
+            });
+        });
+    </script>  </main> <!-- Footer --> <footer class="bg-slate-900 dark:bg-black text-slate-300 dark:text-slate-400 border-t border-slate-800 py-12 mt-auto transition-colors duration-300"> <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left"> <div> <p class="font-bold text-white text-lg tracking-wide">Aunmoy Dey Tanmoy</p> <p class="text-sm text-slate-400 mt-1">AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer</p> </div> <div class="flex flex-col md:items-end text-sm gap-2"> <p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p> <p class="text-slate-500">adtanmoy95@gmail.com | +8801850371329</p> </div> </div> </footer> <!-- Theme & Menu Scripts --> <script>
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+
+        function updateIcons() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                themeToggleDarkIcon.classList.remove('hidden');
+                themeToggleLightIcon.classList.add('hidden');
+            }
+        }
+
+        updateIcons();
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateIcons();
+        }
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script> </body> </html> 

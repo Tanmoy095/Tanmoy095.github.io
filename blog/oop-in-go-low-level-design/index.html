@@ -1,0 +1,344 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Object-Oriented Programming in Go: Pragmatic LLD Patterns | Aunmoy Dey Tanmoy</title><meta name="description" content="Go doesn't have classes, but it has package-level encapsulation, interface composition, and method attachment. Let's explore pragmatic OOP in Go."><!-- SEO Meta tags --><meta property="og:title" content="Object-Oriented Programming in Go: Pragmatic LLD Patterns"><meta property="og:description" content="Go doesn't have classes, but it has package-level encapsulation, interface composition, and method attachment. Let's explore pragmatic OOP in Go."><meta property="og:type" content="website"><!-- Modern Typography --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><!-- Inline Tailwind Config for Custom Colors & Styles --><script>
+        // Inline script to prevent theme flash
+        const theme = (() => {
+            if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+            return 'light';
+        })();
+      
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script><link rel="stylesheet" href="/_astro/about.vhhCuO7c.css">
+<style>.markdown-body{font-size:1.05rem;line-height:1.8;color:#334155}.dark .markdown-body{color:#cbd5e1}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{color:#0f172a;font-weight:800;letter-spacing:-.025em;margin-top:2.25rem;margin-bottom:1rem;font-family:Outfit,sans-serif}.dark .markdown-body h1,.dark .markdown-body h2,.dark .markdown-body h3,.dark .markdown-body h4{color:#f8fafc}.markdown-body h1{font-size:2.25rem}.markdown-body h2{font-size:1.75rem;border-b:1px solid rgba(226,232,240,.4);padding-bottom:.5rem}.markdown-body h3{font-size:1.35rem}.markdown-body h4{font-size:1.15rem}.markdown-body p{margin-top:0;margin-bottom:1.5rem}.markdown-body pre{background-color:#0f172a;color:#f8fafc;border-radius:1rem;padding:1.25rem;margin:1.5rem 0;overflow-x:auto;border:1px solid rgba(255,255,255,.05);font-size:.9rem;line-height:1.6}.markdown-body code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em;background-color:#6366f11a;color:#4f46e5;padding:.15em .4em;border-radius:.375em}.dark .markdown-body code{background-color:#6366f133;color:#c7d2fe}.markdown-body pre code{background-color:transparent;color:inherit;padding:0;font-size:inherit;border-radius:0}.markdown-body ul,.markdown-body ol{margin-top:0;margin-bottom:1.5rem;padding-left:1.5rem}.markdown-body ul{list-style-type:disc}.markdown-body ol{list-style-type:decimal}.markdown-body li{margin-bottom:.5rem}.markdown-body table{width:100%;border-collapse:collapse;margin:2rem 0;font-size:.95rem}.markdown-body th,.markdown-body td{padding:.75rem 1rem;border-bottom:1px solid #e2e8f0;text-align:left}.dark .markdown-body th,.dark .markdown-body td{border-bottom:1px solid #1e293b}.markdown-body th{font-weight:700;background-color:#f1f5f9;color:#0f172a}.dark .markdown-body th{background-color:#0f172a;color:#f8fafc}.markdown-body blockquote{margin:1.5rem 0;padding:.5rem 0 .5rem 1.25rem;border-left:4px solid #6366f1;background-color:#6366f10d;border-radius:0 .5rem .5rem 0;font-style:italic}.dark .markdown-body blockquote{background-color:#6366f11a}
+</style></head> <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col"> <!-- Header --> <header class="sticky top-0 z-50 glass-header border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300"> <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"> <a href="/" class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"> Tanmoy </a> <!-- Desktop Navigation --> <div class="hidden md:flex gap-8 items-center"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Admin </a> <!-- Dark Mode Toggle --> <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-200 focus:outline-none" aria-label="Toggle theme"> <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg> <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg> </button> </div> <!-- Mobile Menu Toggle Button --> <div class="flex md:hidden items-center gap-4"> <button id="mobile-theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" aria-label="Toggle theme"> <span class="dark:hidden">🌙</span> <span class="hidden dark:inline">☀️</span> </button> <button id="menu-btn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg> </button> </div> </nav> <!-- Mobile Dropdown Menu --> <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex flex-col gap-4 bg-white/95 dark:bg-slate-950/95 transition-all duration-300"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Admin </a> </div> </header> <!-- Main Content --> <main class="flex-grow max-w-6xl w-full mx-auto px-6 py-12">  <div class="py-6 max-w-3xl mx-auto"> <!-- Back Link --> <a href="/blog" class="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm uppercase tracking-wider mb-8 transition-colors duration-200"> <span>←</span> Back to Blog
+</a> <div class="mb-8 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-sm"> <img src="/blog-assets/oop-in-go-low-level-design.jpg" alt="Object-Oriented Programming in Go: Pragmatic LLD Patterns" class="w-full max-h-80 object-cover"> </div> <!-- Article Header --> <header class="mb-10 pb-8 border-b border-slate-200/50 dark:border-slate-800/50"> <div class="flex items-center gap-4 text-xs text-slate-400 mb-4"> <span>Published on June 5, 2026</span> <span>•</span> <span>By Aunmoy Dey Tanmoy</span> </div> <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight"> Object-Oriented Programming in Go: Pragmatic LLD Patterns </h1> <!-- Tags --> <div class="flex flex-wrap gap-2"> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Go </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> OOP </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Design Patterns </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Clean Code </span> </div> </header> <!-- Markdown Body --> <article class="markdown-body"> <p>Object-Oriented Programming in Go ( LLD )</p>
+<p>Encapsulation (Go’s MOST MISUNDERSTOOD TOPIC)</p>
+<p>In Go, encapsulation is not a feature of “Classes”—it is a feature of Packages. As a senior developer, you must view encapsulation not just as a way to hide variables, but as a mechanism for State Integrity Management.
+Here is the deep theory of encapsulation in Go, framed for high-level software architecture.</p>
+<h2 id="1-the-package-as-the-security-perimeter">1. The Package as the Security Perimeter</h2>
+<p>In languages like Java or C#, the “Class” is the unit of encapsulation. In Go, the Package is the boundary.
+Internal Access: Any code within the same package can see and modify unexported (lowercase) fields of a struct.
+External Access: Code outside the package can only interact with exported (Uppercase) identifiers.
+Senior Insight: This means you should design your packages based on “Functional Domains.” If two structs need to touch each other’s private parts to work, they belong in the same package. If they don’t, they should be separated to prevent “Leaky Abstractions.”</p>
+<h2 id="2-invariant-protection-the-contract-of-truth">2. Invariant Protection (The “Contract of Truth”)</h2>
+<p>The primary goal of encapsulation is to ensure that a struct never enters an invalid state.
+If you export a field like Age int, an external user can set Age = -500. By keeping age unexported and providing a SetAge(a int) method, you create a Guardrail.
+The Constructor Pattern: By unexporting the fields, you force users to use a New…() function. This allows you to validate data before the object even exists. If the data is bad, you return an error instead of a broken object.</p>
+<h2 id="3-implementation-hiding--api-stability">3. Implementation Hiding &#x26; API Stability</h2>
+<p>Encapsulation allows you to change the “How” without breaking the “What.”
+Imagine your Company struct stores a list of employees in a slice. If you export that slice, every user of your package will write code that iterates over that slice. If you later realize a map is faster and change the slice to a map, you break everyone’s code.
+The Senior Approach: Hide the slice. Provide a method IterateEmployees(fn func(Employee)). Now, you can change the internal storage to a map, a linked list, or even a database call, and the external API remains exactly the same.</p>
+<h2 id="4-encapsulated-concurrency-thread-safety">4. Encapsulated Concurrency (Thread-Safety)</h2>
+<p>In a modern, multi-threaded Go environment, encapsulation is your best defense against Data Races.
+If a struct has a sync.Mutex, that mutex should never be exported.
+Why? If the mutex is public, an external caller could call Lock() and forget to Unlock(), deadlocking your entire service.
+The Strategy: Hide the mutex and the data. Ensure every public method on the struct acquires the lock internally. This makes the struct “Thread-Safe by Design.”
+At a senior level, encapsulation in Go is the practice of Internalizing Complexity. You are building a “black box” where the user cares about the results (the methods) but is strictly forbidden from touching the mechanics (the fields).
+🏛️ The Implementation: Secure Wallet System
+In this example, we encapsulate a bank account. We must ensure the balance can never be negative and that concurrent updates don’t cause data corruption.
+internal/finance/account.go
+package finance</p>
+<p>import (
+    “errors”
+    “sync”
+)</p>
+<p>// Account is an Opaque Struct.
+// All fields are unexported (lowercase) to prevent external tampering.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Account</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    id      </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    balance </span><span style="color:#F97583">float64</span></span>
+<span class="line"><span style="color:#E1E4E8">    mu      </span><span style="color:#B392F0">sync</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">RWMutex</span><span style="color:#6A737D"> // Encapsulated lock: The user doesn't even know it exists.</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>// NewAccount is the Gatekeeper.
+// It ensures that every Account starts in a valid state.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> NewAccount</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">initialDeposit</span><span style="color:#F97583"> float64</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">*</span><span style="color:#B392F0">Account</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> initialDeposit </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8">, errors.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"cannot open account with negative balance"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>    return &#x26;Account{
+        id:      id,
+        balance: initialDeposit,
+    }, nil
+}</p>
+<p>// Deposit encapsulates the logic of adding money.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">a </span><span style="color:#F97583">*</span><span style="color:#B392F0">Account</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Deposit</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">amount</span><span style="color:#F97583"> float64</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> amount </span><span style="color:#F97583">&#x3C;=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> errors.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"deposit amount must be positive"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>    a.mu.Lock()         // Thread-safety is handled internally
+    defer a.mu.Unlock()</p>
+<p>    a.balance += amount
+    return nil
+}</p>
+<p>// Withdraw protects the ‘Invariant’: Balance cannot be less than zero.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">a </span><span style="color:#F97583">*</span><span style="color:#B392F0">Account</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Withdraw</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">amount</span><span style="color:#F97583"> float64</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    a.mu.</span><span style="color:#B392F0">Lock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">    defer</span><span style="color:#E1E4E8"> a.mu.</span><span style="color:#B392F0">Unlock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> amount </span><span style="color:#F97583">></span><span style="color:#E1E4E8"> a.balance {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> errors.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"insufficient funds"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>    a.balance -= amount
+    return nil
+}</p>
+<p>// GetBalance provides read-only access to a private field.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">a </span><span style="color:#F97583">*</span><span style="color:#B392F0">Account</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GetBalance</span><span style="color:#E1E4E8">() </span><span style="color:#F97583">float64</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    a.mu.</span><span style="color:#B392F0">RLock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">    defer</span><span style="color:#E1E4E8"> a.mu.</span><span style="color:#B392F0">RUnlock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> a.balance</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>🧠 How Encapsulation Works (The Mechanics)
+Go uses Identifier Visibility instead of keywords like private or public.
+Exported Identifiers (Uppercase): Any name starting with a capital letter (Account, Deposit) is visible to other packages.
+Unexported Identifiers (Lowercase): Any name starting with a lowercase letter (balance, mu) is strictly private to the package it was defined in.</p>
+<p>🎯 Why Encapsulation is Necessary</p>
+<h2 id="1-enforcing-business-invariants">1. Enforcing Business Invariants</h2>
+<p>Without encapsulation, a developer could do acc.balance = -999999. By hiding the balance field, you force all changes through the Withdraw method, which contains the logic to prevent negative balances. You aren’t just hiding data; you are protecting the truth of your system.</p>
+<h2 id="2-thread-safe-by-default">2. Thread-Safe by Default</h2>
+<p>In a high-concurrency environment, if balance were public, two goroutines could modify it simultaneously, causing a “lost update.” By encapsulating the sync.RWMutex, the caller doesn’t have to worry about locks. They just call Deposit(), and the package guarantees safety.</p>
+<h2 id="3-decoupling-and-refactoring">3. Decoupling and Refactoring</h2>
+<p>Imagine you want to change the balance from a float64 to a more precise big.Int or store it in an external database like Redis.
+If fields were public: Every package using your code would break immediately.
+With encapsulation: You change the internal field, update your Deposit/Withdraw methods, and the rest of the application never knows the difference.</p>
+<p>⚖️ Fundamental Knowledge &#x26; Trade-offs
+Concept
+Description
+Senior Perspective
+Package Boundary
+The limit of visibility.
+Group related logic in one package so they can share private fields without exposing them to the whole app.
+Zero-Value Safety
+What happens if someone does var a Account?
+Seniors design for this. If a struct needs a map or mutex initialized, use unexported fields to force the use of a constructor (NewAccount).
+Interface Hiding
+Returning an interface instead of a struct.
+This is “Total Encapsulation.” The user only knows the methods; they don’t even know what the underlying struct looks like.
+💡 The “Senior” Summary
+Encapsulation is the Software Engineering equivalent of a “Restricted Area” sign. You are telling other developers: “I have handled the complexity and safety of this data. You just use these 3 buttons (methods) and I promise the system won’t break.”</p>
+<p>“Encapsulation is not about hiding data, it’s about controlling behavior.”</p>
+<p>🛡️ 5. Secure Encapsulation Pattern</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ClientCredentials</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {    ID     </span><span style="color:#F97583">string</span><span style="color:#E1E4E8">    Role   </span><span style="color:#F97583">string</span><span style="color:#E1E4E8">    apiKey </span><span style="color:#F97583">string</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"></span></code></pre>
+<p>Secure Method</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">c </span><span style="color:#F97583">*</span><span style="color:#B392F0">ClientCredentials</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">ValidateKey</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">input</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">bool</span><span style="color:#E1E4E8"> {    </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> subtle.</span><span style="color:#B392F0">ConstantTimeCompare</span><span style="color:#E1E4E8">(        []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">(c.apiKey),        []</span><span style="color:#F97583">byte</span><span style="color:#E1E4E8">(input),    ) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>Why this matters
+Prevents timing attacks
+Keeps secret hidden
+Exposes only safe behavior</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Logger</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {}</span><span style="color:#F97583">type</span><span style="color:#E1E4E8"> UserService </span><span style="color:#F97583">struct</span><span style="color:#E1E4E8"> {    logger </span><span style="color:#B392F0">Logger</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>Expose behavior, not sensitive data.
+Real-world Example</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Cache</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {    mu   </span><span style="color:#B392F0">sync</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Mutex</span><span style="color:#E1E4E8">    data </span><span style="color:#F97583">map</span><span style="color:#E1E4E8">[</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">]</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">🧠 Encapsulation </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> Concurrency</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">c </span><span style="color:#F97583">*</span><span style="color:#B392F0">Cache</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">Set</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">key</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">value</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {    c.mu.</span><span style="color:#B392F0">Lock</span><span style="color:#E1E4E8">()    </span><span style="color:#F97583">defer</span><span style="color:#E1E4E8"> c.mu.</span><span style="color:#B392F0">Unlock</span><span style="color:#E1E4E8">()    c.data[key] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> value}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">🎯 Why this is important</span></span>
+<span class="line"><span style="color:#E1E4E8">thread safety </span></span>
+<span class="line"><span style="color:#E1E4E8">race condition prevention </span></span>
+<span class="line"><span style="color:#E1E4E8">production readiness </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">💡 Interview Answer</span></span>
+<span class="line"><span style="color:#E1E4E8">“In Go, encapsulation often includes synchronization primitives like mutex to ensure safe concurrent access.”</span></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> APIClient</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    apiKey </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    client </span><span style="color:#F97583">*</span><span style="color:#B392F0">http</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> NewAPIClient</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">key</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">*</span><span style="color:#B392F0">APIClient</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">APIClient</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">        apiKey: key,</span></span>
+<span class="line"><span style="color:#E1E4E8">        client: </span><span style="color:#F97583">&#x26;</span><span style="color:#B392F0">http</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span><span style="color:#E1E4E8">{},</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">a </span><span style="color:#F97583">*</span><span style="color:#B392F0">APIClient</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">DoRequest</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#6A737D">    // use apiKey internally</span></span>
+<span class="line"><span style="color:#E1E4E8">}Real</span><span style="color:#F97583">-</span><span style="color:#E1E4E8">world extension (LLD thinking)</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">c </span><span style="color:#F97583">*</span><span style="color:#B392F0">ClientCredentials</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">RotateKey</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">newKey</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {    </span><span style="color:#F97583">if</span><span style="color:#B392F0"> len</span><span style="color:#E1E4E8">(newKey) </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 10</span><span style="color:#E1E4E8"> {        </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> errors.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"weak key"</span><span style="color:#E1E4E8">)    }    c.mu.</span><span style="color:#B392F0">Lock</span><span style="color:#E1E4E8">()    </span><span style="color:#F97583">defer</span><span style="color:#E1E4E8"> c.mu.</span><span style="color:#B392F0">Unlock</span><span style="color:#E1E4E8">()    c.apiKey </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> newKey    </span><span style="color:#F97583">return</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">👉 validation </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> safety</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"></span></code></pre>
+<p>Composition (REAL OOP in Go)</p>
+<p>❌ Traditional OOP  —> UserService extends BaseService</p>
+<p>But in Golang</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> UserService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    logger </span><span style="color:#B392F0">Logger</span><span style="color:#6A737D"> // 👉 not promotes methods automatically in composition</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>🧠 Why this is powerful
+decoupling -> testability -> replaceable components
+In embedding</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> UserService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    Logger // 👉 promotes methods automatically in embedding
+}</p>
+<p>🎯 Interview Insight
+“Prefer composition for explicit dependencies and embedding for behavior reuse.”</p>
+<h2 id="1-composition-the-explicit-way">1. Composition (The “Explicit” Way)</h2>
+<p>This is when you give the field a specific name, like logger Logger.
+Why use it?
+Explicit Control: You decide exactly how the logger is used. If someone uses your UserService, they can’t see the logger’s methods; they only see what you allow them to see.
+Clear Dependencies: It’s obvious that UserService uses a logger to do its job.
+Encapsulation: You aren’t “polluting” your service’s API with logging methods like .Info() or .Debug().
+Senior Real-World Use Case: The Service Layer
+In a production API, your services (User, Order, Payment) should almost always use composition. You don’t want someone to be able to call UserService.Log() from outside the package. You want them to only call UserService.CreateUser().</p>
+<h2 id="2-embedding-the-automatic-way">2. Embedding (The “Automatic” Way)</h2>
+<p>This is when you put the type in the struct without a name.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> UserService</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    Logger // No field name!
+}</p>
+<p>Why use it?
+Method Promotion: All the methods of Logger are “promoted” to UserService. If Logger has a Log() method, you can call myService.Log() directly.
+Interface Satisfaction: If Logger satisfies an interface, UserService now automatically satisfies that same interface.
+Senior Real-World Use Case: Extending Standard Libraries
+Embedding is best used when you want to “wrap” a type and add a little extra functionality while keeping the original behavior.
+Example: A Custom Response Writer
+If you’re building middleware and want to track the status code of an HTTP response, you embed the original ResponseWriter.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> StatusRecorder</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#B392F0">    http</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">ResponseWriter</span><span style="color:#6A737D"> // Embedding</span></span>
+<span class="line"></span></code></pre>
+<p>    Status int
+}</p>
+<p>// You only override the WriteHeader method</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">r </span><span style="color:#F97583">*</span><span style="color:#B392F0">StatusRecorder</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">WriteHeader</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">code</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    r.Status </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> code</span></span>
+<span class="line"><span style="color:#E1E4E8">    r.ResponseWriter.</span><span style="color:#B392F0">WriteHeader</span><span style="color:#E1E4E8">(code) </span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>// Because of embedding, StatusRecorder still has ALL the other
+// methods of http.ResponseWriter automatically</p>
+<p>Comparison Table
+Feature
+Composition (logger Logger)
+Embedding (Logger)
+Relationship
+“Has-a” (User has a logger)
+“Behaves-like” (User acts like a logger)
+Access
+s.logger.Log()
+s.Log()
+Visibility
+Hidden from the outside
+Publicly “promoted”
+Primary Use
+Injecting Dependencies
+Wrapping/Extending behavior</p>
+<p>🎯 The “Senior” Rule of Thumb
+Use Composition by default. It is safer, more explicit, and follows the “Principle of Least Privilege.” It prevents your structs from having 50 methods you never intended to expose.
+Use Embedding only when you want the outer struct to “inherit” the API of the inner struct. If you find yourself writing ten “wrapper” methods that just call the inner struct, that’s a signal to switch to embedding.</p>
+<p>Interface, Polymerphism and Abstraction</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> UserService</span><span style="color:#F97583">  struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    credential </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">ClientCredential </span><span style="color:#6A737D">//This is Composition </span></span>
+<span class="line"><span style="color:#E1E4E8">    dB     </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">sql.DB</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p>What is Tight Coupling ?
+Here db is tightly coupled , UserService Says it will only Use SQL db . But what if I want to integrate both redis and pgsql than? Also mock testing is hard . This is tight coupling and that’s why we use Interphase to decouple to  overcome this problem .</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> UserService</span><span style="color:#F97583">  struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    credential </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">ClientCredential </span><span style="color:#6A737D">//This is Composition </span></span>
+<span class="line"><span style="color:#E1E4E8">   repository     UserRepository</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> UserRepository</span><span style="color:#F97583"> interface</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    Save(client ClientCredentials) error
+}
+UserService says: “I don’t care WHAT DB you use, Just give me something that can Save” Now I canintegrate postgres and redis and other dbDecoupling means removing direct dependency on concrete implementations</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ClientCredentials</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span></code></pre>
+<p>    ID     string
+    Role   string</p>
+<p>    mu     sync.RWMutex
+    apiKey string
+}</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">c </span><span style="color:#F97583">*</span><span style="color:#B392F0">ClientCredentials</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">RotateKey</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">newKey</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#B392F0"> len</span><span style="color:#E1E4E8">(newKey) </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 10</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> errors.</span><span style="color:#B392F0">New</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"weak key"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span></code></pre>
+<p>    c.mu.Lock()
+    defer c.mu.Unlock()</p>
+<p>    c.apiKey = newKey
+    return nil
+}</p>
+<p>Abstraction means hiding implementation details behind an interface (what it does, not how).</p> </article> </div>  </main> <!-- Footer --> <footer class="bg-slate-900 dark:bg-black text-slate-300 dark:text-slate-400 border-t border-slate-800 py-12 mt-auto transition-colors duration-300"> <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left"> <div> <p class="font-bold text-white text-lg tracking-wide">Aunmoy Dey Tanmoy</p> <p class="text-sm text-slate-400 mt-1">AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer</p> </div> <div class="flex flex-col md:items-end text-sm gap-2"> <p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p> <p class="text-slate-500">adtanmoy95@gmail.com | +8801850371329</p> </div> </div> </footer> <!-- Theme & Menu Scripts --> <script>
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+
+        function updateIcons() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                themeToggleDarkIcon.classList.remove('hidden');
+                themeToggleLightIcon.classList.add('hidden');
+            }
+        }
+
+        updateIcons();
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateIcons();
+        }
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script> </body> </html> 
