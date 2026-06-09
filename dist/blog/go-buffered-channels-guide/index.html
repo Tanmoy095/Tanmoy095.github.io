@@ -1,0 +1,315 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Go Channels Deep Dive: When and Why to Use Buffered Channels</title><link rel="stylesheet" href="/_astro/about.C8zJdKQg.css"></head> <body> <article class="prose dark:prose-invert max-w-3xl mx-auto px-4 py-16"> <header class="mb-12"> <h1 class="text-4xl md:text-5xl font-bold mb-4">Go Channels Deep Dive: When and Why to Use Buffered Channels</h1> <img src="/blog-go-channels.jpg" alt="Go Channels Deep Dive: When and Why to Use Buffered Channels" class="rounded-lg mb-6 w-full h-auto object-cover max-h-96"> <div class="flex flex-wrap gap-4 text-slate-600 dark:text-slate-400 mb-4"> <time datetime="2026-06-09T00:00:00.000Z"> June 9, 2026 </time> <span>by Aunmoy Dey Tanmoy</span> </div> <div class="flex flex-wrap gap-2"> <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Go </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Concurrency </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Channels </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Best Practices </span> </div> </header>  <h1 id="go-channels-buffered-vs-unbuffered---a-production-perspective">Go Channels: Buffered vs Unbuffered - A Production Perspective</h1>
+<p>One of the most misunderstood aspects of Go concurrency is channels, specifically the distinction between buffered and unbuffered channels. I’ve debugged countless deadlocks and race conditions that stemmed from misusing channels. Let me share what I’ve learned.</p>
+<h2 id="the-basics">The Basics</h2>
+<h3 id="unbuffered-channels">Unbuffered Channels</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// Unbuffered: sender blocks until receiver is ready</span></span>
+<span class="line"><span style="color:#E1E4E8">ch </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// This goroutine will BLOCK until someone receives</span></span>
+<span class="line"><span style="color:#F97583">go</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#9ECBFF"> "Hello"</span><span style="color:#6A737D">  // Blocks here!</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Sent"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">}()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Without this receive, the goroutine would hang forever</span></span>
+<span class="line"><span style="color:#E1E4E8">fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x3C;-</span><span style="color:#E1E4E8">ch)  </span><span style="color:#6A737D">// Unblocks the sender</span></span>
+<span class="line"><span style="color:#E1E4E8">fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Done"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Output:</span></span>
+<span class="line"><span style="color:#6A737D">// Hello</span></span>
+<span class="line"><span style="color:#6A737D">// Sent</span></span>
+<span class="line"><span style="color:#6A737D">// Done</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Key point</strong>: Unbuffered channels are synchronous. Both sender and receiver must be ready simultaneously.</p>
+<h3 id="buffered-channels">Buffered Channels</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// Buffered: sender blocks only when buffer is full</span></span>
+<span class="line"><span style="color:#E1E4E8">ch </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">)  </span><span style="color:#6A737D">// Buffer capacity = 2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">go</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#9ECBFF"> "Hello"</span><span style="color:#6A737D">   // Doesn't block - buffer has space</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#9ECBFF"> "World"</span><span style="color:#6A737D">   // Doesn't block - buffer still has space</span></span>
+<span class="line"><span style="color:#6A737D">    // ch &#x3C;- "!!!"   // Would block - buffer is full</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"All sent"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">}()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x3C;-</span><span style="color:#E1E4E8">ch)  </span><span style="color:#6A737D">// Hello</span></span>
+<span class="line"><span style="color:#E1E4E8">fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x3C;-</span><span style="color:#E1E4E8">ch)  </span><span style="color:#6A737D">// World</span></span>
+<span class="line"><span style="color:#E1E4E8">fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Done"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Output:</span></span>
+<span class="line"><span style="color:#6A737D">// All sent</span></span>
+<span class="line"><span style="color:#6A737D">// Hello</span></span>
+<span class="line"><span style="color:#6A737D">// World</span></span>
+<span class="line"><span style="color:#6A737D">// Done</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Key point</strong>: Buffered channels are asynchronous up to their capacity.</p>
+<h2 id="when-to-use-each">When to Use Each</h2>
+<h3 id="use-unbuffered-channels">Use Unbuffered Channels</h3>
+<h4 id="1-request-response-patterns">1. <strong>Request-Response Patterns</strong></h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Request</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ID    </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    Data  </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Response</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ID    </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    Result </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    Error </span><span style="color:#F97583">error</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> processRequest</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">req</span><span style="color:#B392F0"> Request</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">respChan</span><span style="color:#F97583"> chan</span><span style="color:#B392F0"> Response</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Sender and receiver coordinate perfectly</span></span>
+<span class="line"><span style="color:#E1E4E8">    result </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> heavyComputation</span><span style="color:#E1E4E8">(req.Data)</span></span>
+<span class="line"><span style="color:#E1E4E8">    respChan </span><span style="color:#F97583">&#x3C;-</span><span style="color:#B392F0"> Response</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">        ID:     req.ID,</span></span>
+<span class="line"><span style="color:#E1E4E8">        Result: result,</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Main function</span></span>
+<span class="line"><span style="color:#E1E4E8">req </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> Request</span><span style="color:#E1E4E8">{ID: </span><span style="color:#9ECBFF">"1"</span><span style="color:#E1E4E8">, Data: </span><span style="color:#9ECBFF">"data"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">respChan </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#B392F0"> Response</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">go</span><span style="color:#B392F0"> processRequest</span><span style="color:#E1E4E8">(req, respChan)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">resp </span><span style="color:#F97583">:=</span><span style="color:#F97583"> &#x3C;-</span><span style="color:#E1E4E8">respChan  </span><span style="color:#6A737D">// Waits for response - synchronous</span></span>
+<span class="line"><span style="color:#E1E4E8">fmt.</span><span style="color:#B392F0">Printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Got response: </span><span style="color:#79B8FF">%v\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, resp)</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Why unbuffered?</strong> You want to ensure the response is processed before continuing.</p>
+<h4 id="2-synchronization-points">2. <strong>Synchronization Points</strong></h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> worker</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">done</span><span style="color:#F97583"> chan</span><span style="color:#F97583"> bool</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Worker </span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF"> starting</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#E1E4E8">    time.</span><span style="color:#B392F0">Sleep</span><span style="color:#E1E4E8">(time.Second)</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Worker </span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF"> done</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, id)</span></span>
+<span class="line"><span style="color:#E1E4E8">    done </span><span style="color:#F97583">&#x3C;-</span><span style="color:#79B8FF"> true</span><span style="color:#6A737D">  // Signal completion</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    done </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> bool</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    // Start 3 workers</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">:=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;=</span><span style="color:#79B8FF"> 3</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        go</span><span style="color:#B392F0"> worker</span><span style="color:#E1E4E8">(i, done)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    // Wait for all to complete</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">:=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;=</span><span style="color:#79B8FF"> 3</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        &#x3C;-</span><span style="color:#E1E4E8">done  </span><span style="color:#6A737D">// Blocks until worker signals</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"All workers done"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Output (approximately):</span></span>
+<span class="line"><span style="color:#6A737D">// Worker 1 starting</span></span>
+<span class="line"><span style="color:#6A737D">// Worker 2 starting</span></span>
+<span class="line"><span style="color:#6A737D">// Worker 3 starting</span></span>
+<span class="line"><span style="color:#6A737D">// Worker 1 done</span></span>
+<span class="line"><span style="color:#6A737D">// Worker 2 done</span></span>
+<span class="line"><span style="color:#6A737D">// Worker 3 done</span></span>
+<span class="line"><span style="color:#6A737D">// All workers done</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Why unbuffered?</strong> You must know when workers complete before proceeding.</p>
+<h3 id="use-buffered-channels">Use Buffered Channels</h3>
+<h4 id="1-producer-consumer-with-rate-decoupling">1. <strong>Producer-Consumer with Rate Decoupling</strong></h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> fetchUserData</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">userIDs</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">resultsChan</span><span style="color:#F97583"> chan&#x3C;-</span><span style="color:#F97583"> map</span><span style="color:#E1E4E8">[</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">]</span><span style="color:#F97583">interface</span><span style="color:#E1E4E8">{}) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Producer: sends as fast as it can</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> _, id </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> userIDs {</span></span>
+<span class="line"><span style="color:#E1E4E8">        data </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> fetchFromDatabase</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"><span style="color:#6A737D">        // Non-blocking send (up to buffer capacity)</span></span>
+<span class="line"><span style="color:#E1E4E8">        resultsChan </span><span style="color:#F97583">&#x3C;-</span><span style="color:#E1E4E8"> data</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#B392F0">    close</span><span style="color:#E1E4E8">(resultsChan)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> processUserData</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">results</span><span style="color:#F97583"> &#x3C;-chan</span><span style="color:#F97583"> map</span><span style="color:#E1E4E8">[</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">]</span><span style="color:#F97583">interface</span><span style="color:#E1E4E8">{}) {</span></span>
+<span class="line"><span style="color:#6A737D">    // Consumer: processes at its own pace</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> data </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> results {</span></span>
+<span class="line"><span style="color:#6A737D">        // Expensive processing</span></span>
+<span class="line"><span style="color:#E1E4E8">        fmt.</span><span style="color:#B392F0">Printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Processing user: </span><span style="color:#79B8FF">%v\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, data)</span></span>
+<span class="line"><span style="color:#E1E4E8">        time.</span><span style="color:#B392F0">Sleep</span><span style="color:#E1E4E8">(time.Millisecond </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 100</span><span style="color:#E1E4E8">)  </span><span style="color:#6A737D">// Slow consumer</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#6A737D">    // Buffer size = 10 means producer can get 10 items ahead</span></span>
+<span class="line"><span style="color:#E1E4E8">    resultsChan </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> map</span><span style="color:#E1E4E8">[</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">]</span><span style="color:#F97583">interface</span><span style="color:#E1E4E8">{}, </span><span style="color:#79B8FF">10</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    userIDs </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">{</span><span style="color:#9ECBFF">"1"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"2"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"3"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"4"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"5"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"6"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"7"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"8"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"9"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"10"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    go</span><span style="color:#B392F0"> fetchUserData</span><span style="color:#E1E4E8">(userIDs, resultsChan)</span></span>
+<span class="line"><span style="color:#B392F0">    processUserData</span><span style="color:#E1E4E8">(resultsChan)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Why buffered?</strong> Decouples production and consumption rates. Fast producer doesn’t need to wait for slow consumer (up to buffer limit).</p>
+<h4 id="2-worker-pool-with-task-queue">2. <strong>Worker Pool with Task Queue</strong></h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Task</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ID   </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    Work </span><span style="color:#F97583">func</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> workerPool</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">numWorkers</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">tasks</span><span style="color:#F97583"> &#x3C;-chan</span><span style="color:#B392F0"> Task</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    var</span><span style="color:#E1E4E8"> wg </span><span style="color:#B392F0">sync</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">WaitGroup</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    // Start worker goroutines</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">:=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> numWorkers; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        wg.</span><span style="color:#B392F0">Add</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">        go</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">workerID</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">            defer</span><span style="color:#E1E4E8"> wg.</span><span style="color:#B392F0">Done</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">            </span></span>
+<span class="line"><span style="color:#F97583">            for</span><span style="color:#E1E4E8"> task </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> tasks {</span></span>
+<span class="line"><span style="color:#E1E4E8">                fmt.</span><span style="color:#B392F0">Printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Worker </span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF"> processing task </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, workerID, task.ID)</span></span>
+<span class="line"><span style="color:#E1E4E8">                task.</span><span style="color:#B392F0">Work</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        }(i)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    wg.</span><span style="color:#B392F0">Wait</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#6A737D">    // Buffered channel: queue tasks without blocking producer</span></span>
+<span class="line"><span style="color:#E1E4E8">    tasks </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#B392F0"> Task</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">100</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    go</span><span style="color:#B392F0"> workerPool</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">4</span><span style="color:#E1E4E8">, tasks)  </span><span style="color:#6A737D">// 4 workers</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    // Queue tasks quickly</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">:=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;=</span><span style="color:#79B8FF"> 20</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        tasks </span><span style="color:#F97583">&#x3C;-</span><span style="color:#B392F0"> Task</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">            ID: fmt.</span><span style="color:#B392F0">Sprintf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"task-</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, i),</span></span>
+<span class="line"><span style="color:#E1E4E8">            Work: </span><span style="color:#F97583">func</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">                time.</span><span style="color:#B392F0">Sleep</span><span style="color:#E1E4E8">(time.Millisecond </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 50</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">            },</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#B392F0">    close</span><span style="color:#E1E4E8">(tasks)</span></span>
+<span class="line"><span style="color:#E1E4E8">    time.</span><span style="color:#B392F0">Sleep</span><span style="color:#E1E4E8">(time.Second)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Why buffered?</strong> Tasks can pile up if workers are busy. We don’t want task producers to block.</p>
+<h4 id="3-batch-processing">3. <strong>Batch Processing</strong></h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> batchProcessor</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">batchSize</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">input</span><span style="color:#F97583"> &#x3C;-chan</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">output</span><span style="color:#F97583"> chan&#x3C;-</span><span style="color:#E1E4E8"> []</span><span style="color:#F97583">int</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    batch </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">([]</span><span style="color:#F97583">int</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">, batchSize)</span></span>
+<span class="line"><span style="color:#E1E4E8">    ticker </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> time.</span><span style="color:#B392F0">NewTicker</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">100</span><span style="color:#F97583"> *</span><span style="color:#E1E4E8"> time.Millisecond)</span></span>
+<span class="line"><span style="color:#F97583">    defer</span><span style="color:#E1E4E8"> ticker.</span><span style="color:#B392F0">Stop</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    flushBatch </span><span style="color:#F97583">:=</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#B392F0"> len</span><span style="color:#E1E4E8">(batch) </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">            // Send copy of batch</span></span>
+<span class="line"><span style="color:#E1E4E8">            output </span><span style="color:#F97583">&#x3C;-</span><span style="color:#B392F0"> append</span><span style="color:#E1E4E8">([]</span><span style="color:#F97583">int</span><span style="color:#E1E4E8">{}, batch</span><span style="color:#F97583">...</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">            batch </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> batch[:</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        select</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#E1E4E8"> num, ok </span><span style="color:#F97583">:=</span><span style="color:#F97583"> &#x3C;-</span><span style="color:#E1E4E8">input:</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#F97583"> !</span><span style="color:#E1E4E8">ok {</span></span>
+<span class="line"><span style="color:#6A737D">                // Channel closed</span></span>
+<span class="line"><span style="color:#B392F0">                flushBatch</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#B392F0">                close</span><span style="color:#E1E4E8">(output)</span></span>
+<span class="line"><span style="color:#F97583">                return</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">            batch </span><span style="color:#F97583">=</span><span style="color:#B392F0"> append</span><span style="color:#E1E4E8">(batch, num)</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#B392F0"> len</span><span style="color:#E1E4E8">(batch) </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> batchSize {</span></span>
+<span class="line"><span style="color:#E1E4E8">                output </span><span style="color:#F97583">&#x3C;-</span><span style="color:#B392F0"> append</span><span style="color:#E1E4E8">([]</span><span style="color:#F97583">int</span><span style="color:#E1E4E8">{}, batch</span><span style="color:#F97583">...</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">                batch </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> batch[:</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#F97583"> &#x3C;-</span><span style="color:#E1E4E8">ticker.C:</span></span>
+<span class="line"><span style="color:#B392F0">            flushBatch</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<h2 id="anti-patterns-and-gotchas">Anti-Patterns and Gotchas</h2>
+<h3 id="-buffered-channel-deadlock">❌ Buffered Channel Deadlock</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> bad</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    // This deadlocks! Buffer is full, no one receiving</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#79B8FF"> 2</span><span style="color:#6A737D">  // DEADLOCK - buffer capacity is 1!</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// ✅ Fixed</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> good</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">)  </span><span style="color:#6A737D">// Bigger buffer</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#79B8FF"> 2</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x3C;-</span><span style="color:#E1E4E8">ch)</span></span>
+<span class="line"><span style="color:#E1E4E8">    fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x3C;-</span><span style="color:#E1E4E8">ch)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<h3 id="-sending-on-closed-channel">❌ Sending on Closed Channel</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> bad</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">    close</span><span style="color:#E1E4E8">(ch)</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#79B8FF"> 1</span><span style="color:#6A737D">  // PANIC: send on closed channel!</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// ✅ Fixed</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> good</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#B392F0">    close</span><span style="color:#E1E4E8">(ch)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> val </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> ch {</span></span>
+<span class="line"><span style="color:#E1E4E8">        fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(val)</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<h2 id="decision-guide">Decision Guide</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>┌─ Do you need synchronization?</span></span>
+<span class="line"><span>│  ├─ YES → Unbuffered channel</span></span>
+<span class="line"><span>│  │  (sender and receiver wait for each other)</span></span>
+<span class="line"><span>│  └─ NO → Buffered channel</span></span>
+<span class="line"><span>│     (producer-consumer decoupling)</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>├─ Is it request-response?</span></span>
+<span class="line"><span>│  └─ YES → Unbuffered</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>├─ Do you need to wait for completion?</span></span>
+<span class="line"><span>│  └─ YES → Unbuffered + sync.WaitGroup</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>├─ Is it producer-consumer?</span></span>
+<span class="line"><span>│  └─ YES → Buffered (set size based on expected backlog)</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>└─ Is it worker pool?</span></span>
+<span class="line"><span>   └─ YES → Buffered (queue size = expected task backlog)</span></span>
+<span class="line"><span></span></span></code></pre>
+<h2 id="real-world-recommendation">Real-World Recommendation</h2>
+<p><strong>For infrastructure/service code:</strong></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// API handlers - unbuffered for synchronous request/response</span></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Handler</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    processor </span><span style="color:#F97583">chan</span><span style="color:#F97583"> *</span><span style="color:#B392F0">Request</span><span style="color:#6A737D">  // Buffered to queue requests</span></span>
+<span class="line"><span style="color:#E1E4E8">    results   </span><span style="color:#F97583">chan</span><span style="color:#F97583"> *</span><span style="color:#B392F0">Response</span><span style="color:#6A737D"> // Unbuffered - must send back</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Event processing - buffered to decouple sources/processors</span></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> EventBus</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    events </span><span style="color:#F97583">chan</span><span style="color:#B392F0"> Event</span><span style="color:#6A737D">  // Buffered, events queue up</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Shutdown coordination - unbuffered for precise synchronization</span></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Service</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    shutdown </span><span style="color:#F97583">chan</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8">{}  </span><span style="color:#6A737D">// Unbuffered - signal EXACTLY when done</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span></code></pre>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol>
+<li><strong>Unbuffered = Synchronous</strong>: Both sides must be ready</li>
+<li><strong>Buffered = Asynchronous</strong>: Decouples producer and consumer</li>
+<li><strong>Deadlocks</strong> happen when you send to full buffer with no receiver</li>
+<li><strong>Buffer size matters</strong>: Set it based on expected backlog</li>
+<li><strong>Close from sender side</strong>: Receiver should read until closed</li>
+<li><strong>Use select for timeouts</strong>: Prevent infinite blocking</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>The choice between buffered and unbuffered channels isn’t arbitrary—it reflects how your goroutines should communicate. Unbuffered for tight synchronization, buffered for loose coupling. Understanding this distinction is crucial for writing deadlock-free, high-performance concurrent Go code.</p>
+<p>In my infrastructure projects, I’ve found that thoughtful channel design prevents 90% of concurrency bugs before they even occur.</p>  </article> </body></html>

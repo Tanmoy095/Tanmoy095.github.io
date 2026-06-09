@@ -1,0 +1,170 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kubernetes at Scale: Lessons from Managing 500+ Node Clusters</title><link rel="stylesheet" href="/_astro/about.C8zJdKQg.css"></head> <body> <article class="prose dark:prose-invert max-w-3xl mx-auto px-4 py-16"> <header class="mb-12"> <h1 class="text-4xl md:text-5xl font-bold mb-4">Kubernetes at Scale: Lessons from Managing 500+ Node Clusters</h1>  <div class="flex flex-wrap gap-4 text-slate-600 dark:text-slate-400 mb-4"> <time datetime="2026-06-08T00:00:00.000Z"> June 8, 2026 </time> <span>by Your Name</span> </div> <div class="flex flex-wrap gap-2"> <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Kubernetes </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Infrastructure </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#DevOps </span><span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+#Cloud </span> </div> </header>  <h1 id="kubernetes-at-scale-500-node-clusters-in-production">Kubernetes at Scale: 500+ Node Clusters in Production</h1>
+<p>Managing Kubernetes at scale is fundamentally different from running a single cluster for development. Here’s what we learned managing 500+ nodes handling billions of pods annually.</p>
+<h2 id="the-scaling-journey">The Scaling Journey</h2>
+<h3 id="phase-1-single-cluster-10-nodes">Phase 1: Single Cluster (10 nodes)</h3>
+<ul>
+<li>Everything in one namespace</li>
+<li>Manual resource requests</li>
+<li>No advanced networking</li>
+<li>Worked great… until it didn’t</li>
+</ul>
+<h3 id="phase-2-multiple-clusters-50-100-nodes-each">Phase 2: Multiple Clusters (50-100 nodes each)</h3>
+<ul>
+<li>Separate production/staging</li>
+<li>Resource quotas implemented</li>
+<li>Basic monitoring</li>
+<li>Started hitting API server limits</li>
+</ul>
+<h3 id="phase-3-global-infrastructure-500-nodes">Phase 3: Global Infrastructure (500+ nodes)</h3>
+<ul>
+<li>Multi-region deployment</li>
+<li>Advanced scheduling policies</li>
+<li>Sophisticated networking</li>
+<li>Detailed observability</li>
+</ul>
+<h2 id="critical-challenges--solutions">Critical Challenges &#x26; Solutions</h2>
+<h3 id="1-api-server-performance">1. API Server Performance</h3>
+<p>The Kubernetes API server became our bottleneck at ~200 nodes.</p>
+<p><strong>Solution</strong>: Horizontal pod autoscaling at the control plane level:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ConfigMap</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">kubelet-config</span></span>
+<span class="line"><span style="color:#85E89D">data</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  nodeStatusUpdateFrequency</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">30s</span></span>
+<span class="line"><span style="color:#85E89D">  nodeMonitorGracePeriod</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">5m</span></span>
+<span class="line"></span></code></pre>
+<h3 id="2-etcd-disk-io">2. etcd Disk I/O</h3>
+<p>With thousands of updates per second, etcd disk I/O became critical.</p>
+<p><strong>What we did</strong>:</p>
+<ul>
+<li>Switched to SSD-backed persistent storage</li>
+<li>Implemented etcd backup and compaction</li>
+<li>Monitored replication lag</li>
+</ul>
+<h3 id="3-network-policies-at-scale">3. Network Policies at Scale</h3>
+<p>With 500+ nodes and 100k+ pods, simple network policies became expensive.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">networking.k8s.io/v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">NetworkPolicy</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">deny-all-ingress</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  podSelector</span><span style="color:#E1E4E8">: {}</span></span>
+<span class="line"><span style="color:#85E89D">  policyTypes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#9ECBFF">Ingress</span></span>
+<span class="line"></span></code></pre>
+<h2 id="best-practices-we-discovered">Best Practices We Discovered</h2>
+<h3 id="resource-requests--limits">Resource Requests &#x26; Limits</h3>
+<p>Never leave these empty:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">resources</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  requests</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    memory</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"64Mi"</span></span>
+<span class="line"><span style="color:#85E89D">    cpu</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"250m"</span></span>
+<span class="line"><span style="color:#85E89D">  limits</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    memory</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"128Mi"</span></span>
+<span class="line"><span style="color:#85E89D">    cpu</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"500m"</span></span>
+<span class="line"></span></code></pre>
+<h3 id="pod-disruption-budgets">Pod Disruption Budgets</h3>
+<p>Protect your critical workloads:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">policy/v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">PodDisruptionBudget</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">critical-app-pdb</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  minAvailable</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span></span>
+<span class="line"><span style="color:#85E89D">  selector</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    matchLabels</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      app</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">critical-app</span></span>
+<span class="line"></span></code></pre>
+<h3 id="namespace-isolation">Namespace Isolation</h3>
+<p>Enforce resource quotas per team:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ResourceQuota</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">team-quota</span></span>
+<span class="line"><span style="color:#85E89D">  namespace</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">team-a</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  hard</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    requests.cpu</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"100"</span></span>
+<span class="line"><span style="color:#85E89D">    limits.cpu</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"200"</span></span>
+<span class="line"><span style="color:#85E89D">    requests.memory</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"200Gi"</span></span>
+<span class="line"></span></code></pre>
+<h2 id="operational-insights">Operational Insights</h2>
+<h3 id="node-maintenance-at-scale">Node Maintenance at Scale</h3>
+<p>Draining 500 nodes gracefully requires:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D">#!/bin/bash</span></span>
+<span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8"> node </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> $(</span><span style="color:#B392F0">kubectl</span><span style="color:#9ECBFF"> get</span><span style="color:#9ECBFF"> nodes</span><span style="color:#79B8FF"> -o</span><span style="color:#9ECBFF"> jsonpath='{.items[*].metadata.name}'</span><span style="color:#E1E4E8">); </span><span style="color:#F97583">do</span></span>
+<span class="line"><span style="color:#B392F0">  kubectl</span><span style="color:#9ECBFF"> cordon</span><span style="color:#E1E4E8"> $node</span></span>
+<span class="line"><span style="color:#B392F0">  kubectl</span><span style="color:#9ECBFF"> drain</span><span style="color:#E1E4E8"> $node </span><span style="color:#79B8FF">--ignore-daemonsets</span><span style="color:#79B8FF"> --delete-emptydir-data</span></span>
+<span class="line"><span style="color:#6A737D">  # Perform maintenance</span></span>
+<span class="line"><span style="color:#B392F0">  kubectl</span><span style="color:#9ECBFF"> uncordon</span><span style="color:#E1E4E8"> $node</span></span>
+<span class="line"><span style="color:#B392F0">  sleep</span><span style="color:#79B8FF"> 60</span><span style="color:#6A737D">  # Wait for node to stabilize</span></span>
+<span class="line"><span style="color:#F97583">done</span></span>
+<span class="line"></span></code></pre>
+<h3 id="monitoring-that-actually-works">Monitoring That Actually Works</h3>
+<p>At scale, you need:</p>
+<ol>
+<li><strong>Control Plane Metrics</strong>: API latency, etcd performance</li>
+<li><strong>Node Metrics</strong>: CPU, memory, disk I/O</li>
+<li><strong>Pod Metrics</strong>: Resource utilization, restarts</li>
+<li><strong>Application Metrics</strong>: Custom business metrics</li>
+</ol>
+<h3 id="the-cost-of-complexity">The Cost of Complexity</h3>
+<p>Here’s what we learned about total cost of ownership:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Aspect</th><th>10 Nodes</th><th>100 Nodes</th><th>500 Nodes</th></tr></thead><tbody><tr><td>Setup Time</td><td>1 week</td><td>2 weeks</td><td>1 month</td></tr><tr><td>Monthly Ops</td><td>10h</td><td>40h</td><td>200h</td></tr><tr><td>Monitoring Tools</td><td>1-2</td><td>3-4</td><td>5-8</td></tr><tr><td>Cost/Pod/Month</td><td>$0.50</td><td>$0.15</td><td>$0.05</td></tr></tbody></table>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol>
+<li><strong>Automation is non-negotiable</strong>: Manual operations don’t scale</li>
+<li><strong>Monitoring is critical</strong>: You can’t manage what you can’t measure</li>
+<li><strong>Plan for failure</strong>: Design for high availability from the start</li>
+<li><strong>Invest in tooling</strong>: Good tooling pays for itself immediately</li>
+<li><strong>Community matters</strong>: Learn from others’ mistakes</li>
+</ol>
+<h2 id="whats-next">What’s Next</h2>
+<p>We’re currently exploring:</p>
+<ul>
+<li>Service mesh adoption (but carefully!)</li>
+<li>GitOps for declarative infrastructure</li>
+<li>Multi-cluster orchestration with Karmada</li>
+<li>Cost optimization with resource optimization</li>
+</ul>
+<p>Stay tuned for more deep dives!</p>  </article> </body></html>
