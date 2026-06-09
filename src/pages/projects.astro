@@ -1,0 +1,51 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Projects - Portfolio">
+    <div class="py-12">
+        <h1 class="text-5xl font-bold gradient-text mb-12">Projects</h1>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">ML Inference Platform</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Built a high-throughput ML inference platform handling 100M+ requests daily. Optimized for latency and throughput using gRPC and Kubernetes.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded">Go</span>
+                    <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded">Kubernetes</span>
+                    <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded">gRPC</span>
+                </div>
+            </div>
+
+            <div class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">Distributed Data Pipeline</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Designed and implemented a fault-tolerant data pipeline using Apache Airflow, Spark, and Kafka for processing terabytes of data daily.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Airflow</span>
+                    <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Spark</span>
+                    <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Kafka</span>
+                </div>
+            </div>
+
+            <div class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">Internal Developer Platform</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Created a self-service platform for developers to deploy services, manage configurations, and monitor applications with ease.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">Go</span>
+                    <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">Kubernetes</span>
+                    <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">React</span>
+                </div>
+            </div>
+
+            <div class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">Observability Stack</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Implemented comprehensive monitoring, logging, and tracing infrastructure using Prometheus, Grafana, ELK, and Jaeger.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">Prometheus</span>
+                    <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">Grafana</span>
+                    <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">ELK</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</MainLayout>

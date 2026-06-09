@@ -1,0 +1,56 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Blog - Technical Articles & Insights">
+    <div class="py-12">
+        <h1 class="text-5xl font-bold gradient-text mb-12">Blog & Technical Insights</h1>
+        
+        <div class="grid gap-6">
+            <a href="/blog/solid-principles-design-excellence" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">SOLID Principles: Design Excellence</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Master the SOLID principles for writing maintainable, scalable code. Learn each principle with real-world Go examples.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded">Design Patterns</span>
+                    <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded">Go</span>
+                </div>
+            </a>
+
+            <a href="/blog/oop-in-go-pragmatic-design" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">OOP in Go: Pragmatic Design</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Go doesn't have classes, but it has composition, interfaces, and methods. Learn practical OOP patterns in Go.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Go</span>
+                    <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">OOP</span>
+                </div>
+            </a>
+
+            <a href="/blog/go-buffered-channels-guide" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">Go Buffered Channels: Complete Guide</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Master Go's buffered channels - from basics to advanced patterns like worker pools and fan-out/fan-in.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">Go</span>
+                    <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">Concurrency</span>
+                </div>
+            </a>
+
+            <a href="/blog/dag-theory-data-pipelines" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">DAG Theory & Data Pipelines</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Understanding directed acyclic graphs and how they power data orchestration tools like Apache Airflow.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs px-2 py-1 rounded">Data Engineering</span>
+                    <span class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs px-2 py-1 rounded">Airflow</span>
+                </div>
+            </a>
+
+            <a href="/blog/designing-for-scalability-hld" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
+                <h2 class="text-2xl font-bold mb-2">Designing for Scalability: HLD Guide</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">A comprehensive guide to building scalable systems - from stateless services to database sharding and caching strategies.</p>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">System Design</span>
+                    <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">Architecture</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</MainLayout>

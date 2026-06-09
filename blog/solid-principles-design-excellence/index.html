@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SOLID Principles: Design Excellence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111; background: #fff; line-height: 1.8; }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        header { background: rgba(255,255,255,0.8); position: sticky; top: 0; z-50; border-bottom: 1px solid #e5e7eb; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+        nav a { margin: 0 20px; text-decoration: none; color: #111; font-weight: 500; }
+        nav a.logo { font-size: 20px; font-weight: bold; margin: 0; }
+        article { padding: 60px 0; }
+        article h1 { font-size: 48px; font-weight: bold; background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; }
+        .meta { color: #666; font-size: 14px; margin-bottom: 24px; }
+        .tags { display: flex; gap: 8px; margin-bottom: 40px; flex-wrap: wrap; }
+        .tag { font-size: 12px; background: #e0e7ff; color: #4f46e5; padding: 4px 12px; border-radius: 4px; }
+        article h2 { font-size: 28px; margin-top: 40px; margin-bottom: 16px; }
+        article p { margin-bottom: 16px; color: #333; }
+        article code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; }
+        article pre { background: #1f2937; color: #e5e7eb; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 16px 0; }
+        article pre code { background: none; color: inherit; padding: 0; }
+        .back-link { color: #4f46e5; text-decoration: none; margin-top: 32px; display: block; }
+        .back-link:hover { text-decoration: underline; }
+        footer { background: #111; color: white; padding: 32px 0; margin-top: 60px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo">Tanmoy</a>
+                <div style="display: flex; gap: 24px;">
+                    <a href="/">Home</a>
+                    <a href="/about">About</a>
+                    <a href="/blog">Blog</a>
+                    <a href="/learning">Learning</a>
+                    <a href="/#contact">Contact</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <article>
+        <div class="container">
+            <h1>SOLID Principles: Design Excellence</h1>
+            <div class="meta">Published on June 10, 2026 by Aunmoy Dey Tanmoy</div>
+            <div class="tags">
+                <span class="tag">Software Design</span>
+                <span class="tag">SOLID</span>
+                <span class="tag">Best Practices</span>
+            </div>
+
+            <h2>Introduction</h2>
+            <p>SOLID principles form the foundation of maintainable, scalable software architecture. In this deep dive, we'll explore each principle with real production examples and practical implementation patterns.</p>
+
+            <h2>S - Single Responsibility Principle</h2>
+            <p>Each class should have a single reason to change. This principle promotes modularity and makes code easier to test and maintain.</p>
+            <p><strong>Bad Example:</strong> A UserService handling authentication, database operations, and email sending.</p>
+            <p><strong>Good Example:</strong> Separate UserAuthService, UserRepository, and EmailService with clear boundaries.</p>
+
+            <h2>O - Open/Closed Principle</h2>
+            <p>Software entities should be open for extension but closed for modification. Use abstractions and polymorphism to achieve this.</p>
+            <p>Example: Payment processors implementing a common interface allows new processors without modifying existing code.</p>
+
+            <h2>L - Liskov Substitution Principle</h2>
+            <p>Derived classes must be substitutable for their base classes without breaking functionality. This ensures proper inheritance hierarchies.</p>
+
+            <h2>I - Interface Segregation Principle</h2>
+            <p>Many specific interfaces are better than one general interface. Clients should only depend on the methods they use.</p>
+
+            <h2>D - Dependency Inversion Principle</h2>
+            <p>Depend on abstractions, not concretions. High-level modules shouldn't depend on low-level modules; both should depend on abstractions.</p>
+
+            <h2>Conclusion</h2>
+            <p>Following SOLID principles leads to more maintainable, testable, and flexible code. Start applying these principles in your next project and experience the benefits of well-designed software architecture.</p>
+
+            <a href="/blog" class="back-link">← Back to Blog</a>
+        </div>
+    </article>
+
+    <footer>
+        <div class="container" style="text-align: center; color: #aaa;">
+            <p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

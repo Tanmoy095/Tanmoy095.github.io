@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Daily Learning & ADR - Aunmoy Dey Tanmoy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #111; background: #fff; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+        header { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-50; border-bottom: 1px solid #e5e7eb; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+        nav a { margin: 0 20px; text-decoration: none; color: #111; font-weight: 500; }
+        nav a.active { color: #4f46e5; }
+        nav a.logo { font-size: 20px; font-weight: bold; margin: 0; }
+        main { min-height: calc(100vh - 200px); padding: 80px 0; }
+        h1 { font-size: 48px; font-weight: bold; background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+        h2 { font-size: 32px; font-weight: bold; margin-top: 40px; margin-bottom: 24px; }
+        .subtitle { font-size: 18px; color: #666; margin-bottom: 40px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 60px; }
+        .stat-card { padding: 24px; border-radius: 8px; color: white; }
+        .stat-card.blue { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); }
+        .stat-card.pink { background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); }
+        .stat-card.purple { background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%); }
+        .stat-card.orange { background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); }
+        .stat-card .number { font-size: 36px; font-weight: bold; }
+        .stat-card .label { font-size: 14px; opacity: 0.9; }
+        .entry { background: #f9fafb; padding: 24px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #4f46e5; }
+        .entry h3 { margin-bottom: 8px; font-size: 18px; }
+        .entry-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; color: #666; }
+        .badge { display: inline-block; background: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; margin-right: 8px; margin-top: 8px; }
+        .adr { background: white; border: 1px solid #e5e7eb; padding: 24px; border-radius: 8px; margin-bottom: 16px; }
+        .adr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .adr h3 { font-size: 18px; }
+        .adr-status { padding: 4px 12px; border-radius: 4px; font-size: 12px; background: #dcfce7; color: #166534; }
+        .adr-detail { margin-bottom: 12px; font-size: 14px; }
+        .adr-detail strong { color: #111; }
+        .adr-detail p { color: #666; margin-top: 4px; }
+        footer { background: #111; color: white; padding: 48px 0; margin-top: 60px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 32px; }
+        .footer-section h4 { font-weight: 600; margin-bottom: 16px; }
+        .footer-section a { color: #aaa; text-decoration: none; }
+        .footer-section a:hover { color: white; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo">Tanmoy</a>
+                <div style="display: flex; gap: 24px;">
+                    <a href="/">Home</a>
+                    <a href="/about">About</a>
+                    <a href="/projects">Projects</a>
+                    <a href="/blog">Blog</a>
+                    <a href="/learning" class="active">Learning</a>
+                    <a href="/#contact">Contact</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Daily Learning & ADR</h1>
+            <p class="subtitle">Tracking continuous learning, architectural decisions, and knowledge growth across infrastructure, systems design, and software engineering.</p>
+
+            <h2>Stats</h2>
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="number">24</div>
+                    <div class="label">Learning Entries</div>
+                </div>
+                <div class="stat-card pink">
+                    <div class="number">8</div>
+                    <div class="label">ADRs Accepted</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="number">15</div>
+                    <div class="label">Topics Covered</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="number">47</div>
+                    <div class="label">Skills Advanced</div>
+                </div>
+            </div>
+
+            <h2>Recent Learning</h2>
+            <div class="entry">
+                <h3>Go Generics & Type Constraints</h3>
+                <div class="entry-meta">
+                    <span>2026-06-10</span>
+                    <span style="font-weight: 600; color: #4f46e5;">Go</span>
+                </div>
+                <p>Mastered Go generics syntax with type constraints, enabling reusable algorithms while maintaining type safety.</p>
+                <div>
+                    <span class="badge">Go</span>
+                    <span class="badge">Generics</span>
+                    <span class="badge">Type Safety</span>
+                </div>
+            </div>
+
+            <div class="entry" style="border-left-color: #ec4899;">
+                <h3>Kubernetes Resource Management</h3>
+                <div class="entry-meta">
+                    <span>2026-06-09</span>
+                    <span style="font-weight: 600; color: #ec4899;">Kubernetes</span>
+                </div>
+                <p>Deep dive into K8s resource requests, limits, and QoS classes for optimal cluster efficiency and cost optimization.</p>
+                <div>
+                    <span class="badge">Kubernetes</span>
+                    <span class="badge">DevOps</span>
+                    <span class="badge">Resource Mgmt</span>
+                </div>
+            </div>
+
+            <h2>Architecture Decision Records</h2>
+            <div class="adr">
+                <div class="adr-header">
+                    <h3>ADR-001: Microservices Over Monolith</h3>
+                    <span class="adr-status">Accepted</span>
+                </div>
+                <div class="adr-detail">
+                    <strong>Context:</strong>
+                    <p>Scaling requirements and independent deployment needs</p>
+                </div>
+                <div class="adr-detail">
+                    <strong>Decision:</strong>
+                    <p>Adopt microservices architecture with service mesh</p>
+                </div>
+                <div class="adr-detail">
+                    <strong>Consequences:</strong>
+                    <p>Increased operational complexity, better scalability, independent team ownership</p>
+                </div>
+            </div>
+
+            <div class="adr">
+                <div class="adr-header">
+                    <h3>ADR-002: gRPC for Inter-Service Communication</h3>
+                    <span class="adr-status">Accepted</span>
+                </div>
+                <div class="adr-detail">
+                    <strong>Context:</strong>
+                    <p>High-frequency service communication, low latency requirements</p>
+                </div>
+                <div class="adr-detail">
+                    <strong>Decision:</strong>
+                    <p>Use gRPC with Protocol Buffers</p>
+                </div>
+                <div class="adr-detail">
+                    <strong>Consequences:</strong>
+                    <p>Better performance, strong typing, requires standardization</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>Tanmoy</h4>
+                    <p style="color: #aaa;">AI Infrastructure Engineer & Platform Systems Expert</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/projects">Projects</a></li>
+                        <li><a href="/blog">Blog</a></li>
+                        <li><a href="/learning">Daily Learning</a></li>
+                        <li><a href="/about">About</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Social</h4>
+                    <ul>
+                        <li><a href="https://github.com/Tanmoy095" target="_blank">GitHub</a></li>
+                        <li><a href="https://linkedin.com/in/aunmoy-dey-tanmoy095" target="_blank">LinkedIn</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><a href="mailto:adtanmoy95@gmail.com">adtanmoy95@gmail.com</a></li>
+                        <li><a href="tel:+8801850371329">+880 1850 371329</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

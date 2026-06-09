@@ -1,0 +1,97 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Daily Learning & ADR - Knowledge Base">
+    <div class="py-12">
+        <h1 class="text-5xl font-bold gradient-text mb-8">Daily Learning & ADR</h1>
+        
+        <div class="grid md:grid-cols-4 gap-4 mb-12">
+            <div class="bg-indigo-50 dark:bg-indigo-900/30 p-6 rounded-lg">
+                <div class="text-3xl font-bold text-indigo-600">24</div>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Learning Entries</p>
+            </div>
+            <div class="bg-purple-50 dark:bg-purple-900/30 p-6 rounded-lg">
+                <div class="text-3xl font-bold text-purple-600">8</div>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Accepted ADRs</p>
+            </div>
+            <div class="bg-pink-50 dark:bg-pink-900/30 p-6 rounded-lg">
+                <div class="text-3xl font-bold text-pink-600">15</div>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Topics Covered</p>
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-lg">
+                <div class="text-3xl font-bold text-blue-600">47</div>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Skills Tracked</p>
+            </div>
+        </div>
+
+        <section class="mb-12">
+            <h2 class="text-3xl font-bold mb-6">Recent Learning</h2>
+            <div class="space-y-4">
+                <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-lg">
+                    <h3 class="font-bold">Kafka Partition Rebalancing</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">Deep dive into consumer groups and rebalancing strategies</p>
+                    <div class="flex gap-2 mt-2 flex-wrap">
+                        <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded">Kafka</span>
+                        <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded">Distributed Systems</span>
+                    </div>
+                </div>
+                <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-lg">
+                    <h3 class="font-bold">gRPC Performance Optimization</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">Benchmarking and tuning for high-throughput services</p>
+                    <div class="flex gap-2 mt-2 flex-wrap">
+                        <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">gRPC</span>
+                        <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Go</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-3xl font-bold mb-6">Architecture Decision Records</h2>
+            <div class="space-y-4">
+                <div class="p-4 border-l-4 border-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div class="font-bold text-green-700 dark:text-green-300">ADR-001: Microservices over Monolith</div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Accepted - Enables independent scaling and deployment</p>
+                </div>
+                <div class="p-4 border-l-4 border-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div class="font-bold text-green-700 dark:text-green-300">ADR-002: gRPC for Internal Communication</div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Accepted - High performance, strongly typed contracts</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-3xl font-bold mb-6">Knowledge Map</h2>
+            <div class="space-y-3">
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="font-medium">Backend Systems</span>
+                        <span class="text-sm text-slate-600 dark:text-slate-400">85%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                        <div class="bg-indigo-600 h-2 rounded-full" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="font-medium">Infrastructure & Cloud</span>
+                        <span class="text-sm text-slate-600 dark:text-slate-400">80%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                        <div class="bg-purple-600 h-2 rounded-full" style="width: 80%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="font-medium">ML/AI Systems</span>
+                        <span class="text-sm text-slate-600 dark:text-slate-400">70%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                        <div class="bg-pink-600 h-2 rounded-full" style="width: 70%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</MainLayout>

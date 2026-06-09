@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>About - Aunmoy Dey Tanmoy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111; background: #fff; line-height: 1.6; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+        header { background: rgba(255,255,255,0.8); position: sticky; top: 0; z-50; border-bottom: 1px solid #e5e7eb; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+        nav a { margin: 0 20px; text-decoration: none; color: #111; font-weight: 500; }
+        nav a.active { color: #4f46e5; }
+        nav a.logo { font-size: 20px; font-weight: bold; margin: 0; }
+        main { padding: 80px 0; min-height: calc(100vh - 200px); }
+        h1 { font-size: 48px; font-weight: bold; background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+        h2 { font-size: 32px; font-weight: bold; margin-top: 40px; margin-bottom: 24px; }
+        .subtitle { font-size: 18px; color: #666; margin-bottom: 40px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 60px; }
+        .stat-card { padding: 24px; border-radius: 8px; color: white; }
+        .stat-card.blue { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); }
+        .stat-card .number { font-size: 36px; font-weight: bold; }
+        .stat-card .label { font-size: 14px; opacity: 0.9; }
+        .exp { background: #f9fafb; padding: 24px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #4f46e5; }
+        .exp h3 { margin-bottom: 4px; }
+        .exp-meta { color: #666; font-size: 14px; margin-bottom: 8px; }
+        .skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+        .skill-box { background: #f9fafb; padding: 24px; border-radius: 8px; }
+        .skill-box h3 { margin-bottom: 16px; }
+        .skill-box ul { list-style: none; }
+        .skill-box li { padding: 8px 0; color: #666; }
+        footer { background: #111; color: white; padding: 48px 0; margin-top: 60px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo">Tanmoy</a>
+                <div style="display: flex; gap: 24px;">
+                    <a href="/">Home</a>
+                    <a href="/about" class="active">About</a>
+                    <a href="/projects">Projects</a>
+                    <a href="/blog">Blog</a>
+                    <a href="/learning">Learning</a>
+                    <a href="/#contact">Contact</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>About Me</h1>
+            <p class="subtitle">AI Infrastructure Engineer with 6+ years building scalable systems, leading platform teams, and delivering cloud-native solutions at scale.</p>
+
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="number">6+</div>
+                    <div class="label">Years Experience</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="number">50+</div>
+                    <div class="label">Production Systems</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="number">100M+</div>
+                    <div class="label">Daily Requests</div>
+                </div>
+            </div>
+
+            <h2>Experience</h2>
+            <div class="exp">
+                <h3>Senior ML Infrastructure Engineer</h3>
+                <div class="exp-meta">2023 - Present</div>
+                <p>Leading infrastructure initiatives for ML platforms, optimizing GPU utilization, and designing scalable ML serving systems.</p>
+            </div>
+            <div class="exp">
+                <h3>Platform Engineer</h3>
+                <div class="exp-meta">2020 - 2023</div>
+                <p>Built internal developer platforms using Kubernetes, designed CI/CD pipelines, and improved deployment efficiency by 60%.</p>
+            </div>
+            <div class="exp">
+                <h3>DevOps Engineer</h3>
+                <div class="exp-meta">2018 - 2020</div>
+                <p>Migrated legacy applications to cloud, managed infrastructure-as-code, and established monitoring/alerting systems.</p>
+            </div>
+
+            <h2>Technical Expertise</h2>
+            <div class="skills">
+                <div class="skill-box">
+                    <h3>Backend & Systems</h3>
+                    <ul>
+                        <li>✓ Go, Python, Java</li>
+                        <li>✓ Distributed Systems & Microservices</li>
+                        <li>✓ gRPC, Protocol Buffers</li>
+                        <li>✓ Database Design (SQL & NoSQL)</li>
+                    </ul>
+                </div>
+                <div class="skill-box">
+                    <h3>Cloud & Infrastructure</h3>
+                    <ul>
+                        <li>✓ Kubernetes, Docker, Helm</li>
+                        <li>✓ AWS, GCP, Cloud Native</li>
+                        <li>✓ CI/CD, GitOps</li>
+                        <li>✓ Observability & Monitoring</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container" style="text-align: center; color: #aaa;">
+            <p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
