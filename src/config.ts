@@ -1,16 +1,17 @@
 export default {
   // Site metadata
   site: {
-    title: "Tanmoy - AI Infrastructure Engineer",
+    title: "Aunmoy Dey Tanmoy - AI Infrastructure Engineer",
     description: "Personal portfolio showcasing AI infrastructure expertise, projects, and technical insights",
-    author: "Tanmoy",
-    email: "tanmoy@example.com",
+    author: "Aunmoy Dey Tanmoy",
+    email: "adtanmoy95@gmail.com",
+    phone: "+8801850371329",
   },
   
   // Social links
   social: {
     github: "https://github.com/Tanmoy095",
-    linkedin: "https://linkedin.com/in/tanmoy",
+    linkedin: "https://linkedin.com/in/aunmoy-dey-tanmoy095",
     twitter: "https://twitter.com/tanmoy",
   },
   
@@ -40,5 +41,6 @@ export default {
     { name: "About", path: "/about" },
     { name: "Projects", path: "/projects" },
     { name: "Blog", path: "/blog" },
+    { name: "Learning", path: "/learning" },
   ],
 };

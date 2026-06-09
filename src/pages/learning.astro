@@ -1,0 +1,273 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+
+const learningEntries = [
+  {
+    date: '2026-06-10',
+    title: 'Understanding SOLID Principles Impact',
+    category: 'Architecture',
+    summary: 'Realized how Dependency Inversion Principle reduces testing time from 2-3 hours to 15-20 minutes per feature through proper mocking.',
+    tags: ['SOLID', 'Testing', 'Architecture'],
+  },
+  {
+    date: '2026-06-09',
+    title: 'Go Channels: Buffered vs Unbuffered',
+    category: 'Go',
+    summary: 'Unbuffered for synchronization, buffered for decoupling. Prevented deadlock in worker pool by setting correct buffer size.',
+    tags: ['Go', 'Concurrency', 'Channels'],
+  },
+  {
+    date: '2026-06-08',
+    title: 'DAG Execution Optimization',
+    category: 'Data Engineering',
+    summary: 'Parallelizing independent DAG nodes reduced pipeline execution time by 60%. Topological sort is critical for order.',
+    tags: ['DAG', 'Parallelism', 'Data'],
+  },
+  {
+    date: '2026-06-07',
+    title: 'Stateless Service Design',
+    category: 'Scalability',
+    summary: 'Moving session storage from memory to Redis enabled horizontal scaling. Now we can add servers without concerns.',
+    tags: ['Scalability', 'Redis', 'Architecture'],
+  },
+];
+
+const adrs = [
+  {
+    id: 'ADR-001',
+    title: 'Use Event-Driven Architecture for Analytics Pipeline',
+    status: 'Accepted',
+    date: '2026-06-10',
+    decision: 'We will use Kafka-based event streaming instead of batch jobs for analytics',
+    rationale: 'Real-time insights, easier to scale, decoupled services',
+    consequences: 'More operational complexity, need event schema management',
+  },
+  {
+    id: 'ADR-002',
+    title: 'Implement Cache-Aside Pattern for User Data',
+    status: 'Accepted',
+    date: '2026-06-08',
+    decision: 'Cache-aside (lazy loading) instead of write-through caching',
+    rationale: 'Better for read-heavy workloads, simpler to implement',
+    consequences: 'Possible stale data, need careful invalidation',
+  },
+  {
+    id: 'ADR-003',
+    title: 'Database Sharding Strategy',
+    status: 'Pending',
+    date: '2026-06-05',
+    decision: 'Shard by user_id to distribute write load',
+    rationale: 'Supports 10x growth without infrastructure changes',
+    consequences: 'Cross-shard queries become complex, operational overhead',
+  },
+];
+
+const topics = [
+  { name: 'SOLID Principles', skills: ['DIP', 'LSP', 'ISP', 'OCP', 'SRP'], level: 'Advanced' },
+  { name: 'Go Concurrency', skills: ['Goroutines', 'Channels', 'Sync', 'Mutexes'], level: 'Advanced' },
+  { name: 'System Design', skills: ['Scalability', 'Caching', 'Sharding', 'Replication'], level: 'Intermediate' },
+  { name: 'Data Engineering', skills: ['DAGs', 'ETL', 'Stream Processing', 'Warehousing'], level: 'Intermediate' },
+  { name: 'Kubernetes', skills: ['Deployments', 'Services', 'ConfigMaps', 'Operators'], level: 'Intermediate' },
+  { name: 'Cloud Architecture', skills: ['AWS', 'GCP', 'Azure', 'Multi-cloud'], level: 'Advanced' },
+];
+---
+
+<MainLayout title="Daily Learning & ADR - Knowledge Base">
+  <!-- Hero Section -->
+  <section class="min-h-[300px] flex items-center justify-center bg-gradient-to-br from-primary/10 via-transparent to-secondary/10">
+    <div class="section-container w-full">
+      <div class="text-center">
+        <h1 class="text-5xl md:text-6xl font-bold mb-4">📚 Daily Learning & ADRs</h1>
+        <p class="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+          A personal knowledge base tracking insights, architecture decisions, and continuous learning journey.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Learning Entries -->
+  <section class="section-container">
+    <h2 class="text-4xl font-bold mb-8 flex items-center gap-2">
+      <span>💡</span> Recent Learning
+    </h2>
+    <div class="grid gap-6">
+      {learningEntries.map(entry => (
+        <div class="card border-l-4 border-primary hover:shadow-lg transition">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <time class="text-sm text-slate-500 dark:text-slate-400">{entry.date}</time>
+              <h3 class="text-2xl font-bold mt-2">{entry.title}</h3>
+            </div>
+            <span class="px-3 py-1 bg-primary/20 text-primary rounded text-sm font-semibold">
+              {entry.category}
+            </span>
+          </div>
+          <p class="text-slate-600 dark:text-slate-400 mb-4">{entry.summary}</p>
+          <div class="flex flex-wrap gap-2">
+            {entry.tags.map(tag => (
+              <span class="px-2 py-1 bg-slate-200 dark:bg-slate-700 text-xs rounded">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- ADRs Section -->
+  <section class="section-container bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl">
+    <h2 class="text-4xl font-bold mb-8 flex items-center gap-2">
+      <span>🏛️</span> Architecture Decision Records (ADRs)
+    </h2>
+    <div class="grid gap-6">
+      {adrs.map(adr => (
+        <div class="card border-l-4 border-secondary">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <span class="text-sm font-mono bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">
+                {adr.id}
+              </span>
+              <h3 class="text-2xl font-bold mt-3">{adr.title}</h3>
+            </div>
+            <span class={`px-3 py-1 rounded text-sm font-semibold ${
+              adr.status === 'Accepted' 
+                ? 'bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100'
+                : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100'
+            }`}>
+              {adr.status}
+            </span>
+          </div>
+          
+          <div class="space-y-3 text-slate-700 dark:text-slate-300">
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-1">Decision</h4>
+              <p>{adr.decision}</p>
+            </div>
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-1">Rationale</h4>
+              <p>{adr.rationale}</p>
+            </div>
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-1">Consequences</h4>
+              <p>{adr.consequences}</p>
+            </div>
+          </div>
+          
+          <div class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+            Date: {adr.date}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Knowledge Map -->
+  <section class="section-container">
+    <h2 class="text-4xl font-bold mb-8 flex items-center gap-2">
+      <span>🗺️</span> Knowledge Map
+    </h2>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {topics.map(topic => (
+        <div class="card hover:shadow-lg transition">
+          <h3 class="text-xl font-bold mb-2">{topic.name}</h3>
+          <div class="mb-4">
+            <span class={`text-xs font-semibold px-2 py-1 rounded ${
+              topic.level === 'Advanced'
+                ? 'bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100'
+                : 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
+            }`}>
+              {topic.level}
+            </span>
+          </div>
+          <div class="space-y-2">
+            {topic.skills.map(skill => (
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-primary rounded-full"></span>
+                <span class="text-sm">{skill}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- How to Use This Section -->
+  <section class="section-container bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl">
+    <h2 class="text-3xl font-bold mb-6">📖 How to Use This Section</h2>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div>
+        <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+          <span>💡</span> Daily Learning
+        </h3>
+        <p class="text-slate-600 dark:text-slate-400 mb-4">
+          Track insights and lessons learned from projects, reading, and experimentation. Keep entries concise and actionable.
+        </p>
+        <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+          <li>✓ Major "aha" moments</li>
+          <li>✓ Performance improvements discovered</li>
+          <li>✓ Problem patterns and solutions</li>
+          <li>✓ Technologies or patterns mastered</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+          <span>🏛️</span> ADRs
+        </h3>
+        <p class="text-slate-600 dark:text-slate-400 mb-4">
+          Architecture Decision Records document significant technical decisions with rationale and consequences.
+        </p>
+        <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+          <li>✓ Why you chose Technology X</li>
+          <li>✓ Trade-offs considered</li>
+          <li>✓ Future impact assessment</li>
+          <li>✓ When/if to revisit</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Stats -->
+  <section class="section-container">
+    <h2 class="text-3xl font-bold mb-8">📊 Stats</h2>
+    <div class="grid md:grid-cols-4 gap-6">
+      <div class="card text-center">
+        <div class="text-4xl font-bold gradient-text mb-2">
+          {learningEntries.length}
+        </div>
+        <p class="text-slate-600 dark:text-slate-400">Learning Entries</p>
+      </div>
+      <div class="card text-center">
+        <div class="text-4xl font-bold gradient-text mb-2">
+          {adrs.filter(a => a.status === 'Accepted').length}
+        </div>
+        <p class="text-slate-600 dark:text-slate-400">ADRs Accepted</p>
+      </div>
+      <div class="card text-center">
+        <div class="text-4xl font-bold gradient-text mb-2">
+          {topics.filter(t => t.level === 'Advanced').length}
+        </div>
+        <p class="text-slate-600 dark:text-slate-400">Advanced Topics</p>
+      </div>
+      <div class="card text-center">
+        <div class="text-4xl font-bold gradient-text mb-2">
+          {topics.reduce((sum, t) => sum + t.skills.length, 0)}
+        </div>
+        <p class="text-slate-600 dark:text-slate-400">Skills Tracked</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section-container text-center">
+    <h2 class="text-3xl font-bold mb-6">Want to Learn More?</h2>
+    <p class="text-lg text-slate-600 dark:text-slate-400 mb-8">
+      Check out my detailed blog posts on these topics and architectural decisions.
+    </p>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="/blog" class="btn-primary">Read Technical Blog</a>
+      <a href="mailto:adtanmoy95@gmail.com" class="btn-secondary">Discuss Ideas</a>
+    </div>
+  </section>
+</MainLayout>
