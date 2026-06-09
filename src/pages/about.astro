@@ -3,97 +3,285 @@ import MainLayout from '../layouts/MainLayout.astro';
 ---
 
 <MainLayout title="About Me - AI Infrastructure Engineer">
-  <div class="section-container">
-    <div class="max-w-3xl mx-auto">
-      <h1 class="text-5xl font-bold mb-8 gradient-text">About Me</h1>
-      
-      <div class="prose dark:prose-invert max-w-none">
-        <p class="text-xl leading-relaxed mb-6">
-          I'm a Senior AI Infrastructure Engineer with 8+ years of experience building and scaling distributed systems for machine learning workloads. My passion lies in designing elegant, robust infrastructure solutions that enable teams to focus on what matters most—creating impactful AI applications.
+  <section class="min-h-[300px] flex items-center justify-center bg-gradient-to-br from-primary/10 via-transparent to-secondary/10">
+    <div class="section-container w-full">
+      <div class="max-w-3xl mx-auto text-center">
+        <h1 class="text-5xl md:text-6xl font-bold mb-4 gradient-text">Aunmoy Dey</h1>
+        <p class="text-2xl text-slate-700 dark:text-slate-300 mb-4 font-semibold">
+          AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer
         </p>
-
-        <h2 class="text-3xl font-bold mt-12 mb-6">Experience Highlights</h2>
-        
-        <div class="space-y-8">
-          {[
-            {
-              title: 'Senior ML Infrastructure Engineer',
-              company: 'Leading AI Company',
-              period: '2023 - Present',
-              description: 'Led infrastructure redesign for ML platform, reducing costs by 40% and improving deployment speed by 10x.'
-            },
-            {
-              title: 'Platform Engineer',
-              company: 'Cloud Infrastructure Startup',
-              period: '2020 - 2023',
-              description: 'Built Kubernetes infrastructure supporting 500+ ML models in production, handling billions of daily predictions.'
-            },
-            {
-              title: 'DevOps Engineer',
-              company: 'Tech Scale-up',
-              period: '2018 - 2020',
-              description: 'Implemented CI/CD pipelines and containerization strategies, improving deployment frequency by 50x.'
-            },
-          ].map(job => (
-            <div class="border-l-4 border-primary pl-6">
-              <h3 class="text-xl font-bold">{job.title}</h3>
-              <p class="text-primary font-semibold">{job.company}</p>
-              <p class="text-slate-500 dark:text-slate-400">{job.period}</p>
-              <p class="mt-2 text-slate-700 dark:text-slate-300">{job.description}</p>
-            </div>
-          ))}
-        </div>
-
-        <h2 class="text-3xl font-bold mt-12 mb-6">Technical Expertise</h2>
-        
-        <div class="grid md:grid-cols-2 gap-6">
-          {[
-            { title: 'AI/ML Infrastructure', skills: 'MLOps, Model Serving, CUDA, Distributed Training' },
-            { title: 'Cloud & Container', skills: 'AWS, GCP, Azure, Kubernetes, Docker' },
-            { title: 'Data Systems', skills: 'Elasticsearch, Apache Kafka, PostgreSQL, Ray' },
-            { title: 'Programming', skills: 'Python, Go, Rust, TypeScript, Bash' },
-          ].map(group => (
-            <div class="card">
-              <h4 class="font-bold mb-2">{group.title}</h4>
-              <p class="text-slate-600 dark:text-slate-400">{group.skills}</p>
-            </div>
-          ))}
-        </div>
-
-        <h2 class="text-3xl font-bold mt-12 mb-6">Education & Certifications</h2>
-        
-        <ul class="space-y-4">
-          <li class="flex items-start gap-3">
-            <span class="text-primary font-bold mt-1">→</span>
-            <span><strong>BS in Computer Science</strong> - State University (2018)</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <span class="text-primary font-bold mt-1">→</span>
-            <span><strong>Kubernetes Application Developer Certified (CKAD)</strong> - CNCF (2022)</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <span class="text-primary font-bold mt-1">→</span>
-            <span><strong>AWS Solutions Architect - Professional</strong> - Amazon (2021)</span>
-          </li>
-        </ul>
-
-        <h2 class="text-3xl font-bold mt-12 mb-6">What I'm Currently Focused On</h2>
-        
-        <ul class="space-y-2">
-          <li class="flex items-center gap-2">
-            <span class="text-primary">✓</span> Building next-gen ML observability tools
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-primary">✓</span> Optimizing GPU utilization in cloud environments
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-primary">✓</span> Contributing to open-source ML infrastructure projects
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-primary">✓</span> Writing about distributed systems and infrastructure challenges
-          </li>
-        </ul>
+        <p class="text-lg text-slate-600 dark:text-slate-400">
+          Building AI Infrastructure, Distributed Systems, and Cloud-Native Platforms with Go, Kubernetes, and LLM Technologies
+        </p>
       </div>
+    </div>
+  </section>
+
+  <div class="section-container">
+    <div class="max-w-4xl mx-auto">
+      <!-- Core Mission -->
+      <section class="mb-16">
+        <p class="text-xl leading-relaxed text-slate-700 dark:text-slate-300 mb-6">
+          I design and build scalable backend systems, cloud-native platforms, and AI infrastructure using Go, Kubernetes, distributed systems, and modern LLM technologies.
+        </p>
+        <p class="text-lg leading-relaxed text-slate-600 dark:text-slate-400 mb-6">
+          My expertise spans event-driven architectures, multi-tenant SaaS platforms, Kubernetes platform engineering, AI gateways, RAG systems, observability, and production-grade cloud infrastructure. I specialize in building systems that are reliable, observable, secure, and capable of operating at scale.
+        </p>
+        <p class="text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+          Currently, I am building <strong>LogiFlow AI</strong>, a production-grade AI infrastructure platform that combines Kubernetes automation, multi-agent workflows, Retrieval-Augmented Generation (RAG), Model Context Protocol (MCP), LLM routing, event-driven architecture, and enterprise-grade observability.
+        </p>
+      </section>
+
+      <!-- Backend Engineering -->
+      <section class="mb-16 card p-8 border-l-4 border-primary">
+        <h2 class="text-3xl font-bold mb-6">Backend Engineering</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+          <ul class="space-y-2">
+            <li>• Go (Golang)</li>
+            <li>• REST APIs & gRPC</li>
+            <li>• GraphQL & WebSocket</li>
+            <li>• Microservices Architecture</li>
+            <li>• Domain Driven Design (DDD)</li>
+          </ul>
+          <ul class="space-y-2">
+            <li>• Clean Architecture</li>
+            <li>• Event Driven Architecture</li>
+            <li>• Concurrent Systems</li>
+            <li>• Performance Optimization</li>
+            <li>• Production Reliability</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Distributed Systems -->
+      <section class="mb-16 card p-8 border-l-4 border-secondary">
+        <h2 class="text-3xl font-bold mb-6">Distributed Systems</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+          <ul class="space-y-2">
+            <li>• Kafka & RabbitMQ</li>
+            <li>• Temporal Workflows</li>
+            <li>• CQRS & Event Sourcing</li>
+            <li>• Outbox & Saga Patterns</li>
+            <li>• Distributed Transactions</li>
+          </ul>
+          <ul class="space-y-2">
+            <li>• High Availability Systems</li>
+            <li>• Fault Tolerance</li>
+            <li>• Load Balancing</li>
+            <li>• Circuit Breakers</li>
+            <li>• Resilience Patterns</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Cloud Native & Platform Engineering -->
+      <section class="mb-16 card p-8 border-l-4 border-blue-500">
+        <h2 class="text-3xl font-bold mb-6">Cloud Native & Platform Engineering</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+          <ul class="space-y-2">
+            <li>• Kubernetes & Operators</li>
+            <li>• CRDs & Controllers</li>
+            <li>• Helm & Terraform</li>
+            <li>• GitOps & ArgoCD</li>
+            <li>• Docker Containerization</li>
+          </ul>
+          <ul class="space-y-2">
+            <li>• Infrastructure as Code</li>
+            <li>• Multi-Tenant Platforms</li>
+            <li>• Service Mesh Concepts</li>
+            <li>• Resource Governance</li>
+            <li>• Auto-scaling Systems</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- AI Infrastructure Engineering -->
+      <section class="mb-16 card p-8 border-l-4 border-purple-500">
+        <h2 class="text-3xl font-bold mb-6">AI Infrastructure Engineering</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+          <ul class="space-y-2">
+            <li>• LLM Gateways</li>
+            <li>• Multi-Agent Workflows</li>
+            <li>• Retrieval Augmented Generation (RAG)</li>
+            <li>• Model Context Protocol (MCP)</li>
+            <li>• Vector Search & pgvector</li>
+          </ul>
+          <ul class="space-y-2">
+            <li>• Semantic Caching</li>
+            <li>• Prompt Versioning</li>
+            <li>• LLM Routing & Fallbacks</li>
+            <li>• AI Observability</li>
+            <li>• LLM Cost Governance</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Databases & Data Systems -->
+      <section class="mb-16 card p-8 border-l-4 border-orange-500">
+        <h2 class="text-3xl font-bold mb-6">Databases & Data Systems</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+          <ul class="space-y-2">
+            <li>• PostgreSQL (Advanced)</li>
+            <li>• MySQL & MongoDB</li>
+            <li>• Redis & Caching Layers</li>
+            <li>• ClickHouse (OLAP)</li>
+            <li>• InfluxDB (Time Series)</li>
+          </ul>
+          <ul class="space-y-2">
+            <li>• Vector Databases (pgvector)</li>
+            <li>• Query Optimization</li>
+            <li>• Database Replication</li>
+            <li>• Sharding Strategies</li>
+            <li>• Data Pipeline Design</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Security & Identity -->
+      <section class="mb-16 card p-8 border-l-4 border-red-500">
+        <h2 class="text-3xl font-bold mb-6">Security & Identity</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+          <ul class="space-y-2">
+            <li>• OAuth2 & OpenID Connect</li>
+            <li>• JWT Authentication</li>
+            <li>• RBAC & Permissions</li>
+            <li>• Multi-Tenant Authorization</li>
+          </ul>
+          <ul class="space-y-2">
+            <li>• API Key Management</li>
+            <li>• MFA Systems</li>
+            <li>• SSO Integrations</li>
+            <li>• Encryption & TLS</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Observability & Reliability -->
+      <section class="mb-16 card p-8 border-l-4 border-green-500">
+        <h2 class="text-3xl font-bold mb-6">Observability & Reliability</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+          <ul class="space-y-2">
+            <li>• OpenTelemetry</li>
+            <li>• Prometheus & Grafana</li>
+            <li>• Jaeger Distributed Tracing</li>
+            <li>• Log Aggregation</li>
+          </ul>
+          <ul class="space-y-2">
+            <li>• SLO & Error Budget Design</li>
+            <li>• Production Monitoring</li>
+            <li>• Incident Response</li>
+            <li>• Alerting Strategies</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Experience Highlights -->
+      <section class="mb-16">
+        <h2 class="text-3xl font-bold mb-8">Experience Highlights</h2>
+        <div class="space-y-8">
+          <div class="card border-l-4 border-primary">
+            <h3 class="text-xl font-bold mb-2">Freelance Backend & Platform Engineer</h3>
+            <p class="text-slate-600 dark:text-slate-400 mb-4">International Client Projects</p>
+            <ul class="space-y-2 text-slate-700 dark:text-slate-300">
+              <li>• Designed and developed scalable SaaS platforms</li>
+              <li>• Built and maintained Go microservices architectures</li>
+              <li>• Implemented RBAC, authentication, authorization, and multi-tenant systems</li>
+              <li>• Migrated monolithic systems toward modern service-oriented architectures</li>
+              <li>• Delivered production-ready backend systems using Go, PostgreSQL, Docker, and Kubernetes</li>
+              <li>• Collaborated directly with founders and business stakeholders</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Currently Building -->
+      <section class="mb-16 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 rounded-2xl p-8">
+        <h2 class="text-3xl font-bold mb-6">Currently Building: LogiFlow AI</h2>
+        <p class="text-slate-700 dark:text-slate-300 mb-6">
+          A production-grade AI infrastructure platform featuring:
+        </p>
+        <div class="grid md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+          <ul class="space-y-2">
+            <li>✓ Multi-Agent Workflow Engine</li>
+            <li>✓ AI Gateway & MCP Server</li>
+            <li>✓ RAG Pipeline</li>
+            <li>✓ Vector Search Integration</li>
+          </ul>
+          <ul class="space-y-2">
+            <li>✓ Tenant Management</li>
+            <li>✓ Usage-Based Billing</li>
+            <li>✓ Kubernetes Operator</li>
+            <li>✓ GitOps Deployment</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- What I'm Focused On -->
+      <section class="mb-16">
+        <h2 class="text-3xl font-bold mb-8">What I'm Currently Focused On</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="card">
+            <h3 class="font-bold text-lg mb-3">AI Infrastructure Engineering</h3>
+            <ul class="space-y-2 text-slate-600 dark:text-slate-400">
+              <li>• Agentic Systems Architecture</li>
+              <li>• LLMOps & Model Serving</li>
+              <li>• MCP Implementations</li>
+              <li>• AI Platform Design</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="font-bold text-lg mb-3">Platform Engineering</h3>
+            <ul class="space-y-2 text-slate-600 dark:text-slate-400">
+              <li>• Kubernetes Automation</li>
+              <li>• GitOps Workflows</li>
+              <li>• Infrastructure as Code</li>
+              <li>• Cloud-Native Architecture</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="font-bold text-lg mb-3">Distributed Systems</h3>
+            <ul class="space-y-2 text-slate-600 dark:text-slate-400">
+              <li>• High-Scale Architectures</li>
+              <li>• Event-Driven Design</li>
+              <li>• Workflow Orchestration</li>
+              <li>• Resilient Systems</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="font-bold text-lg mb-3">Technical Writing</h3>
+            <ul class="space-y-2 text-slate-600 dark:text-slate-400">
+              <li>• Infrastructure Patterns</li>
+              <li>• System Design Deep Dives</li>
+              <li>• AI Infrastructure Topics</li>
+              <li>• Production Experiences</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recruiter Summary -->
+      <section class="mb-8 card bg-gradient-to-r from-primary/10 to-secondary/10 border-l-4 border-primary p-8">
+        <h2 class="text-2xl font-bold mb-4">For Recruiters</h2>
+        <p class="text-lg text-slate-700 dark:text-slate-300 mb-4">
+          I am a Go-focused Backend, Platform, and AI Infrastructure Engineer who specializes in building production-grade distributed systems. My work combines cloud-native engineering, Kubernetes automation, event-driven architectures, AI infrastructure, and observability to create scalable and reliable platforms.
+        </p>
+        <p class="font-semibold text-slate-800 dark:text-slate-200 mb-4">
+          Interested in roles involving: AI Infrastructure Engineering, AI Platform Engineering, Platform Engineering, Distributed Systems Engineering, Senior Backend Engineering, or Cloud Native Engineering.
+        </p>
+        <p class="text-slate-600 dark:text-slate-400">
+          I enjoy solving complex engineering challenges and building systems that operate reliably at scale.
+        </p>
+      </section>
+
+      <!-- Contact CTA -->
+      <section class="text-center">
+        <h2 class="text-2xl font-bold mb-6">Let's Connect</h2>
+        <div class="flex flex-wrap gap-4 justify-center">
+          <a href="mailto:adtanmoy95@gmail.com" class="btn-primary">Send Email</a>
+          <a href="https://linkedin.com/in/aunmoy-dey-tanmoy095" target="_blank" class="btn-secondary">LinkedIn</a>
+          <a href="https://github.com/Tanmoy095" target="_blank" class="btn-secondary">GitHub</a>
+        </div>
+      </section>
     </div>
   </div>
 </MainLayout>
