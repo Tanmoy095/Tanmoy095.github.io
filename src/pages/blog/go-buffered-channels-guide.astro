@@ -1,0 +1,32 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Go Buffered Channels: Complete Guide">
+    <div class="py-12">
+        <article class="max-w-3xl">
+            <h1 class="text-5xl font-bold gradient-text mb-4">Go Buffered Channels: Complete Guide</h1>
+            <div class="text-slate-600 dark:text-slate-400 mb-2">Published on June 10, 2026</div>
+            <div class="flex gap-2 mb-8 flex-wrap">
+                <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">Go</span>
+                <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">Concurrency</span>
+            </div>
+
+            <section class="space-y-6">
+                <h2 class="text-3xl font-bold">Introduction to Buffered Channels</h2>
+                <p>Buffered channels in Go allow you to send values without a corresponding receiver. They're essential for building concurrent systems.</p>
+                
+                <h2 class="text-3xl font-bold">Buffered vs Unbuffered Channels</h2>
+                <p>Unbuffered channels require sender and receiver to be ready simultaneously. Buffered channels decouple the sender and receiver in time.</p>
+
+                <h2 class="text-3xl font-bold">Worker Pool Pattern</h2>
+                <p>Buffered channels are perfect for implementing worker pools that process tasks concurrently with controlled parallelism.</p>
+
+                <h2 class="text-3xl font-bold">Best Practices</h2>
+                <p>Close channels from the sender side, use select for multiplexing, and always handle nil channels carefully to avoid panics.</p>
+            </section>
+
+            <a href="/blog" class="inline-block mt-12 text-indigo-600 hover:text-indigo-700 font-medium">← Back to Blog</a>
+        </article>
+    </div>
+</MainLayout>
