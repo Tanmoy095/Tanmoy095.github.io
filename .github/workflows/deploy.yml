@@ -24,6 +24,9 @@ jobs:
         run: npm install
 
       - name: Build
+        env:
+          PUBLIC_ADMIN_EMAIL: adtanmoy95@gmail.com
+          PUBLIC_ADMIN_PASSWORD_HASH: ${{ secrets.ADMIN_PASSWORD_HASH }}
         run: npm run build
 
       - name: Deploy to GitHub Pages

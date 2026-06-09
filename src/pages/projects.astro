@@ -23,6 +23,12 @@ import projects from '../data/projects.json';
                         </div>
                     </div>
 
+                    {project.image && (
+                        <div class="mb-6 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50">
+                            <img src={project.image} alt={project.name} class="w-full max-h-56 object-cover" loading="lazy" />
+                        </div>
+                    )}
+
                     <p class="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">{project.description}</p>
 
                     <!-- Key Features Accordion/List -->

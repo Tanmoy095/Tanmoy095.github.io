@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "hash-password": "node scripts/generate-admin-hash.mjs"
   },
   "dependencies": {
     "astro": "^4.4.0"
