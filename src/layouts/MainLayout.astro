@@ -1,42 +1,175 @@
 ---
-const { title } = Astro.props;
-import { site } from '../config';
+const { title, description } = Astro.props;
+import profile from '../data/profile.json';
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{title || site.title}</title>
-    <link rel="stylesheet" href="https://cdn.tailwindcss.com">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .gradient-text { background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    <title>{title ? `${title} | ${profile.name}` : `${profile.name} - ${profile.title}`}</title>
+    <meta name="description" content={description || profile.summary}>
+    
+    <!-- SEO Meta tags -->
+    <meta property="og:title" content={title || profile.name} />
+    <meta property="og:description" content={description || profile.summary} />
+    <meta property="og:type" content="website" />
+    
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Inline Tailwind Config for Custom Colors & Styles -->
+    <style is:global>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        }
+        .glass-header {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+        }
+        .dark .glass-header {
+            background-color: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+        }
     </style>
+    
+    <script is:inline>
+        // Inline script to prevent theme flash
+        const theme = (() => {
+            if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+            return 'light';
+        })();
+      
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 </head>
-<body class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors">
-    <header class="sticky top-0 z-50 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass-header border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300">
         <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold gradient-text">Tanmoy</a>
-            <div class="flex gap-8 items-center">
-                {site.nav && site.nav.map(item => (
-                    <a href={item.url} class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">{item.label}</a>
+            <a href="/" class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200">
+                {profile.name.split(' ').pop()}
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex gap-8 items-center">
+                {profile.nav.map(item => (
+                    <a href={item.url} class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">
+                        {item.label}
+                    </a>
                 ))}
+                
+                <!-- Dark Mode Toggle -->
+                <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-200 focus:outline-none" aria-label="Toggle theme">
+                    <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu Toggle Button -->
+            <div class="flex md:hidden items-center gap-4">
+                <button id="mobile-theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" aria-label="Toggle theme">
+                    <span class="dark:hidden">🌙</span>
+                    <span class="hidden dark:inline">☀️</span>
+                </button>
+                <button id="menu-btn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none" aria-label="Toggle menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
             </div>
         </nav>
+        
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex flex-col gap-4 bg-white/95 dark:bg-slate-950/95 transition-all duration-300">
+            {profile.nav.map(item => (
+                <a href={item.url} class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">
+                    {item.label}
+                </a>
+            ))}
+        </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-6 py-12">
+    <!-- Main Content -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-6 py-12">
         <slot />
     </main>
 
-    <footer class="bg-slate-900 dark:bg-black text-white py-12 mt-20">
-        <div class="max-w-6xl mx-auto px-6 text-center">
-            <p>&copy; 2026 {site.author}. All rights reserved.</p>
-            <p class="text-slate-400 mt-2">{site.email} | {site.phone}</p>
+    <!-- Footer -->
+    <footer class="bg-slate-900 dark:bg-black text-slate-300 dark:text-slate-400 border-t border-slate-800 py-12 mt-auto transition-colors duration-300">
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left">
+            <div>
+                <p class="font-bold text-white text-lg tracking-wide">{profile.name}</p>
+                <p class="text-sm text-slate-400 mt-1">{profile.title}</p>
+            </div>
+            <div class="flex flex-col md:items-end text-sm gap-2">
+                <p>&copy; {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
+                <p class="text-slate-500">{profile.email} | {profile.phone}</p>
+            </div>
         </div>
     </footer>
+
+    <!-- Theme & Menu Scripts -->
+    <script is:inline>
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+
+        function updateIcons() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                themeToggleDarkIcon.classList.remove('hidden');
+                themeToggleLightIcon.classList.add('hidden');
+            }
+        }
+
+        updateIcons();
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateIcons();
+        }
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
 </body>
 </html>

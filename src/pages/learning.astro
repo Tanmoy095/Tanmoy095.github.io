@@ -1,181 +1,300 @@
 ---
+import { getCollection } from 'astro:content';
 import MainLayout from '../layouts/MainLayout.astro';
+import profile from '../data/profile.json';
+
+const entries = await getCollection('learning');
+// Sort by date descending
+entries.sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+
+const renderedEntries = await Promise.all(
+  entries.map(async (entry) => {
+    const { Content } = await entry.render();
+    return { entry, Content };
+  })
+);
+
+// Calculate metrics dynamically
+const totalEntries = entries.length;
+const acceptedADRs = entries.filter(e => e.data.isADR && e.data.adrStatus === 'Accepted').length;
+const categoriesCount = [...new Set(entries.map(e => e.data.category))].length;
+const tagsCount = [...new Set(entries.flatMap(e => e.data.tags))].length;
+
+const uniqueCategories = [...new Set(entries.map(e => e.data.category))];
 ---
 
 <MainLayout title="Daily Learning & ADR - Knowledge Base">
-    <div class="py-12">
-        <h1 class="text-5xl font-bold gradient-text mb-8">Daily Learning & ADR</h1>
-        
-        <div class="grid md:grid-cols-4 gap-4 mb-12">
-            <div class="bg-indigo-50 dark:bg-indigo-900/30 p-6 rounded-lg">
-                <div class="text-3xl font-bold text-indigo-600">24</div>
-                <p class="text-sm text-slate-600 dark:text-slate-400">Learning Entries</p>
+    <div class="py-6 max-w-4xl mx-auto">
+        <div class="mb-12 text-center md:text-left">
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+                Learning & <span class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">ADRs</span>
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 text-lg">My daily logs, technical breakthroughs, and Architecture Decision Records (ADRs) tracking platform engineering and systems architecture.</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            <div class="bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/30 dark:border-indigo-900/30 p-6 rounded-2xl">
+                <div class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">{totalEntries}</div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Entries</p>
             </div>
-            <div class="bg-purple-50 dark:bg-purple-900/30 p-6 rounded-lg">
-                <div class="text-3xl font-bold text-purple-600">8</div>
-                <p class="text-sm text-slate-600 dark:text-slate-400">Accepted ADRs</p>
+            <div class="bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100/30 dark:border-purple-900/30 p-6 rounded-2xl">
+                <div class="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mb-1">{acceptedADRs}</div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Accepted ADRs</p>
             </div>
-            <div class="bg-pink-50 dark:bg-pink-900/30 p-6 rounded-lg">
-                <div class="text-3xl font-bold text-pink-600">15</div>
-                <p class="text-sm text-slate-600 dark:text-slate-400">Topics Covered</p>
+            <div class="bg-pink-50/50 dark:bg-pink-950/20 border border-pink-100/30 dark:border-pink-900/30 p-6 rounded-2xl">
+                <div class="text-3xl font-extrabold text-pink-600 dark:text-pink-400 mb-1">{categoriesCount}</div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Topics Tracked</p>
             </div>
-            <div class="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-lg">
-                <div class="text-3xl font-bold text-blue-600">47</div>
-                <p class="text-sm text-slate-600 dark:text-slate-400">Skills Tracked</p>
+            <div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/30 dark:border-blue-900/30 p-6 rounded-2xl">
+                <div class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-1">{tagsCount}</div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Skills Advanced</p>
             </div>
         </div>
 
-        <section class="mb-12">
-            <h2 class="text-3xl font-bold mb-6">Recent Learning</h2>
-            <div class="space-y-4">
-                <div class="learning-entry p-4 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <h3 class="font-bold text-lg">Kafka Partition Rebalancing</h3>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Deep dive into consumer groups and rebalancing strategies</p>
-                        </div>
-                        <span class="expand-icon text-2xl ml-4">+</span>
-                    </div>
-                    <div class="details hidden mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <h4 class="font-semibold mb-2">Key Learnings:</h4>
-                        <ul class="list-disc pl-5 space-y-1 text-sm text-slate-600 dark:text-slate-400 mb-4">
-                            <li>Consumer groups coordinate rebalancing via group coordinator</li>
-                            <li>Stop-the-world rebalancing pauses message processing</li>
-                            <li>Rebalance listeners trigger on onPartitionsRevoked/Assigned</li>
-                            <li>Minimize rebalance time with session.timeout.ms tuning</li>
-                        </ul>
-                        <div class="flex gap-2 flex-wrap">
-                            <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded">Kafka</span>
-                            <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded">Distributed Systems</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="learning-entry p-4 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <h3 class="font-bold text-lg">gRPC Performance Optimization</h3>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Benchmarking and tuning for high-throughput services</p>
-                        </div>
-                        <span class="expand-icon text-2xl ml-4">+</span>
-                    </div>
-                    <div class="details hidden mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <h4 class="font-semibold mb-2">Performance Insights:</h4>
-                        <ul class="list-disc pl-5 space-y-1 text-sm text-slate-600 dark:text-slate-400 mb-4">
-                            <li>HTTP/2 multiplexing reduces connection overhead by 80%+</li>
-                            <li>Protocol Buffers binary format 3-10x faster than JSON</li>
-                            <li>Connection pooling with keepalive prevents handshake latency</li>
-                            <li>Message compression trade-off: CPU vs bandwidth</li>
-                        </ul>
-                        <div class="flex gap-2 flex-wrap">
-                            <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">gRPC</span>
-                            <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Go</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="learning-entry p-4 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <h3 class="font-bold text-lg">Kubernetes Resource Limits & Requests</h3>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Understanding scheduler behavior and resource contention</p>
-                        </div>
-                        <span class="expand-icon text-2xl ml-4">+</span>
-                    </div>
-                    <div class="details hidden mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <h4 class="font-semibold mb-2">Core Concepts:</h4>
-                        <ul class="list-disc pl-5 space-y-1 text-sm text-slate-600 dark:text-slate-400 mb-4">
-                            <li>Requests: scheduler uses these for placement decisions</li>
-                            <li>Limits: enforced at runtime via cgroups (OOMKill if exceeded)</li>
-                            <li>QoS classes: Guaranteed > Burstable > BestEffort</li>
-                            <li>Memory overcommit causes pod evictions during pressure</li>
-                        </ul>
-                        <div class="flex gap-2 flex-wrap">
-                            <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">Kubernetes</span>
-                            <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">Infrastructure</span>
-                        </div>
-                    </div>
-                </div>
+        <!-- Filters & Search -->
+        <div class="mb-8 flex flex-col md:flex-row gap-6 justify-between items-center bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 p-6 rounded-2xl shadow-sm">
+            <!-- Search bar -->
+            <div class="relative w-full md:w-80">
+                <input type="text" id="learning-search" placeholder="Search logs & ADRs..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-200" />
+                <span class="absolute right-3.5 top-3.5 text-slate-400 text-xs">🔍</span>
             </div>
-        </section>
 
-        <section class="mb-12">
-            <h2 class="text-3xl font-bold mb-6">Architecture Decision Records</h2>
-            <div class="space-y-4">
-                <div class="p-4 border-l-4 border-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div class="font-bold text-green-700 dark:text-green-300">ADR-001: Microservices over Monolith</div>
-                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Accepted - Enables independent scaling and deployment</p>
-                </div>
-                <div class="p-4 border-l-4 border-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div class="font-bold text-green-700 dark:text-green-300">ADR-002: gRPC for Internal Communication</div>
-                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Accepted - High performance, strongly typed contracts</p>
-                </div>
+            <!-- Category Filters -->
+            <div class="flex flex-wrap gap-2 items-center w-full md:w-auto">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Filter:</span>
+                <button class="cat-filter-btn px-3 py-1.5 text-xs bg-indigo-600 text-white border border-indigo-600 rounded-xl font-medium active:scale-95 transition-all duration-200" data-category="all">
+                    All
+                </button>
+                <button class="cat-filter-btn px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded-xl font-medium hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-category="ADR">
+                    ADRs Only
+                </button>
+                {uniqueCategories.map(cat => (
+                    <button class="cat-filter-btn px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded-xl font-medium hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-category={cat}>
+                        {cat}
+                    </button>
+                ))}
             </div>
-        </section>
+        </div>
 
-        <section>
-            <h2 class="text-3xl font-bold mb-6">Knowledge Map</h2>
-            <div class="space-y-3">
-                <div>
-                    <div class="flex justify-between mb-1">
-                        <span class="font-medium">Backend Systems</span>
-                        <span class="text-sm text-slate-600 dark:text-slate-400">85%</span>
+        <!-- Learning Entries Accordion List -->
+        <div id="learning-entries" class="space-y-4">
+            {renderedEntries.map(({ entry, Content }) => (
+                <div class="entry-card border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition duration-200" data-category={entry.data.category} data-title={entry.data.title.toLowerCase()} data-tags={JSON.stringify(entry.data.tags)} data-is-adr={entry.data.isADR ? 'true' : 'false'}>
+                    <!-- Accordion Header -->
+                    <div class="accordion-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors select-none">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2 flex-wrap">
+                                <span class="text-xs font-semibold font-mono text-slate-400">
+                                    {new Date(entry.data.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                                </span>
+                                <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-indigo-100/30 dark:border-indigo-900/30">
+                                    {entry.data.category}
+                                </span>
+                                {entry.data.isADR && (
+                                    <span class={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${
+                                        entry.data.adrStatus === 'Accepted' 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border-emerald-100/30 dark:border-emerald-900/30' 
+                                            : 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border-amber-100/30 dark:border-amber-900/30'
+                                    }`}>
+                                        ADR: {entry.data.adrStatus || 'Proposed'}
+                                    </span>
+                                )}
+                            </div>
+                            
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                                {entry.data.title}
+                            </h3>
+                        </div>
+                        
+                        <!-- Toggle icon -->
+                        <span class="toggle-icon text-2xl text-slate-400 ml-4 font-mono font-medium transition-transform duration-200">+</span>
                     </div>
-                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                        <div class="bg-indigo-600 h-2 rounded-full" style="width: 85%"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between mb-1">
-                        <span class="font-medium">Infrastructure & Cloud</span>
-                        <span class="text-sm text-slate-600 dark:text-slate-400">80%</span>
-                    </div>
-                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                        <div class="bg-purple-600 h-2 rounded-full" style="width: 80%"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between mb-1">
-                        <span class="font-medium">ML/AI Systems</span>
-                        <span class="text-sm text-slate-600 dark:text-slate-400">70%</span>
-                    </div>
-                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                        <div class="bg-pink-600 h-2 rounded-full" style="width: 70%"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <section id="contact" class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800">
-            <h2 class="text-3xl font-bold mb-6">Get In Touch</h2>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                    <h3 class="font-bold text-lg mb-2">Email</h3>
-                    <a href="mailto:adtanmoy95@gmail.com" class="text-indigo-600 dark:text-indigo-400 hover:underline">adtanmoy95@gmail.com</a>
+                    <!-- Accordion Content (collapsible drawer) -->
+                    <div class="accordion-content hidden p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/10">
+                        <div class="markdown-body">
+                            <Content />
+                        </div>
+                        
+                        <!-- Skills / Tags -->
+                        <div class="flex flex-wrap gap-1.5 mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50">
+                            {entry.data.tags.map(tag => (
+                                <span class="bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <h3 class="font-bold text-lg mb-2">Phone</h3>
-                    <a href="tel:+8801850371329" class="text-purple-600 dark:text-purple-400 hover:underline">+8801850371329</a>
-                </div>
-                <div class="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <h3 class="font-bold text-lg mb-2">LinkedIn</h3>
-                    <a href="https://linkedin.com/in/aunmoy-dey-tanmoy095" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">View Profile →</a>
-                </div>
-                <div class="p-6 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
-                    <h3 class="font-bold text-lg mb-2">GitHub</h3>
-                    <a href="https://github.com/Tanmoy095" target="_blank" class="text-gray-600 dark:text-gray-400 hover:underline">View Projects →</a>
-                </div>
+            ))}
+        </div>
+        
+        <!-- Empty State -->
+        <div id="learning-empty-state" class="hidden text-center py-20 bg-white dark:bg-slate-900/10 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+            <div class="text-4xl mb-4">📖</div>
+            <h3 class="text-xl font-bold text-slate-700 dark:text-slate-350 mb-1">No entries found</h3>
+            <p class="text-slate-500 text-sm">Try adjusting your search query or topic filter.</p>
+        </div>
+
+        <!-- Contact Section -->
+        <div id="contact" class="mt-16 pt-12 border-t border-slate-200 dark:border-slate-800">
+            <h2 class="text-3xl font-extrabold mb-3 tracking-tight">Let's Connect</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-8 max-w-lg">Interested in my daily learnings or architecture decisions? Reach out for collaboration or technical discussions.</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href={`mailto:${profile.email}`} class="p-6 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 group">
+                    <div class="text-2xl mb-3 group-hover:scale-110 transition-transform duration-200">✉️</div>
+                    <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email</div>
+                    <div class="font-mono text-xs text-slate-800 dark:text-slate-200 break-all">{profile.email}</div>
+                </a>
+                <a href={`tel:${profile.phone}`} class="p-6 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-md transition-all duration-200 group">
+                    <div class="text-2xl mb-3 group-hover:scale-110 transition-transform duration-200">📱</div>
+                    <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Phone</div>
+                    <div class="font-mono text-xs text-slate-800 dark:text-slate-200">{profile.phone}</div>
+                </a>
+                <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" class="p-6 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-pink-500 dark:hover:border-pink-500 hover:shadow-md transition-all duration-200 group">
+                    <div class="text-2xl mb-3 group-hover:scale-110 transition-transform duration-200">💼</div>
+                    <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">LinkedIn</div>
+                    <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">View Profile</div>
+                </a>
+                <a href={profile.github} target="_blank" rel="noopener noreferrer" class="p-6 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-slate-600 dark:hover:border-slate-400 hover:shadow-md transition-all duration-200 group">
+                    <div class="text-2xl mb-3 group-hover:scale-110 transition-transform duration-200">💻</div>
+                    <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">GitHub</div>
+                    <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">View Projects</div>
+                </a>
             </div>
-        </section>
+        </div>
     </div>
 
-    <script>
-        document.querySelectorAll('.learning-entry').forEach(entry => {
-            entry.addEventListener('click', function() {
-                const details = this.querySelector('.details');
-                const icon = this.querySelector('.expand-icon');
+    <!-- Collapsible Accordion & Filtering JS -->
+    <script is:inline>
+        // Accordion Toggle
+        const headers = document.querySelectorAll('.accordion-header');
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const parent = header.closest('.entry-card');
+                const content = parent.querySelector('.accordion-content');
+                const icon = parent.querySelector('.toggle-icon');
                 
-                details.classList.toggle('hidden');
-                icon.textContent = details.classList.contains('hidden') ? '+' : '−';
+                // Toggle current entry
+                const isHidden = content.classList.contains('hidden');
+                
+                if (isHidden) {
+                    content.classList.remove('hidden');
+                    icon.textContent = '−';
+                    parent.classList.add('border-indigo-500/50', 'dark:border-indigo-500/50');
+                } else {
+                    content.classList.add('hidden');
+                    icon.textContent = '+';
+                    parent.classList.remove('border-indigo-500/50', 'dark:border-indigo-500/50');
+                }
+            });
+        });
+
+        // Filtering & Search
+        let activeCategory = 'all';
+        let searchQuery = '';
+        
+        const searchInput = document.getElementById('learning-search');
+        const filterBtns = document.querySelectorAll('.cat-filter-btn');
+        const cards = document.querySelectorAll('.entry-card');
+        const emptyState = document.getElementById('learning-empty-state');
+        
+        function filterLearning() {
+            let visibleCount = 0;
+            
+            cards.forEach(card => {
+                const category = card.dataset.category || '';
+                const title = card.dataset.title || '';
+                const tags = JSON.parse(card.dataset.tags || '[]');
+                
+                const isADR = card.dataset.isAdr === 'true';
+                const matchesCategory = activeCategory === 'all' || 
+                                        category === activeCategory || 
+                                        (activeCategory === 'ADR' && isADR);
+                                        
+                const matchesSearch = title.includes(searchQuery) || 
+                                      category.toLowerCase().includes(searchQuery) || 
+                                      tags.some(t => t.toLowerCase().includes(searchQuery));
+                                      
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+            
+            if (visibleCount === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+        
+        // Search Input listener
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            filterLearning();
+        });
+        
+        // Filter button listeners
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+                    b.classList.add('bg-slate-50', 'dark:bg-slate-950', 'text-slate-600', 'dark:text-slate-400', 'border-slate-200', 'dark:border-slate-850');
+                });
+                
+                btn.classList.remove('bg-slate-50', 'dark:bg-slate-950', 'text-slate-600', 'dark:text-slate-400', 'border-slate-200', 'dark:border-slate-850');
+                btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+                
+                activeCategory = btn.dataset.category;
+                filterLearning();
             });
         });
     </script>
 </MainLayout>
+
+<style is:global>
+    .markdown-body {
+        font-size: 1.05rem;
+        line-height: 1.8;
+        color: #334155;
+    }
+    .dark .markdown-body { color: #cbd5e1; }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+        color: #0f172a;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-family: 'Outfit', sans-serif;
+    }
+    .dark .markdown-body h1, .dark .markdown-body h2, .dark .markdown-body h3, .dark .markdown-body h4 { color: #f8fafc; }
+    .markdown-body h3 { font-size: 1.2rem; }
+    .markdown-body p { margin-bottom: 1rem; }
+    .markdown-body pre {
+        background-color: #0f172a;
+        color: #f8fafc;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+        font-size: 0.9rem;
+    }
+    .markdown-body code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.9em;
+        background-color: rgba(99, 102, 241, 0.1);
+        color: #4f46e5;
+        padding: 0.15em 0.4em;
+        border-radius: 0.375em;
+    }
+    .dark .markdown-body code { background-color: rgba(99, 102, 241, 0.2); color: #c7d2fe; }
+    .markdown-body pre code { background: transparent; color: inherit; padding: 0; }
+    .markdown-body ul, .markdown-body ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+    .markdown-body ul { list-style-type: disc; }
+    .markdown-body li { margin-bottom: 0.35rem; }
+</style>

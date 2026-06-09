@@ -1,66 +1,108 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
+import profile from '../data/profile.json';
 ---
 
-<MainLayout title="About Me - AI Infrastructure Engineer">
-    <div class="py-12">
-        <h1 class="text-5xl font-bold gradient-text mb-8">About Me</h1>
-        
-        <div class="grid md:grid-cols-3 gap-8 mb-12">
-            <div class="text-center">
-                <div class="text-4xl font-bold text-indigo-600">6+</div>
-                <p class="text-slate-600 dark:text-slate-400">Years of Experience</p>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-indigo-600">50+</div>
-                <p class="text-slate-600 dark:text-slate-400">Systems Built</p>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-indigo-600">100M+</div>
-                <p class="text-slate-600 dark:text-slate-400">Daily Requests</p>
-            </div>
-        </div>
+<MainLayout title="About Me - Professional Profile" description={profile.summary}>
+    <div class="py-6 max-w-4xl mx-auto">
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-8">
+            About <span class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">Me</span>
+        </h1>
 
-        <section class="mb-12">
-            <h2 class="text-3xl font-bold mb-6">Professional Background</h2>
-            <div class="space-y-6">
-                <div class="border-l-4 border-indigo-600 pl-6 py-2">
-                    <h3 class="text-xl font-bold">Senior ML Infrastructure Engineer</h3>
-                    <p class="text-slate-600 dark:text-slate-400">2023 - Present</p>
-                    <p class="mt-2">Leading ML infrastructure initiatives, optimizing training pipelines, and scaling inference systems.</p>
-                </div>
-                <div class="border-l-4 border-indigo-600 pl-6 py-2">
-                    <h3 class="text-xl font-bold">Platform Engineer</h3>
-                    <p class="text-slate-600 dark:text-slate-400">2020 - 2023</p>
-                    <p class="mt-2">Built internal developer platforms, CI/CD systems, and deployment automation.</p>
-                </div>
-                <div class="border-l-4 border-indigo-600 pl-6 py-2">
-                    <h3 class="text-xl font-bold">DevOps Engineer</h3>
-                    <p class="text-slate-600 dark:text-slate-400">2018 - 2020</p>
-                    <p class="mt-2">Infrastructure automation, Kubernetes management, and cloud architecture.</p>
-                </div>
+        <!-- Recruiter Summary -->
+        {profile.recruiterSummary && (
+            <section class="mb-12 p-8 bg-gradient-to-br from-indigo-50/80 via-purple-50/50 to-pink-50/30 dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-pink-950/10 border border-indigo-100/50 dark:border-indigo-900/30 rounded-3xl">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-3">For Recruiters</h2>
+                <p class="text-lg leading-relaxed text-slate-700 dark:text-slate-300 mb-6">{profile.recruiterSummary}</p>
+                {profile.targetRoles && (
+                    <div class="flex flex-wrap gap-2">
+                        {profile.targetRoles.map(role => (
+                            <span class="bg-white/80 dark:bg-slate-900/50 text-indigo-700 dark:text-indigo-300 text-xs px-3 py-1.5 rounded-full font-semibold border border-indigo-200/50 dark:border-indigo-800/50">
+                                {role}
+                            </span>
+                        ))}
+                    </div>
+                )}
+            </section>
+        )}
+
+        <!-- Short Pitch / Objective -->
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-100">Professional Summary</h2>
+            <p class="text-lg leading-relaxed text-slate-700 dark:text-slate-300 mb-6">
+                {profile.detailedSummary}
+            </p>
+            <p class="text-lg leading-relaxed text-slate-700 dark:text-slate-300">
+                {profile.objective}
+            </p>
+        </section>
+
+        <!-- Core Skills & Expertise (Dynamic) -->
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold mb-8 text-slate-800 dark:text-slate-100">Core Skills & Expertise</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                {profile.skills.map(skill => (
+                    <div class="p-6 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <h3 class="font-bold text-lg text-indigo-600 dark:text-indigo-400 mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">{skill.category}</h3>
+                        <ul class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-600 dark:text-slate-400">
+                            {skill.items.map(item => (
+                                <li class="flex items-center gap-2">
+                                    <span class="text-emerald-500 text-xs">✔</span>
+                                    <span>{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
             </div>
         </section>
 
-        <section>
-            <h2 class="text-3xl font-bold mb-6">Technical Skills</h2>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div>
-                    <h3 class="font-bold mb-3">Backend & Languages</h3>
-                    <ul class="space-y-2 text-slate-600 dark:text-slate-400">
-                        <li>Go, Python, Java</li>
-                        <li>gRPC, Protocol Buffers</li>
-                        <li>Microservices Architecture</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold mb-3">Infrastructure & Cloud</h3>
-                    <ul class="space-y-2 text-slate-600 dark:text-slate-400">
-                        <li>Kubernetes, Docker</li>
-                        <li>AWS, GCP</li>
-                        <li>CI/CD, GitHub Actions</li>
-                    </ul>
-                </div>
+        <!-- Experience Highlights -->
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold mb-8 text-slate-800 dark:text-slate-100">Key Achievements</h2>
+            <div class="space-y-6">
+                {profile.experienceHighlights.map((highlight, index) => (
+                    <div class="flex gap-6 items-start">
+                        <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-sm">
+                            {index + 1}
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-slate-100 mb-1">{highlight.title}</h3>
+                            <p class="text-slate-600 dark:text-slate-400 leading-relaxed">{highlight.description}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </section>
+
+        <!-- Professional Experience / Work History -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-8 text-slate-800 dark:text-slate-100">Work Experience</h2>
+            <div class="space-y-8">
+                {profile.workHistory.map(job => (
+                    <div class="relative pl-8 border-l-2 border-slate-200 dark:border-slate-800 pb-2">
+                        <!-- Timeline Dot -->
+                        <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-indigo-600 border-4 border-slate-50 dark:border-slate-950"></div>
+                        
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-2">
+                            <div>
+                                <h3 class="font-extrabold text-xl text-slate-900 dark:text-slate-100">{job.role}</h3>
+                                <div class="text-indigo-600 dark:text-indigo-400 font-medium">{job.company}</div>
+                            </div>
+                            <span class="px-3 py-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                {job.period}
+                            </span>
+                        </div>
+                        
+                        <p class="text-slate-700 dark:text-slate-300 leading-relaxed mb-4">{job.description}</p>
+                        
+                        <ul class="space-y-2 text-slate-600 dark:text-slate-400 text-sm list-disc pl-5">
+                            {job.bullets.map(bullet => (
+                                <li>{bullet}</li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
             </div>
         </section>
     </div>

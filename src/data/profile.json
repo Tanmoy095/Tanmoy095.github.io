@@ -1,0 +1,98 @@
+{
+  "name": "Aunmoy Dey Tanmoy",
+  "title": "AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer",
+  "email": "adtanmoy95@gmail.com",
+  "phone": "+8801850371329",
+  "location": "Remote",
+  "github": "https://github.com/Tanmoy095",
+  "linkedin": "https://www.linkedin.com/in/aunmoy-dey-tanmoy095",
+  "twitter": "https://twitter.com/tanmoy095",
+  "nav": [
+    { "label": "Home", "url": "/" },
+    { "label": "About", "url": "/about" },
+    { "label": "Projects", "url": "/projects" },
+    { "label": "Blog", "url": "/blog" },
+    { "label": "Learning", "url": "/learning" },
+    { "label": "Admin", "url": "/admin" }
+  ],
+  "summary": "I design and build scalable backend systems, cloud-native platforms, and AI infrastructure using Go, Kubernetes, distributed systems, and modern LLM technologies. My expertise spans event-driven architectures, multi-tenant SaaS platforms, Kubernetes platform engineering, AI gateways, RAG systems, observability, and production-grade cloud infrastructure.",
+  "detailedSummary": "I specialize in building systems that are reliable, observable, secure, and capable of operating at scale. My focus is not only on writing software but on designing complete platforms that solve real-world business problems through automation, intelligent workflows, and resilient distributed architectures. Currently, I am building LogiFlow AI, a production-grade AI infrastructure platform that combines Kubernetes automation, multi-agent workflows, Retrieval-Augmented Generation (RAG), Model Context Protocol (MCP), LLM routing, event-driven architecture, and enterprise-grade observability.",
+  "objective": "My goal is to bridge the gap between traditional backend engineering and next-generation AI systems by building the infrastructure that powers intelligent applications. I enjoy solving complex technical problems, designing scalable architectures, and building systems that operate reliably at production scale.",
+  "recruiterSummary": "I am a Go-focused Backend, Platform, and AI Infrastructure Engineer who specializes in building production-grade distributed systems. My work combines cloud-native engineering, Kubernetes automation, event-driven architectures, AI infrastructure, and observability to create scalable and reliable platforms. I am particularly interested in AI Infrastructure Engineering, Platform Engineering, Distributed Systems Engineering, Senior Backend Engineering, and Cloud Native Engineering roles.",
+  "targetRoles": [
+    "Senior Go Backend Engineer",
+    "Platform Engineer",
+    "AI Infrastructure Engineer",
+    "AI Platform Engineer",
+    "Cloud Native Engineer",
+    "Distributed Systems Engineer",
+    "Staff Software Engineer"
+  ],
+  "skills": [
+    {
+      "category": "Backend Engineering",
+      "items": ["Go (Golang)", "REST APIs", "gRPC", "GraphQL", "WebSocket", "Microservices Architecture", "Domain Driven Design (DDD)", "Clean Architecture", "Event Driven Architecture"]
+    },
+    {
+      "category": "Distributed Systems",
+      "items": ["Kafka", "RabbitMQ", "Temporal Workflows", "CQRS", "Event Sourcing", "Outbox Pattern", "Saga Pattern", "Distributed Transactions", "High Availability Systems"]
+    },
+    {
+      "category": "Cloud Native & Platform Engineering",
+      "items": ["Kubernetes", "Custom Operators", "CRDs & Controllers", "Helm", "Terraform", "GitOps", "ArgoCD", "Docker", "Infrastructure as Code", "Multi-Tenant Platforms"]
+    },
+    {
+      "category": "AI Infrastructure Engineering",
+      "items": ["LLM Gateways", "Multi-Agent Workflows", "Retrieval Augmented Generation (RAG)", "Model Context Protocol (MCP)", "Vector Search", "pgvector", "Semantic Caching", "Prompt Versioning", "Structured Outputs", "LLM Routing & Fallback Systems", "AI Observability", "LLM Cost Governance"]
+    },
+    {
+      "category": "Databases & Storage",
+      "items": ["PostgreSQL", "MySQL", "MongoDB", "Redis", "ClickHouse", "InfluxDB", "pgvector"]
+    },
+    {
+      "category": "Security & Identity",
+      "items": ["OAuth2", "OpenID Connect (OIDC)", "JWT Authentication", "RBAC", "Multi-Tenant Authorization", "API Key Management", "MFA Systems", "SSO Integrations"]
+    },
+    {
+      "category": "Observability & Reliability",
+      "items": ["OpenTelemetry", "Prometheus", "Grafana", "Jaeger", "Distributed Tracing", "SLO Design", "Error Budget Management", "Production Monitoring", "Incident Response"]
+    }
+  ],
+  "experienceHighlights": [
+    {
+      "title": "AI Infrastructure Platform Development",
+      "description": "Designing and implementing a complete AI infrastructure platform including multi-provider LLM Gateway, MCP Server integration, RAG pipelines, agentic workflows, tenant isolation, usage billing, and Kubernetes automation."
+    },
+    {
+      "title": "Distributed Systems Engineering",
+      "description": "Built scalable event-driven architectures using Kafka, RabbitMQ, Temporal, PostgreSQL, and gRPC with a strong focus on reliability, fault tolerance, and operational excellence."
+    },
+    {
+      "title": "Multi-Tenant SaaS Architecture",
+      "description": "Designed systems supporting tenant isolation, secure authentication, authorization, billing, rate limiting, and resource governance across shared infrastructure."
+    },
+    {
+      "title": "Platform Engineering",
+      "description": "Built cloud-native deployment platforms using Kubernetes, Helm, Terraform, GitHub Actions, and ArgoCD to enable automated deployments and infrastructure management."
+    },
+    {
+      "title": "Client Delivery",
+      "description": "Delivered SaaS and backend solutions for international clients, including large-scale business applications, microservices migration projects, RBAC systems, multi-tenant architectures, and production deployments."
+    }
+  ],
+  "workHistory": [
+    {
+      "role": "Freelance Senior Backend & Platform Engineer",
+      "company": "Fiverr | Upwork | Direct Clients",
+      "period": "2023 – Present",
+      "description": "Working with international clients to design, architect, and build scalable backend systems, cloud-native platforms, and SaaS products. Responsibilities extend beyond coding to include system architecture, infrastructure planning, security, performance optimization, deployment automation, and technical leadership.",
+      "bullets": [
+        "Architected distributed microservices systems in Go and designed PostgreSQL schemas with optimized indexes.",
+        "Designed and implemented multi-tenant SaaS platforms with secure authentication, role-based access control (RBAC), and session management.",
+        "Deployed applications on Kubernetes using Docker, Helm, Terraform, and GitOps with ArgoCD.",
+        "Integrated AI services, LLM APIs, vector search (pgvector), and automated multi-agent workflow engines.",
+        "Collaborated directly with founders and business stakeholders to scope, estimate, and deploy production projects."
+      ]
+    }
+  ]
+}

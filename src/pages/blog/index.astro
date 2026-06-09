@@ -1,56 +1,146 @@
 ---
+import { getCollection } from 'astro:content';
 import MainLayout from '../../layouts/MainLayout.astro';
+
+const posts = await getCollection('blog');
+// Sort posts by date descending
+posts.sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
+
+// Get unique tags
+const allTags = [...new Set(posts.flatMap(post => post.data.tags))];
 ---
 
-<MainLayout title="Blog - Technical Articles & Insights">
-    <div class="py-12">
-        <h1 class="text-5xl font-bold gradient-text mb-12">Blog & Technical Insights</h1>
+<MainLayout title="Blog - Technical Insights & System Design">
+    <div class="py-6 max-w-4xl mx-auto">
+        <div class="mb-12 text-center md:text-left">
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+                Technical <span class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">Insights</span>
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 text-lg">System design deep dives, low-level design patterns, cloud-native engineering, and backend development guides.</p>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="mb-12 flex flex-col md:flex-row gap-6 justify-between items-center bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 p-6 rounded-2xl shadow-sm">
+            <!-- Search bar -->
+            <div class="relative w-full md:w-80">
+                <input type="text" id="search-bar" placeholder="Search posts..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-200" />
+                <span class="absolute right-3.5 top-3.5 text-slate-400 text-xs">🔍</span>
+            </div>
+
+            <!-- Tags Filter -->
+            <div class="flex flex-wrap gap-2 items-center w-full md:w-auto">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Filter by tag:</span>
+                <button class="tag-filter-btn px-3 py-1.5 text-xs bg-indigo-600 text-white border border-indigo-600 rounded-xl font-medium active:scale-95 transition-all duration-200" data-tag="all">
+                    All
+                </button>
+                {allTags.map(tag => (
+                    <button class="tag-filter-btn px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded-xl font-medium hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-tag={tag}>
+                        {tag}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        <!-- Blog Posts List -->
+        <div id="posts-list" class="space-y-6">
+            {posts.map(post => (
+                <article class="post-card p-6 bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-350" data-tags={JSON.stringify(post.data.tags)} data-title={post.data.title.toLowerCase()} data-desc={post.data.description.toLowerCase()}>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-4 text-xs text-slate-400 mb-3">
+                                <span>Published on {new Date(post.data.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                <span>•</span>
+                                <span>By {post.data.author}</span>
+                            </div>
+                            
+                            <a href={`/blog/${post.slug}`} class="block group">
+                                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200 mb-3 leading-tight">
+                                    {post.data.title}
+                                </h2>
+                            </a>
+                            
+                            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">{post.data.description}</p>
+                            
+                            <!-- Tags -->
+                            <div class="flex flex-wrap gap-1.5">
+                                {post.data.tags.map(tag => (
+                                    <span class="bg-slate-100 dark:bg-slate-800/70 text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-semibold">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            ))}
+        </div>
         
-        <div class="grid gap-6">
-            <a href="/blog/solid-principles-design-excellence" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
-                <h2 class="text-2xl font-bold mb-2">SOLID Principles: Design Excellence</h2>
-                <p class="text-slate-600 dark:text-slate-400 mb-4">Master the SOLID principles for writing maintainable, scalable code. Learn each principle with real-world Go examples.</p>
-                <div class="flex gap-2 flex-wrap">
-                    <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded">Design Patterns</span>
-                    <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded">Go</span>
-                </div>
-            </a>
-
-            <a href="/blog/oop-in-go-pragmatic-design" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
-                <h2 class="text-2xl font-bold mb-2">OOP in Go: Pragmatic Design</h2>
-                <p class="text-slate-600 dark:text-slate-400 mb-4">Go doesn't have classes, but it has composition, interfaces, and methods. Learn practical OOP patterns in Go.</p>
-                <div class="flex gap-2 flex-wrap">
-                    <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">Go</span>
-                    <span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded">OOP</span>
-                </div>
-            </a>
-
-            <a href="/blog/go-buffered-channels-guide" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
-                <h2 class="text-2xl font-bold mb-2">Go Buffered Channels: Complete Guide</h2>
-                <p class="text-slate-600 dark:text-slate-400 mb-4">Master Go's buffered channels - from basics to advanced patterns like worker pools and fan-out/fan-in.</p>
-                <div class="flex gap-2 flex-wrap">
-                    <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">Go</span>
-                    <span class="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs px-2 py-1 rounded">Concurrency</span>
-                </div>
-            </a>
-
-            <a href="/blog/dag-theory-data-pipelines" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
-                <h2 class="text-2xl font-bold mb-2">DAG Theory & Data Pipelines</h2>
-                <p class="text-slate-600 dark:text-slate-400 mb-4">Understanding directed acyclic graphs and how they power data orchestration tools like Apache Airflow.</p>
-                <div class="flex gap-2 flex-wrap">
-                    <span class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs px-2 py-1 rounded">Data Engineering</span>
-                    <span class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs px-2 py-1 rounded">Airflow</span>
-                </div>
-            </a>
-
-            <a href="/blog/designing-for-scalability-hld" class="p-6 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-600 hover:shadow-lg transition">
-                <h2 class="text-2xl font-bold mb-2">Designing for Scalability: HLD Guide</h2>
-                <p class="text-slate-600 dark:text-slate-400 mb-4">A comprehensive guide to building scalable systems - from stateless services to database sharding and caching strategies.</p>
-                <div class="flex gap-2 flex-wrap">
-                    <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">System Design</span>
-                    <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded">Architecture</span>
-                </div>
-            </a>
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-20 bg-white dark:bg-slate-900/10 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+            <div class="text-4xl mb-4">🔍</div>
+            <h3 class="text-xl font-bold text-slate-700 dark:text-slate-350 mb-1">No articles found</h3>
+            <p class="text-slate-500 text-sm">Try adjusting your search terms or filters.</p>
         </div>
     </div>
+
+    <!-- Client-side Filtering Script -->
+    <script is:inline>
+        let currentTag = 'all';
+        let searchQuery = '';
+        
+        const searchInput = document.getElementById('search-bar');
+        const filterBtns = document.querySelectorAll('.tag-filter-btn');
+        const postCards = document.querySelectorAll('.post-card');
+        const emptyState = document.getElementById('empty-state');
+        
+        function filterPosts() {
+            let visibleCount = 0;
+            
+            postCards.forEach(card => {
+                const tags = JSON.parse(card.dataset.tags || '[]');
+                const title = card.dataset.title || '';
+                const desc = card.dataset.desc || '';
+                
+                const matchesTag = currentTag === 'all' || tags.includes(currentTag);
+                const matchesSearch = title.includes(searchQuery) || desc.includes(searchQuery) || tags.some(t => t.toLowerCase().includes(searchQuery));
+                
+                if (matchesTag && matchesSearch) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+            
+            if (visibleCount === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+        
+        // Search listener
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            filterPosts();
+        });
+        
+        // Tag button listeners
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active styling from all buttons
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+                    b.classList.add('bg-slate-50', 'dark:bg-slate-950', 'text-slate-600', 'dark:text-slate-400', 'border-slate-200', 'dark:border-slate-850');
+                });
+                
+                // Add active styling to clicked button
+                btn.classList.remove('bg-slate-50', 'dark:bg-slate-950', 'text-slate-600', 'dark:text-slate-400', 'border-slate-200', 'dark:border-slate-850');
+                btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+                
+                currentTag = btn.dataset.tag;
+                filterPosts();
+            });
+        });
+    </script>
 </MainLayout>

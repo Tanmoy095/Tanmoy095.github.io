@@ -1,0 +1,1338 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Admin Dashboard - CMS Panel">
+    <!-- Load Marked.js for real-time Markdown preview in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" is:inline></script>
+
+    <div class="py-6">
+        <div class="mb-10 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight mb-2">
+                    Admin <span class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">CMS Dashboard</span>
+                </h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Manage your profile, skills, projects, technical blog posts, and daily learning logs directly via the GitHub API.</p>
+            </div>
+            
+            <!-- Connection Status -->
+            <div id="status-badge" class="px-4 py-2 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                Disconnected
+            </div>
+        </div>
+
+        <!-- Dashboard Layout Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Navigation Tabs -->
+            <div class="lg:col-span-3 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 border-b lg:border-b-0 border-slate-200 dark:border-slate-800">
+                <button class="nav-tab active px-4 py-3 text-left rounded-xl text-sm font-semibold tracking-wide border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-target="tab-config">
+                    ⚙️ Git Configuration
+                </button>
+                <button class="nav-tab px-4 py-3 text-left rounded-xl text-sm font-semibold tracking-wide border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-target="tab-profile">
+                    👤 Edit Profile & Skills
+                </button>
+                <button class="nav-tab px-4 py-3 text-left rounded-xl text-sm font-semibold tracking-wide border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-target="tab-projects">
+                    📂 Manage Projects
+                </button>
+                <button class="nav-tab px-4 py-3 text-left rounded-xl text-sm font-semibold tracking-wide border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-target="tab-blogs">
+                    ✍️ Manage Blogs
+                </button>
+                <button class="nav-tab px-4 py-3 text-left rounded-xl text-sm font-semibold tracking-wide border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200" data-target="tab-learnings">
+                    📖 Manage Learnings
+                </button>
+            </div>
+
+            <!-- Tab Content Containers -->
+            <div class="lg:col-span-9 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 p-6 sm:p-8 rounded-3xl shadow-sm min-h-[500px]">
+                
+                <!-- 1. TAB: Git Config -->
+                <div id="tab-config" class="tab-panel space-y-6">
+                    <h2 class="text-2xl font-bold border-b border-slate-100 dark:border-slate-800 pb-3">Git Credentials Configuration</h2>
+                    <p class="text-xs text-slate-500 leading-relaxed">To save changes dynamically, this CMS connects directly to your GitHub repository using a Personal Access Token. Your token is stored <strong>only in your local browser storage</strong> and is never sent to any external server.</p>
+                    
+                    <form id="config-form" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">GitHub Username / Owner</label>
+                            <input type="text" id="cfg-owner" required placeholder="e.g., Tanmoy095" class="form-input" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Repository Name</label>
+                            <input type="text" id="cfg-repo" required placeholder="e.g., Tanmoy095.github.io" class="form-input" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Branch</label>
+                            <input type="text" id="cfg-branch" required placeholder="e.g., main" class="form-input" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">GitHub Personal Access Token (PAT)</label>
+                            <input type="password" id="cfg-token" required placeholder="ghp_xxxxxxxxxxxx" class="form-input" />
+                            <p class="text-[10px] text-slate-400 mt-1">Requires 'repo' scope access. Create one in GitHub settings > Developer Settings.</p>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary w-full py-3 text-sm tracking-wide uppercase font-semibold">Save Configuration</button>
+                    </form>
+                </div>
+
+                <!-- 2. TAB: Edit Profile -->
+                <div id="tab-profile" class="tab-panel hidden space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h2 class="text-2xl font-bold">Edit Profile details</h2>
+                        <button id="btn-load-profile" type="button" class="btn-secondary py-1.5 px-3 text-xs">Load from Git</button>
+                    </div>
+
+                    <form id="profile-form" class="space-y-6 hidden">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="label-heading">Full Name</label>
+                                <input type="text" id="prof-name" required class="form-input" />
+                            </div>
+                            <div>
+                                <label class="label-heading">Professional Title</label>
+                                <input type="text" id="prof-title" required class="form-input" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="label-heading">Email Address</label>
+                                <input type="email" id="prof-email" required class="form-input" />
+                            </div>
+                            <div>
+                                <label class="label-heading">Phone Number</label>
+                                <input type="text" id="prof-phone" required class="form-input" />
+                            </div>
+                            <div>
+                                <label class="label-heading">Location</label>
+                                <input type="text" id="prof-location" required class="form-input" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="label-heading">GitHub URL</label>
+                                <input type="url" id="prof-github" required class="form-input" />
+                            </div>
+                            <div>
+                                <label class="label-heading">LinkedIn URL</label>
+                                <input type="url" id="prof-linkedin" required class="form-input" />
+                            </div>
+                            <div>
+                                <label class="label-heading">Twitter/X URL</label>
+                                <input type="url" id="prof-twitter" required class="form-input" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Short Summary</label>
+                            <textarea id="prof-summary" required rows="3" class="form-input"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="label-heading">Detailed Summary (About Page)</label>
+                            <textarea id="prof-detailedSummary" required rows="5" class="form-input"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Career Objective</label>
+                            <textarea id="prof-objective" required rows="3" class="form-input"></textarea>
+                        </div>
+
+                        <!-- Skills Dynamic Editor -->
+                        <div>
+                            <label class="label-heading">Skills & Categories (JSON Format)</label>
+                            <textarea id="prof-skills-json" required rows="8" class="form-input font-mono text-xs"></textarea>
+                            <p class="text-[10px] text-slate-400 mt-1">Provide skills as a JSON array of objects with 'category' and 'items' fields.</p>
+                        </div>
+
+                        <!-- Experience Highlights Dynamic Editor -->
+                        <div>
+                            <label class="label-heading">Experience Highlights (JSON Format)</label>
+                            <textarea id="prof-highlights-json" required rows="6" class="form-input font-mono text-xs"></textarea>
+                        </div>
+
+                        <!-- Work History Dynamic Editor -->
+                        <div>
+                            <label class="label-heading">Detailed Work History (JSON Format)</label>
+                            <textarea id="prof-history-json" required rows="8" class="form-input font-mono text-xs"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-primary w-full py-3 text-sm tracking-wide uppercase font-semibold">Publish Updates to Git</button>
+                    </form>
+                    
+                    <div id="profile-load-prompt" class="text-center py-10 text-slate-400 text-sm">
+                        Click "Load from Git" to fetch your profile data.
+                    </div>
+                </div>
+
+                <!-- 3. TAB: Manage Projects -->
+                <div id="tab-projects" class="tab-panel hidden space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h2 class="text-2xl font-bold">Manage Projects</h2>
+                        <div class="flex gap-2">
+                            <button id="btn-load-projects" type="button" class="btn-secondary py-1.5 px-3 text-xs">Load Projects</button>
+                            <button id="btn-add-project" type="button" class="btn-primary py-1.5 px-3 text-xs hidden">+ Add Project</button>
+                        </div>
+                    </div>
+
+                    <!-- Projects list -->
+                    <div id="projects-list-container" class="space-y-4"></div>
+
+                    <!-- Project Edit Modal/Form -->
+                    <form id="project-form" class="space-y-4 hidden bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-800/50">
+                        <h3 id="project-form-title" class="text-lg font-bold text-slate-900 dark:text-slate-100 border-b border-slate-200/50 dark:border-slate-800/50 pb-2">New Project</h3>
+                        <input type="hidden" id="proj-index" />
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="label-heading">Project ID / Slug</label>
+                                <input type="text" id="proj-id" required placeholder="e.g., logiflow-ai" class="form-input" />
+                            </div>
+                            <div>
+                                <label class="label-heading">Project Name</label>
+                                <input type="text" id="proj-name" required placeholder="e.g., LogiFlow AI" class="form-input" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Tagline</label>
+                            <input type="text" id="proj-tagline" required placeholder="e.g., AI Infrastructure & Orchestration Platform" class="form-input" />
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Description</label>
+                            <textarea id="proj-desc" required rows="3" class="form-input"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Technologies Used (Comma-separated)</label>
+                            <input type="text" id="proj-tech" required placeholder="Go, Kubernetes, Kafka, Redis" class="form-input" />
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Key Features / Components (JSON format)</label>
+                            <textarea id="proj-features-json" required rows="6" class="form-input font-mono text-xs" placeholder='[{"title":"Feature Title","detail":"Feature Description"}]'></textarea>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="submit" class="btn-primary py-2 px-4 text-xs font-semibold uppercase">Save to List</button>
+                            <button id="btn-cancel-project" type="button" class="btn-secondary py-2 px-4 text-xs font-semibold uppercase">Cancel</button>
+                        </div>
+                    </form>
+
+                    <!-- Save Projects Button -->
+                    <button id="btn-publish-projects" class="btn-primary w-full py-3 text-sm tracking-wide uppercase font-semibold hidden">Publish Projects List to Git</button>
+                    
+                    <div id="projects-load-prompt" class="text-center py-10 text-slate-400 text-sm">
+                        Click "Load Projects" to fetch projects data.
+                    </div>
+                </div>
+
+                <!-- 4. TAB: Manage Blogs -->
+                <div id="tab-blogs" class="tab-panel hidden space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h2 class="text-2xl font-bold">Manage Blogs</h2>
+                        <div class="flex gap-2">
+                            <button id="btn-load-blogs" type="button" class="btn-secondary py-1.5 px-3 text-xs">Load Blogs</button>
+                            <button id="btn-create-blog" type="button" class="btn-primary py-1.5 px-3 text-xs hidden">+ Write Blog</button>
+                        </div>
+                    </div>
+
+                    <!-- Blog lists -->
+                    <div id="blogs-list-container" class="space-y-3"></div>
+
+                    <!-- Blog Post Form -->
+                    <form id="blog-form" class="space-y-4 hidden bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-800/50">
+                        <h3 id="blog-form-title" class="text-lg font-bold text-slate-900 dark:text-slate-100 border-b pb-2">Create Blog Post</h3>
+                        <input type="hidden" id="blog-sha" />
+                        <input type="hidden" id="blog-old-path" />
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="label-heading">Filename / Slug</label>
+                                <input type="text" id="blog-slug" required placeholder="e.g., kubernetes-cluster-guide" class="form-input" />
+                                <p class="text-[10px] text-slate-400 mt-1">Determines URL (e.g. /blog/kubernetes-cluster-guide). Do not add '.md'.</p>
+                            </div>
+                            <div>
+                                <label class="label-heading">Publish Date</label>
+                                <input type="date" id="blog-date" required class="form-input" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Blog Title</label>
+                            <input type="text" id="blog-title" required placeholder="e.g., Kubernetes at Scale" class="form-input" />
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Short Description / Preview</label>
+                            <input type="text" id="blog-desc" required placeholder="Short description for card previews" class="form-input" />
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Tags (Comma-separated)</label>
+                            <input type="text" id="blog-tags" placeholder="Go, Kubernetes, DevOps" class="form-input" />
+                        </div>
+
+                        <!-- Editor / Preview Tabs -->
+                        <div>
+                            <div class="flex border-b border-slate-200 dark:border-slate-800 mb-3">
+                                <button type="button" id="blog-write-tab" class="px-4 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-850 rounded-t-xl border-t border-x border-slate-200/50 dark:border-slate-800/50">Write</button>
+                                <button type="button" id="blog-preview-tab" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700">Preview</button>
+                            </div>
+                            
+                            <!-- Write Area -->
+                            <div id="blog-write-container">
+                                <textarea id="blog-content" required rows="12" class="form-input font-mono text-xs" placeholder="Write markdown content here..."></textarea>
+                            </div>
+                            
+                            <!-- Preview Area -->
+                            <div id="blog-preview-container" class="hidden p-6 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl min-h-[300px] overflow-y-auto markdown-body">
+                                Content preview will render here.
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 justify-between">
+                            <div class="flex gap-2">
+                                <button type="submit" class="btn-primary py-2 px-4 text-xs font-semibold uppercase">Publish to Git</button>
+                                <button id="btn-cancel-blog" type="button" class="btn-secondary py-2 px-4 text-xs font-semibold uppercase">Cancel</button>
+                            </div>
+                            <button id="btn-delete-blog" type="button" class="px-4 py-2 text-xs font-semibold uppercase bg-rose-600 hover:bg-rose-700 text-white rounded-xl active:scale-95 transition hidden">Delete Post</button>
+                        </div>
+                    </form>
+
+                    <div id="blogs-load-prompt" class="text-center py-10 text-slate-400 text-sm">
+                        Click "Load Blogs" to fetch blog articles.
+                    </div>
+                </div>
+
+                <!-- 5. TAB: Manage Learnings -->
+                <div id="tab-learnings" class="tab-panel hidden space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h2 class="text-2xl font-bold">Manage Learnings & ADRs</h2>
+                        <div class="flex gap-2">
+                            <button id="btn-load-learnings" type="button" class="btn-secondary py-1.5 px-3 text-xs">Load Learnings</button>
+                            <button id="btn-create-learning" type="button" class="btn-primary py-1.5 px-3 text-xs hidden">+ Write Entry</button>
+                        </div>
+                    </div>
+
+                    <!-- Learnings lists -->
+                    <div id="learnings-list-container" class="space-y-3"></div>
+
+                    <!-- Learning Entry Form -->
+                    <form id="learning-form" class="space-y-4 hidden bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-800/50">
+                        <h3 id="learning-form-title" class="text-lg font-bold text-slate-900 dark:text-slate-100 border-b pb-2">Create Learning Entry</h3>
+                        <input type="hidden" id="learn-sha" />
+                        <input type="hidden" id="learn-old-path" />
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="label-heading">Filename / Slug</label>
+                                <input type="text" id="learn-slug" required placeholder="e.g., entry-25-kubernetes-security" class="form-input" />
+                                <p class="text-[10px] text-slate-400 mt-1">Determines path (e.g. entry-25-xxx.md or adr-003-xxx.md).</p>
+                            </div>
+                            <div>
+                                <label class="label-heading">Date</label>
+                                <input type="date" id="learn-date" required class="form-input" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Title</label>
+                            <input type="text" id="learn-title" required placeholder="e.g., Go Generics Overview" class="form-input" />
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                            <div>
+                                <label class="label-heading">Category / Topic</label>
+                                <input type="text" id="learn-category" required placeholder="Go, Kubernetes, etc." class="form-input" />
+                            </div>
+                            <div class="flex items-center mt-6">
+                                <input type="checkbox" id="learn-isADR" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
+                                <label for="learn-isADR" class="ml-2 text-sm font-semibold text-slate-600 dark:text-slate-400 select-none">Is this an ADR?</label>
+                            </div>
+                            <div>
+                                <label class="label-heading">ADR Status (If ADR)</label>
+                                <select id="learn-adrStatus" disabled class="form-input">
+                                    <option value="">-- Select Status --</option>
+                                    <option value="Accepted">Accepted</option>
+                                    <option value="Proposed">Proposed</option>
+                                    <option value="Deprecated">Deprecated</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label-heading">Tags (Comma-separated)</label>
+                            <input type="text" id="learn-tags" placeholder="Go, Generics" class="form-input" />
+                        </div>
+
+                        <!-- Editor / Preview Tabs -->
+                        <div>
+                            <div class="flex border-b border-slate-200 dark:border-slate-800 mb-3">
+                                <button type="button" id="learn-write-tab" class="px-4 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-850 rounded-t-xl border-t border-x border-slate-200/50 dark:border-slate-800/50">Write</button>
+                                <button type="button" id="learn-preview-tab" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700">Preview</button>
+                            </div>
+                            
+                            <!-- Write Area -->
+                            <div id="learn-write-container">
+                                <textarea id="learn-content" required rows="8" class="form-input font-mono text-xs" placeholder="Write markdown learning details here..."></textarea>
+                            </div>
+                            
+                            <!-- Preview Area -->
+                            <div id="learn-preview-container" class="hidden p-6 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl min-h-[200px] overflow-y-auto markdown-body">
+                                Details preview will render here.
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 justify-between">
+                            <div class="flex gap-2">
+                                <button type="submit" class="btn-primary py-2 px-4 text-xs font-semibold uppercase">Publish to Git</button>
+                                <button id="btn-cancel-learning" type="button" class="btn-secondary py-2 px-4 text-xs font-semibold uppercase">Cancel</button>
+                            </div>
+                            <button id="btn-delete-learning" type="button" class="px-4 py-2 text-xs font-semibold uppercase bg-rose-600 hover:bg-rose-700 text-white rounded-xl active:scale-95 transition hidden">Delete Entry</button>
+                        </div>
+                    </form>
+
+                    <div id="learnings-load-prompt" class="text-center py-10 text-slate-400 text-sm">
+                        Click "Load Learnings" to fetch daily logs.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</MainLayout>
+
+<style is:global>
+    /* Styling utilities for forms */
+    .form-input {
+        width: 100%;
+        background-color: rgb(248, 250, 252); /* slate-50 */
+        border-width: 1px;
+        border-color: rgb(226, 232, 240); /* slate-200 */
+        border-radius: 0.75rem; /* 12px */
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem; /* 14px */
+        color: inherit;
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 200ms;
+    }
+    .dark .form-input {
+        background-color: rgb(3, 7, 18); /* slate-950 */
+        border-color: rgb(30, 41, 59); /* slate-800 */
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: rgb(99, 102, 241); /* indigo-500 */
+        box-shadow: 0 0 0 1px rgb(99, 102, 241);
+    }
+    
+    .label-heading {
+        display: block;
+        font-size: 0.75rem; /* 12px */
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: rgb(100, 116, 139); /* slate-500 */
+        margin-bottom: 0.5rem;
+    }
+    .dark .label-heading {
+        color: rgb(148, 163, 184); /* slate-400 */
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        color: white;
+        border-radius: 0.75rem;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition-property: all;
+        transition-duration: 200ms;
+    }
+    .btn-primary:hover {
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+    .btn-primary:active {
+        transform: scale(0.97);
+    }
+    
+    .btn-secondary {
+        background-color: rgb(241, 245, 249);
+        color: rgb(15, 23, 42);
+        border: 1px solid rgb(226, 232, 240);
+        border-radius: 0.75rem;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        transition: all 200ms;
+    }
+    .dark .btn-secondary {
+        background-color: rgb(15, 23, 42);
+        color: rgb(248, 250, 252);
+        border-color: rgb(30, 41, 59);
+    }
+    .btn-secondary:hover {
+        background-color: rgb(226, 232, 240);
+    }
+    .dark .btn-secondary:hover {
+        background-color: rgb(30, 41, 59);
+    }
+    .btn-secondary:active {
+        transform: scale(0.97);
+    }
+
+    .nav-tab.active {
+        background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(236,72,153,0.1) 100%);
+        color: rgb(99, 102, 241);
+        border-color: rgba(99, 102, 241, 0.5);
+    }
+    .dark .nav-tab.active {
+        color: rgb(165, 180, 252);
+        border-color: rgba(165, 180, 252, 0.5);
+    }
+</style>
+
+<!-- Client Side GitHub Integration Script -->
+<script is:inline>
+    // Global State
+    let gitConfig = { owner: '', repo: '', branch: 'main', token: '' };
+    let activeTabId = 'tab-config';
+    let profileData = null;
+    let projectsData = [];
+    
+    // Load config from localStorage
+    function loadGitConfig() {
+        const saved = localStorage.getItem('git_cms_config');
+        if (saved) {
+            gitConfig = JSON.parse(saved);
+            document.getElementById('cfg-owner').value = gitConfig.owner || '';
+            document.getElementById('cfg-repo').value = gitConfig.repo || '';
+            document.getElementById('cfg-branch').value = gitConfig.branch || 'main';
+            document.getElementById('cfg-token').value = gitConfig.token || '';
+            updateConnectionBadge(true);
+        } else {
+            updateConnectionBadge(false);
+        }
+    }
+    
+    function updateConnectionBadge(isConnected) {
+        const badge = document.getElementById('status-badge');
+        if (isConnected) {
+            badge.className = "px-4 py-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-2";
+            badge.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Connected';
+        } else {
+            badge.className = "px-4 py-2 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-2";
+            badge.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span> Disconnected';
+        }
+    }
+    
+    // GitHub API requests
+    async function apiRequest(path, options = {}) {
+        if (!gitConfig.token) {
+            alert('Please enter a GitHub Access Token first!');
+            switchTab('tab-config');
+            throw new Error('No token');
+        }
+        
+        const url = `https://api.github.com/repos/${gitConfig.owner}/${gitConfig.repo}/contents/${path}`;
+        const headers = {
+            'Authorization': `Bearer ${gitConfig.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        };
+        
+        const response = await fetch(url, { ...options, headers });
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || 'GitHub API error');
+        }
+        return response.json();
+    }
+    
+    // Base64 helper
+    function utf8_to_b64(str) {
+        return window.btoa(unescape(encodeURIComponent(str)));
+    }
+    function b64_to_utf8(str) {
+        return decodeURIComponent(escape(window.atob(str)));
+    }
+
+    // Switch tabs
+    function switchTab(targetId) {
+        activeTabId = targetId;
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.add('hidden');
+        });
+        document.getElementById(targetId).classList.remove('hidden');
+        
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            if (tab.dataset.target === targetId) {
+                tab.className = "nav-tab active px-4 py-3 text-left rounded-xl text-sm font-semibold tracking-wide border hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200";
+            } else {
+                tab.className = "nav-tab px-4 py-3 text-left rounded-xl text-sm font-semibold tracking-wide border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all duration-200";
+            }
+        });
+    }
+
+    // Config form save
+    document.getElementById('config-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        gitConfig.owner = document.getElementById('cfg-owner').value.trim();
+        gitConfig.repo = document.getElementById('cfg-repo').value.trim();
+        gitConfig.branch = document.getElementById('cfg-branch').value.trim();
+        gitConfig.token = document.getElementById('cfg-token').value.trim();
+        
+        localStorage.setItem('git_cms_config', JSON.stringify(gitConfig));
+        updateConnectionBadge(true);
+        alert('Configuration saved successfully!');
+    });
+
+    // Wire up tabs clicking
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            switchTab(tab.dataset.target);
+        });
+    });
+
+    // ---------------- PROFILE CMS LOGIC ----------------
+    let profileSha = '';
+    const loadProfileBtn = document.getElementById('btn-load-profile');
+    const profileForm = document.getElementById('profile-form');
+    const profilePrompt = document.getElementById('profile-load-prompt');
+    
+    loadProfileBtn.addEventListener('click', async () => {
+        loadProfileBtn.disabled = true;
+        loadProfileBtn.textContent = 'Loading...';
+        try {
+            const res = await apiRequest('src/data/profile.json?ref=' + gitConfig.branch);
+            profileSha = res.sha;
+            profileData = JSON.parse(b64_to_utf8(res.content.replace(/\s/g, '')));
+            
+            document.getElementById('prof-name').value = profileData.name || '';
+            document.getElementById('prof-title').value = profileData.title || '';
+            document.getElementById('prof-email').value = profileData.email || '';
+            document.getElementById('prof-phone').value = profileData.phone || '';
+            document.getElementById('prof-location').value = profileData.location || '';
+            document.getElementById('prof-github').value = profileData.github || '';
+            document.getElementById('prof-linkedin').value = profileData.linkedin || '';
+            document.getElementById('prof-twitter').value = profileData.twitter || '';
+            document.getElementById('prof-summary').value = profileData.summary || '';
+            document.getElementById('prof-detailedSummary').value = profileData.detailedSummary || '';
+            document.getElementById('prof-objective').value = profileData.objective || '';
+            
+            document.getElementById('prof-skills-json').value = JSON.stringify(profileData.skills, null, 2);
+            document.getElementById('prof-highlights-json').value = JSON.stringify(profileData.experienceHighlights, null, 2);
+            document.getElementById('prof-history-json').value = JSON.stringify(profileData.workHistory, null, 2);
+            
+            profilePrompt.classList.add('hidden');
+            profileForm.classList.remove('hidden');
+        } catch (err) {
+            alert('Failed to load profile: ' + err.message);
+        } finally {
+            loadProfileBtn.disabled = false;
+            loadProfileBtn.textContent = 'Load from Git';
+        }
+    });
+
+    profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = profileForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Publishing...';
+        
+        try {
+            const updated = {
+                name: document.getElementById('prof-name').value,
+                title: document.getElementById('prof-title').value,
+                email: document.getElementById('prof-email').value,
+                phone: document.getElementById('prof-phone').value,
+                location: document.getElementById('prof-location').value,
+                github: document.getElementById('prof-github').value,
+                linkedin: document.getElementById('prof-linkedin').value,
+                twitter: document.getElementById('prof-twitter').value,
+                nav: profileData.nav, // Keep same nav links
+                summary: document.getElementById('prof-summary').value,
+                detailedSummary: document.getElementById('prof-detailedSummary').value,
+                objective: document.getElementById('prof-objective').value,
+                skills: JSON.parse(document.getElementById('prof-skills-json').value),
+                experienceHighlights: JSON.parse(document.getElementById('prof-highlights-json').value),
+                workHistory: JSON.parse(document.getElementById('prof-history-json').value)
+            };
+            
+            const res = await apiRequest('src/data/profile.json', {
+                method: 'PUT',
+                body: JSON.stringify({
+                    message: 'cms: update profile details',
+                    content: utf8_to_b64(JSON.stringify(updated, null, 2)),
+                    sha: profileSha,
+                    branch: gitConfig.branch
+                })
+            });
+            profileSha = res.content.sha;
+            alert('Profile published successfully! GitHub Actions will now redeploy.');
+        } catch (err) {
+            alert('Save failed: ' + err.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Publish Updates to Git';
+        }
+    });
+
+
+    // ---------------- PROJECTS CMS LOGIC ----------------
+    let projectsSha = '';
+    const loadProjBtn = document.getElementById('btn-load-projects');
+    const addProjBtn = document.getElementById('btn-add-project');
+    const publishProjBtn = document.getElementById('btn-publish-projects');
+    const projPrompt = document.getElementById('projects-load-prompt');
+    const listContainer = document.getElementById('projects-list-container');
+    const projForm = document.getElementById('project-form');
+    
+    function renderProjectsList() {
+        listContainer.innerHTML = '';
+        if (projectsData.length === 0) {
+            listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 text-sm">No projects listed. Click Add Project to start.</div>';
+            return;
+        }
+        
+        projectsData.forEach((proj, idx) => {
+            const card = document.createElement('div');
+            card.className = "p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-center bg-white dark:bg-slate-950/20";
+            card.innerHTML = `
+                <div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200">${proj.name}</h4>
+                    <p class="text-xs text-slate-500">${proj.tagline}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn-edit-proj btn-secondary py-1 px-3.5 text-xs font-semibold" data-idx="${idx}">Edit</button>
+                    <button class="btn-del-proj px-3.5 py-1 text-xs font-semibold bg-rose-600/10 dark:bg-rose-950/20 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition" data-idx="${idx}">Delete</button>
+                </div>
+            `;
+            listContainer.appendChild(card);
+        });
+        
+        // Wire up buttons
+        document.querySelectorAll('.btn-edit-proj').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.idx);
+                openProjectForm(idx);
+            });
+        });
+        document.querySelectorAll('.btn-del-proj').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.idx);
+                if (confirm('Are you sure you want to delete this project from the list?')) {
+                    projectsData.splice(idx, 1);
+                    renderProjectsList();
+                }
+            });
+        });
+    }
+
+    loadProjBtn.addEventListener('click', async () => {
+        loadProjBtn.disabled = true;
+        loadProjBtn.textContent = 'Loading...';
+        try {
+            const res = await apiRequest('src/data/projects.json?ref=' + gitConfig.branch);
+            projectsSha = res.sha;
+            projectsData = JSON.parse(b64_to_utf8(res.content.replace(/\s/g, '')));
+            
+            renderProjectsList();
+            projPrompt.classList.add('hidden');
+            addProjBtn.classList.remove('hidden');
+            publishProjBtn.classList.remove('hidden');
+        } catch (err) {
+            alert('Failed to load projects: ' + err.message);
+        } finally {
+            loadProjBtn.disabled = false;
+            loadProjBtn.textContent = 'Load Projects';
+        }
+    });
+
+    addProjBtn.addEventListener('click', () => openProjectForm(-1));
+    document.getElementById('btn-cancel-project').addEventListener('click', () => {
+        projForm.classList.add('hidden');
+    });
+
+    function openProjectForm(idx) {
+        projForm.classList.remove('hidden');
+        document.getElementById('proj-index').value = idx;
+        
+        if (idx === -1) {
+            document.getElementById('project-form-title').textContent = 'New Project';
+            document.getElementById('proj-id').value = '';
+            document.getElementById('proj-name').value = '';
+            document.getElementById('proj-tagline').value = '';
+            document.getElementById('proj-desc').value = '';
+            document.getElementById('proj-tech').value = '';
+            document.getElementById('proj-features-json').value = '[\n  {\n    "title": "Component Name",\n    "detail": "Description of component"\n  }\n]';
+        } else {
+            const p = projectsData[idx];
+            document.getElementById('project-form-title').textContent = 'Edit Project: ' + p.name;
+            document.getElementById('proj-id').value = p.id;
+            document.getElementById('proj-name').value = p.name;
+            document.getElementById('proj-tagline').value = p.tagline;
+            document.getElementById('proj-desc').value = p.description;
+            document.getElementById('proj-tech').value = p.technologies.join(', ');
+            document.getElementById('proj-features-json').value = JSON.stringify(p.features, null, 2);
+        }
+    }
+
+    projForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const idx = parseInt(document.getElementById('proj-index').value);
+        const project = {
+            id: document.getElementById('proj-id').value.trim(),
+            name: document.getElementById('proj-name').value.trim(),
+            tagline: document.getElementById('proj-tagline').value.trim(),
+            description: document.getElementById('proj-desc').value.trim(),
+            technologies: document.getElementById('proj-tech').value.split(',').map(s => s.trim()).filter(Boolean),
+            features: JSON.parse(document.getElementById('proj-features-json').value)
+        };
+        
+        if (idx === -1) {
+            projectsData.push(project);
+        } else {
+            projectsData[idx] = project;
+        }
+        
+        renderProjectsList();
+        projForm.classList.add('hidden');
+    });
+
+    publishProjBtn.addEventListener('click', async () => {
+        publishProjBtn.disabled = true;
+        publishProjBtn.textContent = 'Publishing...';
+        try {
+            const res = await apiRequest('src/data/projects.json', {
+                method: 'PUT',
+                body: JSON.stringify({
+                    message: 'cms: update projects list',
+                    content: utf8_to_b64(JSON.stringify(projectsData, null, 2)),
+                    sha: projectsSha,
+                    branch: gitConfig.branch
+                })
+            });
+            projectsSha = res.content.sha;
+            alert('Projects published successfully! Auto-rebuild triggered.');
+        } catch (err) {
+            alert('Save failed: ' + err.message);
+        } finally {
+            publishProjBtn.disabled = false;
+            publishProjBtn.textContent = 'Publish Projects List to Git';
+        }
+    });
+
+
+    // ---------------- BLOGS CMS LOGIC ----------------
+    let blogsList = [];
+    const loadBlogsBtn = document.getElementById('btn-load-blogs');
+    const createBlogBtn = document.getElementById('btn-create-blog');
+    const blogsPrompt = document.getElementById('blogs-load-prompt');
+    const blogsContainer = document.getElementById('blogs-list-container');
+    const blogForm = document.getElementById('blog-form');
+    
+    // Markdown Preview tabs
+    const blogWriteTab = document.getElementById('blog-write-tab');
+    const blogPreviewTab = document.getElementById('blog-preview-tab');
+    const blogWriteContainer = document.getElementById('blog-write-container');
+    const blogPreviewContainer = document.getElementById('blog-preview-container');
+
+    blogWriteTab.addEventListener('click', () => {
+        blogWriteTab.className = "px-4 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-850 rounded-t-xl border-t border-x border-slate-200/50 dark:border-slate-800/50";
+        blogPreviewTab.className = "px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700";
+        blogWriteContainer.classList.remove('hidden');
+        blogPreviewContainer.classList.add('hidden');
+    });
+
+    blogPreviewTab.addEventListener('click', () => {
+        blogPreviewTab.className = "px-4 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-850 rounded-t-xl border-t border-x border-slate-200/50 dark:border-slate-800/50";
+        blogWriteTab.className = "px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700";
+        blogWriteContainer.classList.add('hidden');
+        blogPreviewContainer.classList.remove('hidden');
+        
+        const mdText = document.getElementById('blog-content').value;
+        blogPreviewContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(mdText) : mdText;
+    });
+
+    function parseFrontmatter(text) {
+        const match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+        if (!match) return { data: {}, body: text };
+        
+        const rawYaml = match[1];
+        const body = match[2];
+        const data = {};
+        
+        rawYaml.split('\n').forEach(line => {
+            const idx = line.indexOf(':');
+            if (idx > -1) {
+                const k = line.substring(0, idx).trim();
+                let v = line.substring(idx + 1).trim();
+                if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1);
+                if (v.startsWith('[') && v.endsWith(']')) {
+                    v = v.slice(1, -1).split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+                }
+                data[k] = v;
+            }
+        });
+        
+        return { data, body };
+    }
+
+    function buildFrontmatter(data, body) {
+        let yaml = '---\n';
+        yaml += `title: "${data.title}"\n`;
+        yaml += `description: "${data.description}"\n`;
+        yaml += `pubDate: "${data.pubDate}"\n`;
+        yaml += `author: "${data.author || 'Aunmoy Dey Tanmoy'}"\n`;
+        yaml += `tags: [${data.tags.map(t => `"${t}"`).join(', ')}]\n`;
+        yaml += `image: "/blog-assets/${data.slug}.jpg"\n`;
+        yaml += '---\n\n';
+        yaml += body;
+        return yaml;
+    }
+
+    function renderBlogsList() {
+        blogsContainer.innerHTML = '';
+        if (blogsList.length === 0) {
+            blogsContainer.innerHTML = '<div class="text-center py-6 text-slate-400 text-sm">No blog files found.</div>';
+            return;
+        }
+        
+        blogsList.forEach(file => {
+            const card = document.createElement('div');
+            card.className = "p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-center bg-white dark:bg-slate-950/20";
+            card.innerHTML = `
+                <div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200">${file.name}</h4>
+                    <p class="text-[10px] text-slate-400">SHA: ${file.sha.substring(0, 8)}</p>
+                </div>
+                <button class="btn-edit-blog btn-secondary py-1 px-3.5 text-xs font-semibold" data-path="${file.path}" data-sha="${file.sha}">Edit</button>
+            `;
+            blogsContainer.appendChild(card);
+        });
+
+        document.querySelectorAll('.btn-edit-blog').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const path = btn.dataset.path;
+                const sha = btn.dataset.sha;
+                
+                btn.disabled = true;
+                btn.textContent = 'Loading...';
+                try {
+                    const res = await apiRequest(path + '?ref=' + gitConfig.branch);
+                    const rawText = b64_to_utf8(res.content.replace(/\s/g, ''));
+                    const parsed = parseFrontmatter(rawText);
+                    
+                    blogForm.classList.remove('hidden');
+                    document.getElementById('blog-form-title').textContent = 'Edit Blog Post';
+                    document.getElementById('blog-sha').value = sha;
+                    document.getElementById('blog-old-path').value = path;
+                    document.getElementById('blog-slug').value = path.replace('src/content/blog/', '').replace('.md', '');
+                    document.getElementById('blog-date').value = parsed.data.pubDate || '';
+                    document.getElementById('blog-title').value = parsed.data.title || '';
+                    document.getElementById('blog-desc').value = parsed.data.description || '';
+                    document.getElementById('blog-tags').value = (parsed.data.tags || []).join(', ');
+                    document.getElementById('blog-content').value = parsed.body.trim();
+                    
+                    document.getElementById('btn-delete-blog').classList.remove('hidden');
+                    blogForm.scrollIntoView({ behavior: 'smooth' });
+                } catch (err) {
+                    alert('Failed to load file: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Edit';
+                }
+            });
+        });
+    }
+
+    loadBlogsBtn.addEventListener('click', async () => {
+        loadBlogsBtn.disabled = true;
+        loadBlogsBtn.textContent = 'Loading...';
+        try {
+            const res = await apiRequest('src/content/blog?ref=' + gitConfig.branch);
+            blogsList = res.filter(item => item.name.endsWith('.md'));
+            renderBlogsList();
+            
+            blogsPrompt.classList.add('hidden');
+            createBlogBtn.classList.remove('hidden');
+        } catch (err) {
+            alert('Failed to load blog directory: ' + err.message);
+        } finally {
+            loadBlogsBtn.disabled = false;
+            loadBlogsBtn.textContent = 'Load Blogs';
+        }
+    });
+
+    createBlogBtn.addEventListener('click', () => {
+        blogForm.classList.remove('hidden');
+        document.getElementById('blog-form-title').textContent = 'Create Blog Post';
+        document.getElementById('blog-sha').value = '';
+        document.getElementById('blog-old-path').value = '';
+        document.getElementById('blog-slug').value = '';
+        document.getElementById('blog-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('blog-title').value = '';
+        document.getElementById('blog-desc').value = '';
+        document.getElementById('blog-tags').value = '';
+        document.getElementById('blog-content').value = '';
+        
+        document.getElementById('btn-delete-blog').classList.add('hidden');
+    });
+
+    document.getElementById('btn-cancel-blog').addEventListener('click', () => {
+        blogForm.classList.add('hidden');
+    });
+
+    blogForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = blogForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Publishing...';
+        
+        const slug = document.getElementById('blog-slug').value.trim();
+        const sha = document.getElementById('blog-sha').value;
+        const oldPath = document.getElementById('blog-old-path').value;
+        const newPath = `src/content/blog/${slug}.md`;
+        
+        try {
+            const data = {
+                title: document.getElementById('blog-title').value.trim(),
+                description: document.getElementById('blog-desc').value.trim(),
+                pubDate: document.getElementById('blog-date').value,
+                slug: slug,
+                tags: document.getElementById('blog-tags').value.split(',').map(s => s.trim()).filter(Boolean)
+            };
+            const body = document.getElementById('blog-content').value;
+            const fullMarkdown = buildFrontmatter(data, body);
+            
+            // If the filename has changed, delete the old file first
+            if (oldPath && oldPath !== newPath) {
+                await apiRequest(oldPath, {
+                    method: 'DELETE',
+                    body: JSON.stringify({
+                        message: `cms: delete renamed blog post (${slug})`,
+                        sha: sha,
+                        branch: gitConfig.branch
+                    })
+                });
+                // When writing new file, sha is no longer needed (creating new)
+                const res = await apiRequest(newPath, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        message: `cms: publish renamed blog post (${slug})`,
+                        content: utf8_to_b64(fullMarkdown),
+                        branch: gitConfig.branch
+                    })
+                });
+            } else {
+                const res = await apiRequest(newPath, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        message: `cms: publish blog post (${slug})`,
+                        content: utf8_to_b64(fullMarkdown),
+                        sha: sha || undefined,
+                        branch: gitConfig.branch
+                    })
+                });
+            }
+            
+            alert('Blog post published successfully!');
+            blogForm.classList.add('hidden');
+            loadBlogsBtn.click(); // reload list
+        } catch (err) {
+            alert('Publish failed: ' + err.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Publish to Git';
+        }
+    });
+
+    document.getElementById('btn-delete-blog').addEventListener('click', async () => {
+        const sha = document.getElementById('blog-sha').value;
+        const path = document.getElementById('blog-old-path').value;
+        const slug = document.getElementById('blog-slug').value;
+        
+        if (!confirm('Are you sure you want to delete this blog post? This cannot be undone.')) return;
+        
+        const deleteBtn = document.getElementById('btn-delete-blog');
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting...';
+        
+        try {
+            await apiRequest(path, {
+                method: 'DELETE',
+                body: JSON.stringify({
+                    message: `cms: delete blog post (${slug})`,
+                    sha: sha,
+                    branch: gitConfig.branch
+                })
+            });
+            alert('Blog post deleted successfully!');
+            blogForm.classList.add('hidden');
+            loadBlogsBtn.click();
+        } catch (err) {
+            alert('Delete failed: ' + err.message);
+        } finally {
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete Post';
+        }
+    });
+
+
+    // ---------------- LEARNINGS & ADR CMS LOGIC ----------------
+    let learningsList = [];
+    const loadLearnBtn = document.getElementById('btn-load-learnings');
+    const createLearnBtn = document.getElementById('btn-create-learning');
+    const learnPrompt = document.getElementById('learnings-load-prompt');
+    const learnContainer = document.getElementById('learnings-list-container');
+    const learnForm = document.getElementById('learning-form');
+    
+    // Markdown Preview tabs for Learnings
+    const learnWriteTab = document.getElementById('learn-write-tab');
+    const learnPreviewTab = document.getElementById('learn-preview-tab');
+    const learnWriteContainer = document.getElementById('learn-write-container');
+    const learnPreviewContainer = document.getElementById('learn-preview-container');
+
+    learnWriteTab.addEventListener('click', () => {
+        learnWriteTab.className = "px-4 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-850 rounded-t-xl border-t border-x border-slate-200/50 dark:border-slate-800/50";
+        learnPreviewTab.className = "px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700";
+        learnWriteContainer.classList.remove('hidden');
+        learnPreviewContainer.classList.add('hidden');
+    });
+
+    learnPreviewTab.addEventListener('click', () => {
+        learnPreviewTab.className = "px-4 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-850 rounded-t-xl border-t border-x border-slate-200/50 dark:border-slate-800/50";
+        learnWriteTab.className = "px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700";
+        learnWriteContainer.classList.add('hidden');
+        learnPreviewContainer.classList.remove('hidden');
+        
+        const mdText = document.getElementById('learn-content').value;
+        learnPreviewContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(mdText) : mdText;
+    });
+
+    // Toggle ADR status dropdown based on checkbox
+    const adrCheckbox = document.getElementById('learn-isADR');
+    const adrStatusDropdown = document.getElementById('learn-adrStatus');
+    adrCheckbox.addEventListener('change', () => {
+        adrStatusDropdown.disabled = !adrCheckbox.checked;
+        if (!adrCheckbox.checked) adrStatusDropdown.value = '';
+    });
+
+    function buildLearningFrontmatter(data, body) {
+        let yaml = '---\n';
+        yaml += `title: "${data.title}"\n`;
+        yaml += `date: "${data.date}"\n`;
+        yaml += `category: "${data.category}"\n`;
+        yaml += `tags: [${data.tags.map(t => `"${t}"`).join(', ')}]\n`;
+        yaml += `isADR: ${data.isADR}\n`;
+        if (data.isADR && data.adrStatus) {
+            yaml += `adrStatus: "${data.adrStatus}"\n`;
+        }
+        yaml += '---\n\n';
+        yaml += body;
+        return yaml;
+    }
+
+    function renderLearningsList() {
+        learnContainer.innerHTML = '';
+        if (learningsList.length === 0) {
+            learnContainer.innerHTML = '<div class="text-center py-6 text-slate-400 text-sm">No learning files found.</div>';
+            return;
+        }
+        
+        learningsList.forEach(file => {
+            const card = document.createElement('div');
+            card.className = "p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-center bg-white dark:bg-slate-950/20";
+            card.innerHTML = `
+                <div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200">${file.name}</h4>
+                    <p class="text-[10px] text-slate-400">SHA: ${file.sha.substring(0, 8)}</p>
+                </div>
+                <button class="btn-edit-learn btn-secondary py-1 px-3.5 text-xs font-semibold" data-path="${file.path}" data-sha="${file.sha}">Edit</button>
+            `;
+            learnContainer.appendChild(card);
+        });
+
+        document.querySelectorAll('.btn-edit-learn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const path = btn.dataset.path;
+                const sha = btn.dataset.sha;
+                
+                btn.disabled = true;
+                btn.textContent = 'Loading...';
+                try {
+                    const res = await apiRequest(path + '?ref=' + gitConfig.branch);
+                    const rawText = b64_to_utf8(res.content.replace(/\s/g, ''));
+                    const parsed = parseFrontmatter(rawText);
+                    
+                    learnForm.classList.remove('hidden');
+                    document.getElementById('learning-form-title').textContent = 'Edit Learning Entry';
+                    document.getElementById('learn-sha').value = sha;
+                    document.getElementById('learn-old-path').value = path;
+                    document.getElementById('learn-slug').value = path.replace('src/content/learning/', '').replace('.md', '');
+                    document.getElementById('learn-date').value = parsed.data.date || '';
+                    document.getElementById('learn-title').value = parsed.data.title || '';
+                    document.getElementById('learn-category').value = parsed.data.category || '';
+                    
+                    const isADR = parsed.data.isADR === 'true' || parsed.data.isADR === true;
+                    document.getElementById('learn-isADR').checked = isADR;
+                    adrStatusDropdown.disabled = !isADR;
+                    document.getElementById('learn-adrStatus').value = parsed.data.adrStatus || '';
+                    
+                    document.getElementById('learn-tags').value = (parsed.data.tags || []).join(', ');
+                    document.getElementById('learn-content').value = parsed.body.trim();
+                    
+                    document.getElementById('btn-delete-learning').classList.remove('hidden');
+                    learnForm.scrollIntoView({ behavior: 'smooth' });
+                } catch (err) {
+                    alert('Failed to load file: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Edit';
+                }
+            });
+        });
+    }
+
+    loadLearnBtn.addEventListener('click', async () => {
+        loadLearnBtn.disabled = true;
+        loadLearnBtn.textContent = 'Loading...';
+        try {
+            const res = await apiRequest('src/content/learning?ref=' + gitConfig.branch);
+            learningsList = res.filter(item => item.name.endsWith('.md'));
+            renderLearningsList();
+            
+            learnPrompt.classList.add('hidden');
+            createLearnBtn.classList.remove('hidden');
+        } catch (err) {
+            alert('Failed to load learnings directory: ' + err.message);
+        } finally {
+            loadLearnBtn.disabled = false;
+            loadLearnBtn.textContent = 'Load Learnings';
+        }
+    });
+
+    createLearnBtn.addEventListener('click', () => {
+        learnForm.classList.remove('hidden');
+        document.getElementById('learning-form-title').textContent = 'Create Learning Entry';
+        document.getElementById('learn-sha').value = '';
+        document.getElementById('learn-old-path').value = '';
+        document.getElementById('learn-slug').value = '';
+        document.getElementById('learn-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('learn-title').value = '';
+        document.getElementById('learn-category').value = '';
+        document.getElementById('learn-isADR').checked = false;
+        adrStatusDropdown.disabled = true;
+        document.getElementById('learn-adrStatus').value = '';
+        document.getElementById('learn-tags').value = '';
+        document.getElementById('learn-content').value = '';
+        
+        document.getElementById('btn-delete-learning').classList.add('hidden');
+    });
+
+    document.getElementById('btn-cancel-learning').addEventListener('click', () => {
+        learnForm.classList.add('hidden');
+    });
+
+    learnForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = learnForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Publishing...';
+        
+        const slug = document.getElementById('learn-slug').value.trim();
+        const sha = document.getElementById('learn-sha').value;
+        const oldPath = document.getElementById('learn-old-path').value;
+        const newPath = `src/content/learning/${slug}.md`;
+        
+        const isADR = document.getElementById('learn-isADR').checked;
+        
+        try {
+            const data = {
+                title: document.getElementById('learn-title').value.trim(),
+                date: document.getElementById('learn-date').value,
+                category: document.getElementById('learn-category').value.trim(),
+                tags: document.getElementById('learn-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+                isADR: isADR,
+                adrStatus: isADR ? document.getElementById('learn-adrStatus').value : undefined
+            };
+            const body = document.getElementById('learn-content').value;
+            const fullMarkdown = buildLearningFrontmatter(data, body);
+            
+            if (oldPath && oldPath !== newPath) {
+                await apiRequest(oldPath, {
+                    method: 'DELETE',
+                    body: JSON.stringify({
+                        message: `cms: delete renamed learning entry (${slug})`,
+                        sha: sha,
+                        branch: gitConfig.branch
+                    })
+                });
+                const res = await apiRequest(newPath, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        message: `cms: publish renamed learning entry (${slug})`,
+                        content: utf8_to_b64(fullMarkdown),
+                        branch: gitConfig.branch
+                    })
+                });
+            } else {
+                const res = await apiRequest(newPath, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        message: `cms: publish learning entry (${slug})`,
+                        content: utf8_to_b64(fullMarkdown),
+                        sha: sha || undefined,
+                        branch: gitConfig.branch
+                    })
+                });
+            }
+            
+            alert('Learning entry published successfully!');
+            learnForm.classList.add('hidden');
+            loadLearnBtn.click();
+        } catch (err) {
+            alert('Publish failed: ' + err.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Publish to Git';
+        }
+    });
+
+    document.getElementById('btn-delete-learning').addEventListener('click', async () => {
+        const sha = document.getElementById('learn-sha').value;
+        const path = document.getElementById('learn-old-path').value;
+        const slug = document.getElementById('learn-slug').value;
+        
+        if (!confirm('Are you sure you want to delete this learning entry?')) return;
+        
+        const deleteBtn = document.getElementById('btn-delete-learning');
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting...';
+        
+        try {
+            await apiRequest(path, {
+                method: 'DELETE',
+                body: JSON.stringify({
+                    message: `cms: delete learning entry (${slug})`,
+                    sha: sha,
+                    branch: gitConfig.branch
+                })
+            });
+            alert('Learning entry deleted successfully!');
+            learnForm.classList.add('hidden');
+            loadLearnBtn.click();
+        } catch (err) {
+            alert('Delete failed: ' + err.message);
+        } finally {
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete Entry';
+        }
+    });
+
+
+    // Initialize
+    loadGitConfig();
+</script>

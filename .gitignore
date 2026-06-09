@@ -1,0 +1,27 @@
+# Astro build artifacts and cache
+.astro/
+dist/
+
+# Local reference materials (not for deployment)
+My-Info and requirement/
+implementation-plan.md
+
+# Dependencies
+node_modules/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.production
+.env.local
+.env.development
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
