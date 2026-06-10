@@ -20,6 +20,7 @@
 
   // ─── Utilities ───────────────────────────────────────────────
   function $(id) { return document.getElementById(id); }
+
   function toast(msg, type = 'info') {
     const el = $('cms-toast');
     if (!el) return alert(msg);
@@ -31,12 +32,15 @@
     setTimeout(() => el.classList.add('opacity-0'), 3200);
     setTimeout(() => el.classList.add('hidden'), 3600);
   }
+
   async function sha256(text) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
+
   function utf8_to_b64(str) { return btoa(unescape(encodeURIComponent(str))); }
   function b64_to_utf8(str) { return decodeURIComponent(escape(atob(str))); }
+
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const r = new FileReader();
@@ -44,6 +48,11 @@
       r.onerror = reject;
       r.readAsDataURL(file);
     });
+  }
+
+  // Strip any embedded ?ref=... from a path before passing to apiRequest
+  function cleanPath(path) {
+    return path.replace(/\?ref=[^&]*/, '');
   }
 
   // ─── Auth ────────────────────────────────────────────────────
@@ -101,11 +110,13 @@
   }
 
   // ─── GitHub API (server proxy or direct PAT) ─────────────────
-  async function apiRequest(path, options = {}) {
+  async function apiRequest(rawPath, options = {}) {
+    const path = cleanPath(rawPath);
+    const ref = state.gitConfig.branch || 'main';
+
     if (state.serverMode && state.token) {
       const method = options.method || 'GET';
       if (method === 'GET') {
-        const ref = state.gitConfig.branch || 'main';
         const res = await fetch(`/api/github/proxy?path=${encodeURIComponent(path)}&ref=${ref}`, {
           headers: { Authorization: `Bearer ${state.token}` },
         });
@@ -139,6 +150,11 @@
     return data;
   }
 
+  // Fetch with ?ref= for GET-style reads (PAT direct mode)
+  async function apiGet(path) {
+    return apiRequest(path + '?ref=' + (state.gitConfig.branch || 'main'));
+  }
+
   async function uploadImage(file, filename) {
     const base64 = await fileToBase64(file);
     if (state.serverMode && state.token) {
@@ -151,13 +167,10 @@
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       return data.path;
     }
-    const path = `public/blog-assets/${filename}`;
+    const imgPath = `public/blog-assets/${filename}`;
     let sha;
-    try {
-      const ex = await apiRequest(`${path}?ref=${state.gitConfig.branch}`);
-      sha = ex.sha;
-    } catch {}
-    await apiRequest(path, {
+    try { const ex = await apiGet(imgPath); sha = ex.sha; } catch {}
+    await apiRequest(imgPath, {
       method: 'PUT',
       body: JSON.stringify({ message: `cms: upload ${filename}`, content: base64, sha, branch: state.gitConfig.branch }),
     });
@@ -166,8 +179,10 @@
 
   // ─── Frontmatter helpers ───────────────────────────────────────
   function parseFrontmatter(text) {
-    const match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-    if (!match) return { data: {}, body: text };
+    // Normalize CRLF and lone CR to LF before regex matching
+    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const match = normalized.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    if (!match) return { data: {}, body: normalized };
     const data = {};
     match[1].split('\n').forEach(line => {
       const idx = line.indexOf(':');
@@ -244,7 +259,7 @@
       card.className = 'p-4 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3';
       card.innerHTML = `
         <div class="flex gap-2">
-          <input type="text" class="form-input skill-cat" data-idx="${ci}" value="${cat.category}" placeholder="Category name" />
+          <input type="text" class="form-input skill-cat" data-idx="${ci}" value="${escHtml(cat.category)}" placeholder="Category name" />
           <button type="button" class="btn-del-skill-cat px-3 text-rose-600 text-xs font-bold" data-idx="${ci}">✕</button>
         </div>
         <div class="skill-items space-y-2" data-cat="${ci}"></div>
@@ -252,7 +267,7 @@
       el.appendChild(card);
       const itemsEl = card.querySelector('.skill-items');
       (cat.items || []).forEach((item, ii) => {
-        itemsEl.innerHTML += `<div class="flex gap-2"><input type="text" class="form-input skill-item" data-cat="${ci}" data-item="${ii}" value="${item}" /><button type="button" class="btn-del-skill-item text-rose-500 text-xs" data-cat="${ci}" data-item="${ii}">✕</button></div>`;
+        itemsEl.innerHTML += `<div class="flex gap-2"><input type="text" class="form-input skill-item" data-cat="${ci}" data-item="${ii}" value="${escHtml(item)}" /><button type="button" class="btn-del-skill-item text-rose-500 text-xs" data-cat="${ci}" data-item="${ii}">✕</button></div>`;
       });
     });
     bindSkillsEditor();
@@ -361,7 +376,7 @@
     const el = $('roles-editor');
     if (!el) return;
     el.innerHTML = (roles || []).map((r, i) =>
-      `<div class="flex gap-2 mb-2"><input type="text" class="form-input role-item" data-idx="${i}" value="${r}" /><button type="button" class="btn-del-role text-rose-500 text-xs" data-idx="${i}">✕</button></div>`
+      `<div class="flex gap-2 mb-2"><input type="text" class="form-input role-item" data-idx="${i}" value="${escHtml(r)}" /><button type="button" class="btn-del-role text-rose-500 text-xs" data-idx="${i}">✕</button></div>`
     ).join('');
     el.querySelectorAll('.btn-del-role').forEach(btn => btn.onclick = () => {
       const roles = [...document.querySelectorAll('.role-item')].map(i => i.value.trim()).filter(Boolean);
@@ -370,9 +385,37 @@
     });
   }
 
+  // Escape HTML for safe injection into innerHTML
+  function escHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ─── Section Loading States ────────────────────────────────────
+  function setTabLoading(tabId, loading) {
+    const el = document.getElementById(tabId);
+    const existing = el?.querySelector('.tab-loading-indicator');
+    if (loading && !existing) {
+      const ind = document.createElement('div');
+      ind.className = 'tab-loading-indicator text-sm text-slate-400 animate-pulse py-4';
+      ind.textContent = 'Loading from GitHub...';
+      el?.prepend(ind);
+    } else if (!loading && existing) {
+      existing.remove();
+    }
+  }
+
+  function setTabError(promptId, msg) {
+    const el = $(promptId);
+    if (!el) return;
+    el.textContent = `⚠ ${msg}`;
+    el.className = 'text-rose-500 text-sm text-center py-4';
+    el.classList.remove('hidden');
+  }
+
   // ─── Data Loaders ──────────────────────────────────────────────
   async function loadProfile() {
-    const res = await apiRequest('src/data/profile.json?ref=' + state.gitConfig.branch);
+    setTabLoading('tab-profile', true);
+    const res = await apiGet('src/data/profile.json');
     state.profileSha = res.sha;
     state.profileData = JSON.parse(b64_to_utf8(res.content.replace(/\s/g, '')));
     $('prof-name').value = state.profileData.name || '';
@@ -396,10 +439,12 @@
     $('profile-form').classList.remove('hidden');
     $('profile-prompt').classList.add('hidden');
     $('stat-profile').textContent = 'Loaded';
+    setTabLoading('tab-profile', false);
   }
 
   async function loadProjects() {
-    const res = await apiRequest('src/data/projects.json?ref=' + state.gitConfig.branch);
+    setTabLoading('tab-projects', true);
+    const res = await apiGet('src/data/projects.json');
     state.projectsSha = res.sha;
     state.projectsData = JSON.parse(b64_to_utf8(res.content.replace(/\s/g, '')));
     renderProjectsList();
@@ -407,6 +452,7 @@
     $('btn-add-project').classList.remove('hidden');
     $('btn-publish-projects').classList.remove('hidden');
     $('stat-projects').textContent = state.projectsData.length;
+    setTabLoading('tab-projects', false);
   }
 
   function renderProjectsList() {
@@ -414,10 +460,10 @@
     el.innerHTML = state.projectsData.length ? '' : '<p class="text-slate-400 text-sm text-center py-6">No projects yet.</p>';
     state.projectsData.forEach((p, idx) => {
       const card = document.createElement('div');
-      card.className = 'p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-center';
-      card.innerHTML = `<div><h4 class="font-bold">${p.name}</h4><p class="text-xs text-slate-500">${p.tagline}</p></div>
-        <div class="flex gap-2"><button class="btn-edit-proj btn-secondary py-1 px-3 text-xs" data-idx="${idx}">Edit</button>
-        <button class="btn-del-proj text-rose-600 text-xs font-bold px-2" data-idx="${idx}">Delete</button></div>`;
+      card.className = 'p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-center gap-3';
+      card.innerHTML = `<div class="flex-1 min-w-0"><h4 class="font-bold truncate">${escHtml(p.name)}</h4><p class="text-xs text-slate-500 truncate">${escHtml(p.tagline)}</p></div>
+        <div class="flex gap-2 flex-shrink-0"><button class="btn-edit-proj btn-secondary py-1 px-3 text-xs" data-idx="${idx}">Edit</button>
+        <button class="btn-del-proj text-rose-600 text-xs font-bold px-2 py-1 border border-rose-200 dark:border-rose-900/30 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition" data-idx="${idx}">Delete</button></div>`;
       el.appendChild(card);
     });
     el.querySelectorAll('.btn-edit-proj').forEach(b => b.onclick = () => openProjectForm(+b.dataset.idx));
@@ -427,53 +473,139 @@
   }
 
   async function loadBlogs() {
-    const res = await apiRequest('src/content/blog?ref=' + state.gitConfig.branch);
-    state.blogsList = res.filter(i => i.name.endsWith('.md'));
+    setTabLoading('tab-blogs', true);
+    const dirRes = await apiGet('src/content/blog');
+    const mdFiles = dirRes.filter(i => i.name.endsWith('.md'));
+    state.blogsList = mdFiles;
+
+    // Fetch all file contents in parallel to extract titles
+    const enriched = await Promise.all(mdFiles.map(async f => {
+      try {
+        const fileRes = await apiGet(f.path);
+        const content = b64_to_utf8(fileRes.content.replace(/\s/g, ''));
+        const { data } = parseFrontmatter(content);
+        return { ...f, sha: fileRes.sha, title: data.title || f.name, pubDate: data.pubDate || '', description: data.description || '', tags: data.tags || [] };
+      } catch {
+        return { ...f, title: f.name, pubDate: '', description: '', tags: [] };
+      }
+    }));
+    state.blogsList = enriched;
+
+    renderBlogsList();
+    $('blogs-prompt').classList.add('hidden');
+    $('btn-create-blog').classList.remove('hidden');
+    $('stat-blogs').textContent = enriched.length;
+    setTabLoading('tab-blogs', false);
+  }
+
+  function renderBlogsList() {
     const el = $('blogs-list-container');
-    el.innerHTML = '';
+    el.innerHTML = state.blogsList.length ? '' : '<p class="text-slate-400 text-sm text-center py-6">No blog posts yet. Create your first one!</p>';
     state.blogsList.forEach(f => {
       const card = document.createElement('div');
-      card.className = 'p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-center';
-      card.innerHTML = `<div><h4 class="font-bold text-sm">${f.name}</h4></div><button class="btn-edit-blog btn-secondary py-1 px-3 text-xs" data-path="${f.path}" data-sha="${f.sha}">Edit</button>`;
+      card.className = 'p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-start gap-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition';
+      const dateStr = f.pubDate ? new Date(f.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      const tagsHtml = (f.tags || []).slice(0, 3).map(t => `<span class="bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] px-2 py-0.5 rounded font-medium">${escHtml(t)}</span>`).join('');
+      card.innerHTML = `<div class="flex-1 min-w-0">
+          <h4 class="font-bold text-sm leading-tight mb-0.5">${escHtml(f.title)}</h4>
+          <p class="text-xs text-slate-400 mb-1.5">${escHtml(f.description).slice(0, 100)}${f.description.length > 100 ? '…' : ''}</p>
+          <div class="flex items-center gap-2 flex-wrap">${dateStr ? `<span class="text-[10px] text-slate-400 font-mono">${escHtml(dateStr)}</span>` : ''}<span class="text-[10px] text-slate-300">|</span><span class="text-[10px] font-mono text-slate-400">${escHtml(f.name)}</span>${tagsHtml}</div>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <button class="btn-edit-blog btn-secondary py-1 px-3 text-xs" data-path="${f.path}" data-sha="${f.sha}">Edit</button>
+          <button class="btn-del-blog text-rose-600 text-xs font-bold px-2 py-1 border border-rose-200 dark:border-rose-900/30 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition" data-path="${f.path}" data-sha="${f.sha}">Delete</button>
+        </div>`;
       el.appendChild(card);
     });
     el.querySelectorAll('.btn-edit-blog').forEach(btn => btn.onclick = () => editBlog(btn.dataset.path, btn.dataset.sha));
-    $('blogs-prompt').classList.add('hidden');
-    $('btn-create-blog').classList.remove('hidden');
-    $('stat-blogs').textContent = state.blogsList.length;
+    el.querySelectorAll('.btn-del-blog').forEach(btn => btn.onclick = async () => {
+      if (!confirm('Delete this blog post permanently?')) return;
+      try {
+        await apiRequest(btn.dataset.path, { method: 'DELETE', body: JSON.stringify({ message: 'cms: delete blog', sha: btn.dataset.sha, branch: state.gitConfig.branch }) });
+        toast('Blog deleted!', 'success');
+        await loadBlogs();
+      } catch (e) { toast(e.message, 'error'); }
+    });
   }
 
   async function loadLearnings() {
-    const res = await apiRequest('src/content/learning?ref=' + state.gitConfig.branch);
-    state.learningsList = res.filter(i => i.name.endsWith('.md'));
+    setTabLoading('tab-learnings', true);
+    const dirRes = await apiGet('src/content/learning');
+    const mdFiles = dirRes.filter(i => i.name.endsWith('.md'));
+
+    // Fetch all file contents in parallel to extract titles
+    const enriched = await Promise.all(mdFiles.map(async f => {
+      try {
+        const fileRes = await apiGet(f.path);
+        const content = b64_to_utf8(fileRes.content.replace(/\s/g, ''));
+        const { data } = parseFrontmatter(content);
+        return { ...f, sha: fileRes.sha, title: data.title || f.name, date: data.date || '', category: data.category || '', isADR: data.isADR === true || data.isADR === 'true', adrStatus: data.adrStatus || '', tags: data.tags || [] };
+      } catch {
+        return { ...f, title: f.name, date: '', category: '', isADR: false, adrStatus: '', tags: [] };
+      }
+    }));
+    // Sort by date descending
+    enriched.sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf());
+    state.learningsList = enriched;
+
+    renderLearningsList();
+    $('learnings-prompt').classList.add('hidden');
+    $('btn-create-learning').classList.remove('hidden');
+    $('stat-learnings').textContent = enriched.length;
+    setTabLoading('tab-learnings', false);
+  }
+
+  function renderLearningsList() {
     const el = $('learnings-list-container');
-    el.innerHTML = '';
+    el.innerHTML = state.learningsList.length ? '' : '<p class="text-slate-400 text-sm text-center py-6">No learning entries yet. Create your first one!</p>';
     state.learningsList.forEach(f => {
       const card = document.createElement('div');
-      card.className = 'p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-center';
-      card.innerHTML = `<div><h4 class="font-bold text-sm">${f.name}</h4></div><button class="btn-edit-learn btn-secondary py-1 px-3 text-xs" data-path="${f.path}" data-sha="${f.sha}">Edit</button>`;
+      card.className = 'p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-start gap-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition';
+      const dateStr = f.date ? new Date(f.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      const adrBadge = f.isADR ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded ${f.adrStatus === 'Accepted' ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950/30 text-amber-600'}">ADR: ${escHtml(f.adrStatus || 'Proposed')}</span>` : '';
+      const catBadge = f.category ? `<span class="bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-[10px] px-2 py-0.5 rounded font-semibold">${escHtml(f.category)}</span>` : '';
+      card.innerHTML = `<div class="flex-1 min-w-0">
+          <h4 class="font-bold text-sm leading-tight mb-1">${escHtml(f.title)}</h4>
+          <div class="flex items-center gap-2 flex-wrap">${dateStr ? `<span class="text-[10px] text-slate-400 font-mono">${escHtml(dateStr)}</span>` : ''}${catBadge}${adrBadge}<span class="text-[10px] font-mono text-slate-400">${escHtml(f.name)}</span></div>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <button class="btn-edit-learn btn-secondary py-1 px-3 text-xs" data-path="${f.path}" data-sha="${f.sha}">Edit</button>
+          <button class="btn-del-learn text-rose-600 text-xs font-bold px-2 py-1 border border-rose-200 dark:border-rose-900/30 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition" data-path="${f.path}" data-sha="${f.sha}">Delete</button>
+        </div>`;
       el.appendChild(card);
     });
     el.querySelectorAll('.btn-edit-learn').forEach(btn => btn.onclick = () => editLearning(btn.dataset.path, btn.dataset.sha));
-    $('learnings-prompt').classList.add('hidden');
-    $('btn-create-learning').classList.remove('hidden');
-    $('stat-learnings').textContent = state.learningsList.length;
+    el.querySelectorAll('.btn-del-learn').forEach(btn => btn.onclick = async () => {
+      if (!confirm('Delete this learning entry permanently?')) return;
+      try {
+        await apiRequest(btn.dataset.path, { method: 'DELETE', body: JSON.stringify({ message: 'cms: delete learning', sha: btn.dataset.sha, branch: state.gitConfig.branch }) });
+        toast('Entry deleted!', 'success');
+        await loadLearnings();
+      } catch (e) { toast(e.message, 'error'); }
+    });
   }
 
   async function autoLoadAll() {
-    try {
-      await loadProfile();
-      await loadProjects();
-      await loadBlogs();
-      await loadLearnings();
-      toast('All content loaded from repository', 'success');
-    } catch (e) {
+    // Load each section independently so one failure doesn't block others
+    const results = await Promise.allSettled([
+      loadProfile().catch(e => { setTabError('profile-prompt', e.message); throw e; }),
+      loadProjects().catch(e => { setTabError('projects-prompt', e.message); $('btn-add-project').classList.remove('hidden'); throw e; }),
+      loadBlogs().catch(e => { setTabError('blogs-prompt', e.message); $('btn-create-blog').classList.remove('hidden'); throw e; }),
+      loadLearnings().catch(e => { setTabError('learnings-prompt', e.message); $('btn-create-learning').classList.remove('hidden'); throw e; }),
+    ]);
+
+    const failed = results.filter(r => r.status === 'rejected');
+    if (failed.length === 0) {
+      toast('All content loaded successfully!', 'success');
+    } else if (failed.length === results.length) {
       if (!state.serverMode && !state.gitConfig.token) {
-        toast('Configure GitHub PAT in Settings (required on GitHub Pages)', 'error');
+        toast('Configure GitHub PAT in Settings tab', 'error');
         switchTab('tab-settings');
       } else {
-        toast('Load error: ' + e.message, 'error');
+        toast(`${failed.length} section(s) failed to load — check console`, 'error');
       }
+    } else {
+      toast(`Loaded with ${failed.length} error(s) — some sections unavailable`, 'info');
     }
   }
 
@@ -493,53 +625,84 @@
       $('proj-image').value = p.image || '';
       $('proj-features-json').value = JSON.stringify(p.features || [], null, 2);
     }
+    $('proj-json-error').classList.add('hidden');
+    $('project-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   async function editBlog(path, sha) {
-    const res = await apiRequest(path + '?ref=' + state.gitConfig.branch);
-    const parsed = parseFrontmatter(b64_to_utf8(res.content.replace(/\s/g, '')));
-    $('blog-form').classList.remove('hidden');
-    $('blog-sha').value = sha; $('blog-old-path').value = path;
-    $('blog-slug').value = path.replace('src/content/blog/', '').replace('.md', '');
-    $('blog-date').value = (parsed.data.pubDate || '').toString().slice(0, 10);
-    $('blog-title').value = parsed.data.title || '';
-    $('blog-desc').value = parsed.data.description || '';
-    $('blog-tags').value = (parsed.data.tags || []).join(', ');
-    $('blog-image').value = parsed.data.image || '';
-    $('blog-content').value = parsed.body.trim();
-    $('btn-delete-blog').classList.remove('hidden');
-    state.pendingImage = null;
-    updateBlogImagePreview(parsed.data.image);
+    try {
+      const res = await apiGet(path);
+      const raw = b64_to_utf8(res.content.replace(/\s/g, ''));
+      const parsed = parseFrontmatter(raw);
+      $('blog-form').classList.remove('hidden');
+      $('blog-sha').value = res.sha || sha;
+      $('blog-old-path').value = path;
+      $('blog-slug').value = path.replace('src/content/blog/', '').replace('.md', '');
+      $('blog-date').value = (parsed.data.pubDate || '').toString().slice(0, 10);
+      $('blog-title').value = parsed.data.title || '';
+      $('blog-desc').value = parsed.data.description || '';
+      $('blog-tags').value = (parsed.data.tags || []).join(', ');
+      $('blog-image').value = parsed.data.image || '';
+      $('blog-content').value = parsed.body.trim();
+      $('btn-delete-blog').classList.remove('hidden');
+      state.pendingImage = null;
+      updateBlogImagePreview(parsed.data.image);
+      $('blog-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      toast('Failed to load blog: ' + e.message, 'error');
+    }
   }
 
   async function editLearning(path, sha) {
-    const res = await apiRequest(path + '?ref=' + state.gitConfig.branch);
-    const parsed = parseFrontmatter(b64_to_utf8(res.content.replace(/\s/g, '')));
-    $('learning-form').classList.remove('hidden');
-    $('learn-sha').value = sha; $('learn-old-path').value = path;
-    $('learn-slug').value = path.replace('src/content/learning/', '').replace('.md', '');
-    $('learn-date').value = (parsed.data.date || '').toString().slice(0, 10);
-    $('learn-title').value = parsed.data.title || '';
-    $('learn-category').value = parsed.data.category || '';
-    $('learn-isADR').checked = parsed.data.isADR === true || parsed.data.isADR === 'true';
-    $('learn-adrStatus').disabled = !$('learn-isADR').checked;
-    $('learn-adrStatus').value = parsed.data.adrStatus || '';
-    $('learn-tags').value = (parsed.data.tags || []).join(', ');
-    $('learn-content').value = parsed.body.trim();
-    $('btn-delete-learning').classList.remove('hidden');
+    try {
+      const res = await apiGet(path);
+      const raw = b64_to_utf8(res.content.replace(/\s/g, ''));
+      const parsed = parseFrontmatter(raw);
+      $('learning-form').classList.remove('hidden');
+      $('learn-sha').value = res.sha || sha;
+      $('learn-old-path').value = path;
+      $('learn-slug').value = path.replace('src/content/learning/', '').replace('.md', '');
+      $('learn-date').value = (parsed.data.date || '').toString().slice(0, 10);
+      $('learn-title').value = parsed.data.title || '';
+      $('learn-category').value = parsed.data.category || '';
+      const isADR = parsed.data.isADR === true || parsed.data.isADR === 'true';
+      $('learn-isADR').checked = isADR;
+      $('learn-adrStatus').disabled = !isADR;
+      $('learn-adrStatus').value = parsed.data.adrStatus || '';
+      $('learn-tags').value = (parsed.data.tags || []).join(', ');
+      $('learn-content').value = parsed.body.trim();
+      $('btn-delete-learning').classList.remove('hidden');
+      $('learning-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      toast('Failed to load entry: ' + e.message, 'error');
+    }
   }
 
   function updateBlogImagePreview(url) {
     const prev = $('blog-image-preview');
     if (!prev) return;
     if (url) { prev.src = url; prev.classList.remove('hidden'); }
-    else { prev.classList.add('hidden'); }
+    else { prev.src = ''; prev.classList.add('hidden'); }
+  }
+
+  // ─── Settings: Test Connection ──────────────────────────────────
+  async function testGitConnection() {
+    const btn = $('btn-test-connection');
+    if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
+    try {
+      await apiGet('src/data/profile.json');
+      toast('✅ GitHub connection successful!', 'success');
+    } catch (e) {
+      toast('❌ Connection failed: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Test Connection'; }
+    }
   }
 
   // ─── Init & Event Bindings ─────────────────────────────────────
   async function init() {
     const saved = localStorage.getItem(GIT_KEY);
-    if (saved) state.gitConfig = JSON.parse(saved);
+    if (saved) state.gitConfig = { ...state.gitConfig, ...JSON.parse(saved) };
 
     await detectServerMode();
     if ($('login-email')) $('login-email').value = CFG.email || '';
@@ -580,6 +743,8 @@
       toast('Git settings saved', 'success');
     });
 
+    $('btn-test-connection')?.addEventListener('click', testGitConnection);
+
     if ($('cfg-owner')) {
       $('cfg-owner').value = state.gitConfig.owner;
       $('cfg-repo').value = state.gitConfig.repo;
@@ -604,7 +769,7 @@
     $('profile-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
-      btn.disabled = true;
+      btn.disabled = true; btn.textContent = 'Publishing...';
       try {
         const updated = {
           ...state.profileData,
@@ -626,7 +791,7 @@
         state.profileData = updated;
         toast('Profile published! Site will redeploy in ~2 min.', 'success');
       } catch (err) { toast(err.message, 'error'); }
-      finally { btn.disabled = false; }
+      finally { btn.disabled = false; btn.textContent = 'Publish About & Profile Live'; }
     });
 
     $('btn-add-project')?.addEventListener('click', () => openProjectForm(-1));
@@ -634,26 +799,40 @@
     $('project-form')?.addEventListener('submit', e => {
       e.preventDefault();
       const idx = +$('proj-index').value;
+      let features;
+      try {
+        features = JSON.parse($('proj-features-json').value || '[]');
+        $('proj-json-error').classList.add('hidden');
+      } catch {
+        $('proj-json-error').textContent = '⚠ Invalid JSON in Features field — please fix before saving.';
+        $('proj-json-error').classList.remove('hidden');
+        return;
+      }
       const proj = {
         id: $('proj-id').value.trim(), name: $('proj-name').value.trim(), tagline: $('proj-tagline').value.trim(),
         description: $('proj-desc').value.trim(),
         image: $('proj-image').value.trim() || undefined,
         technologies: $('proj-tech').value.split(',').map(s => s.trim()).filter(Boolean),
-        features: JSON.parse($('proj-features-json').value),
+        features,
       };
       if (idx === -1) state.projectsData.push(proj); else state.projectsData[idx] = proj;
       renderProjectsList();
       $('project-form').classList.add('hidden');
+      toast('Project saved locally. Click "Publish Projects Live" to push to GitHub.', 'info');
     });
+
     $('btn-publish-projects')?.addEventListener('click', async () => {
+      const btn = $('btn-publish-projects');
+      btn.disabled = true; btn.textContent = 'Publishing...';
       try {
         const res = await apiRequest('src/data/projects.json', {
           method: 'PUT',
           body: JSON.stringify({ message: 'cms: update projects', content: utf8_to_b64(JSON.stringify(state.projectsData, null, 2)), sha: state.projectsSha, branch: state.gitConfig.branch }),
         });
         state.projectsSha = res.content?.sha || res.sha;
-        toast('Projects published!', 'success');
+        toast('Projects published! Site will redeploy in ~2 min.', 'success');
       } catch (e) { toast(e.message, 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Publish Projects Live'; }
     });
 
     $('blog-image-file')?.addEventListener('change', e => {
@@ -673,13 +852,19 @@
       $('btn-delete-blog').classList.add('hidden');
       state.pendingImage = null;
       $('blog-image-preview')?.classList.add('hidden');
+      if ($('blog-image-preview')) $('blog-image-preview').src = '';
+      $('blog-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+
     $('btn-cancel-blog')?.addEventListener('click', () => $('blog-form').classList.add('hidden'));
 
     $('blog-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       const slug = $('blog-slug').value.trim();
+      if (!slug) { toast('Slug is required', 'error'); return; }
       let imagePath = $('blog-image').value.trim();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Publishing...';
       try {
         if (state.pendingImage) {
           const ext = state.pendingImage.name.split('.').pop() || 'jpg';
@@ -702,37 +887,46 @@
         } else {
           await apiRequest(newPath, { method: 'PUT', body: JSON.stringify({ message: `cms: publish blog ${slug}`, content: utf8_to_b64(md), sha: sha || undefined, branch: state.gitConfig.branch }) });
         }
-        toast('Blog published!', 'success');
+        toast('Blog published! Site will redeploy in ~2 min.', 'success');
         $('blog-form').classList.add('hidden');
         await loadBlogs();
       } catch (err) { toast(err.message, 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Publish Blog Live'; }
     });
 
     $('btn-delete-blog')?.addEventListener('click', async () => {
       if (!confirm('Delete this blog post permanently?')) return;
       try {
         await apiRequest($('blog-old-path').value, { method: 'DELETE', body: JSON.stringify({ message: 'cms: delete blog', sha: $('blog-sha').value, branch: state.gitConfig.branch }) });
-        toast('Blog deleted', 'success');
+        toast('Blog deleted!', 'success');
         $('blog-form').classList.add('hidden');
         await loadBlogs();
       } catch (e) { toast(e.message, 'error'); }
     });
 
     $('learn-isADR')?.addEventListener('change', () => { $('learn-adrStatus').disabled = !$('learn-isADR').checked; });
+
     $('btn-create-learning')?.addEventListener('click', () => {
       $('learning-form').classList.remove('hidden');
       $('learn-sha').value = ''; $('learn-old-path').value = '';
       $('learn-slug').value = ''; $('learn-date').value = new Date().toISOString().slice(0, 10);
       ['learn-title','learn-category','learn-tags','learn-content'].forEach(id => $(id).value = '');
-      $('learn-isADR').checked = false; $('learn-adrStatus').disabled = true;
+      $('learn-isADR').checked = false;
+      $('learn-adrStatus').disabled = true;
+      $('learn-adrStatus').value = '';
       $('btn-delete-learning').classList.add('hidden');
+      $('learning-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+
     $('btn-cancel-learning')?.addEventListener('click', () => $('learning-form').classList.add('hidden'));
 
     $('learning-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       const slug = $('learn-slug').value.trim();
+      if (!slug) { toast('Slug is required', 'error'); return; }
       const isADR = $('learn-isADR').checked;
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Publishing...';
       try {
         const data = {
           title: $('learn-title').value.trim(), date: $('learn-date').value,
@@ -750,23 +944,31 @@
         } else {
           await apiRequest(newPath, { method: 'PUT', body: JSON.stringify({ message: `cms: publish learning ${slug}`, content: utf8_to_b64(md), sha: sha || undefined, branch: state.gitConfig.branch }) });
         }
-        toast('Learning entry published!', 'success');
+        toast('Learning entry published! Site will redeploy in ~2 min.', 'success');
         $('learning-form').classList.add('hidden');
         await loadLearnings();
       } catch (err) { toast(err.message, 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Publish Entry Live'; }
     });
 
     $('btn-delete-learning')?.addEventListener('click', async () => {
-      if (!confirm('Delete this entry?')) return;
+      if (!confirm('Delete this entry permanently?')) return;
       try {
         await apiRequest($('learn-old-path').value, { method: 'DELETE', body: JSON.stringify({ message: 'cms: delete learning', sha: $('learn-sha').value, branch: state.gitConfig.branch }) });
-        toast('Entry deleted', 'success');
+        toast('Entry deleted!', 'success');
         $('learning-form').classList.add('hidden');
         await loadLearnings();
       } catch (e) { toast(e.message, 'error'); }
     });
 
-    $('btn-reload-all')?.addEventListener('click', autoLoadAll);
+    $('btn-reload-all')?.addEventListener('click', () => {
+      // Reset prompts
+      ['profile-prompt','projects-prompt','blogs-prompt','learnings-prompt'].forEach(id => {
+        const el = $(id);
+        if (el) { el.textContent = 'Loading...'; el.className = 'text-slate-400 text-sm hidden'; }
+      });
+      autoLoadAll();
+    });
 
     // Markdown preview tabs
     [['blog-write-tab','blog-preview-tab','blog-write-container','blog-preview-container','blog-content'],

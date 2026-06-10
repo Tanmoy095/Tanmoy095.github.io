@@ -162,6 +162,7 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '';
                         <div><label class="label-heading">Cover Image URL</label><input type="text" id="proj-image" placeholder="/blog-assets/project-cover.jpg" class="form-input" /></div>
                         <div><label class="label-heading">Technologies (comma-separated)</label><input type="text" id="proj-tech" class="form-input" /></div>
                         <div><label class="label-heading">Features JSON</label><textarea id="proj-features-json" rows="5" class="form-input font-mono text-xs"></textarea></div>
+                        <p id="proj-json-error" class="hidden text-rose-500 text-xs font-semibold py-2"></p>
                         <div class="flex gap-2">
                             <button type="submit" class="btn-primary py-2 px-4 text-xs">Save to List</button>
                             <button id="btn-cancel-project" type="button" class="btn-secondary py-2 px-4 text-xs">Cancel</button>
@@ -277,7 +278,10 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '';
                         <div><label class="label-heading">Repository</label><input type="text" id="cfg-repo" class="form-input" /></div>
                         <div><label class="label-heading">Branch</label><input type="text" id="cfg-branch" class="form-input" /></div>
                         <div><label class="label-heading">Personal Access Token</label><input type="password" id="cfg-token" class="form-input" placeholder="ghp_..." /></div>
-                        <button type="submit" class="btn-primary w-full py-3 text-sm uppercase font-semibold">Save Settings</button>
+                        <div class="flex gap-3">
+                            <button type="submit" class="btn-primary flex-1 py-3 text-sm uppercase font-semibold">Save Settings</button>
+                            <button type="button" id="btn-test-connection" class="btn-secondary py-3 px-5 text-sm font-semibold">Test Connection</button>
+                        </div>
                     </form>
                 </div>
             </div>
