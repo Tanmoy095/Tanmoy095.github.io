@@ -395,6 +395,36 @@
       }
       return obj;
     });
+  function renderProjFeaturesEditor(features) {
+    const el = $('proj-features-editor');
+    if (!el) return;
+    el.innerHTML = '';
+    (features || []).forEach((feat, idx) => {
+      const card = document.createElement('div');
+      card.className = 'p-3 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2';
+      card.innerHTML = `
+        <div class="flex gap-2">
+          <input type="text" class="form-input feat-title flex-1" data-idx="${idx}" value="${escHtml(feat.title)}" placeholder="Feature Title (e.g. AI Gateway)" />
+          <button type="button" class="btn-del-proj-feat text-rose-500 text-xs px-2" data-idx="${idx}">✕</button>
+        </div>
+        <textarea class="form-input feat-detail" rows="2" placeholder="Feature Detail Description...">${escHtml(feat.detail)}</textarea>`;
+      el.appendChild(card);
+    });
+    bindProjFeaturesEditor();
+  }
+
+  function collectProjFeatures() {
+    const cards = [...document.querySelectorAll('#proj-features-editor > div')];
+    return cards.map(card => ({
+      title: card.querySelector('.feat-title')?.value?.trim() || '',
+      detail: card.querySelector('.feat-detail')?.value?.trim() || '',
+    })).filter(f => f.title);
+  }
+
+  function bindProjFeaturesEditor() {
+    document.querySelectorAll('.btn-del-proj-feat').forEach(btn => btn.onclick = () => {
+      renderProjFeaturesEditor(collectProjFeatures().filter((_, i) => i !== +btn.dataset.idx));
+    });
   }
 
   function renderRolesEditor(roles) {
@@ -481,6 +511,20 @@
     setTabLoading('tab-projects', false);
   }
 
+  async function publishProjects() {
+    return apiRequest('src/data/projects.json', {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: 'cms: update projects',
+        content: utf8_to_b64(JSON.stringify(state.projectsData, null, 2)),
+        sha: state.projectsSha,
+        branch: state.gitConfig.branch
+      }),
+    }).then(res => {
+      state.projectsSha = res.content?.sha || res.sha;
+    });
+  }
+
   function renderProjectsList() {
     const el = $('projects-list-container');
     el.innerHTML = state.projectsData.length ? '' : '<p class="text-slate-400 text-sm text-center py-6">No projects yet.</p>';
@@ -493,8 +537,14 @@
       el.appendChild(card);
     });
     el.querySelectorAll('.btn-edit-proj').forEach(b => b.onclick = () => openProjectForm(+b.dataset.idx));
-    el.querySelectorAll('.btn-del-proj').forEach(b => b.onclick = () => {
-      if (confirm('Delete this project?')) { state.projectsData.splice(+b.dataset.idx, 1); renderProjectsList(); }
+    el.querySelectorAll('.btn-del-proj').forEach(b => b.onclick = async () => {
+      if (!confirm('Delete this project permanently?')) return;
+      try {
+        state.projectsData.splice(+b.dataset.idx, 1);
+        await publishProjects();
+        renderProjectsList();
+        toast('Project deleted and published live!', 'success');
+      } catch (e) { toast('Failed to delete project: ' + e.message, 'error'); }
     });
   }
 
@@ -642,16 +692,15 @@
     if (idx === -1) {
       $('project-form-title').textContent = 'New Project';
       ['proj-id','proj-name','proj-tagline','proj-desc','proj-tech','proj-image'].forEach(id => $(id).value = '');
-      $('proj-features-json').value = '[{"title":"Component","detail":"Description"}]';
+      renderProjFeaturesEditor([{ title: '', detail: '' }]);
     } else {
       const p = state.projectsData[idx];
       $('project-form-title').textContent = 'Edit: ' + p.name;
       $('proj-id').value = p.id; $('proj-name').value = p.name; $('proj-tagline').value = p.tagline;
       $('proj-desc').value = p.description; $('proj-tech').value = (p.technologies || []).join(', ');
       $('proj-image').value = p.image || '';
-      $('proj-features-json').value = JSON.stringify(p.features || [], null, 2);
+      renderProjFeaturesEditor(p.features || []);
     }
-    $('proj-json-error').classList.add('hidden');
     $('project-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -778,6 +827,10 @@
       $('cfg-token').value = state.gitConfig.token || '';
     }
 
+    $('btn-add-proj-feature')?.addEventListener('click', () => {
+      renderProjFeaturesEditor([...collectProjFeatures(), { title: '', detail: '' }]);
+    });
+
     $('btn-add-skill-cat')?.addEventListener('click', () => renderSkillsEditor([...collectSkills(), { category: '', items: [] }]));
     $('btn-add-role')?.addEventListener('click', () => renderRolesEditor([...[...document.querySelectorAll('.role-item')].map(i => i.value.trim()), '']));
     $('btn-add-highlight')?.addEventListener('click', () => {
@@ -830,18 +883,10 @@
 
     $('btn-add-project')?.addEventListener('click', () => openProjectForm(-1));
     $('btn-cancel-project')?.addEventListener('click', () => $('project-form').classList.add('hidden'));
-    $('project-form')?.addEventListener('submit', e => {
+    $('project-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       const idx = +$('proj-index').value;
-      let features;
-      try {
-        features = JSON.parse($('proj-features-json').value || '[]');
-        $('proj-json-error').classList.add('hidden');
-      } catch {
-        $('proj-json-error').textContent = '⚠ Invalid JSON in Features field — please fix before saving.';
-        $('proj-json-error').classList.remove('hidden');
-        return;
-      }
+      const features = collectProjFeatures();
       const proj = {
         id: $('proj-id').value.trim(), name: $('proj-name').value.trim(), tagline: $('proj-tagline').value.trim(),
         description: $('proj-desc').value.trim(),
@@ -849,21 +894,31 @@
         technologies: $('proj-tech').value.split(',').map(s => s.trim()).filter(Boolean),
         features,
       };
-      if (idx === -1) state.projectsData.push(proj); else state.projectsData[idx] = proj;
-      renderProjectsList();
-      $('project-form').classList.add('hidden');
-      toast('Project saved locally. Click "Publish Projects Live" to push to GitHub.', 'info');
+      
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Publishing...';
+      
+      try {
+        const backup = [...state.projectsData];
+        if (idx === -1) state.projectsData.push(proj); else state.projectsData[idx] = proj;
+        
+        await publishProjects();
+        renderProjectsList();
+        $('project-form').classList.add('hidden');
+        toast('Project published! Site will redeploy in ~2 min.', 'success');
+      } catch (err) {
+        toast('Failed to publish project: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Publish Project Live';
+      }
     });
 
     $('btn-publish-projects')?.addEventListener('click', async () => {
       const btn = $('btn-publish-projects');
       btn.disabled = true; btn.textContent = 'Publishing...';
       try {
-        const res = await apiRequest('src/data/projects.json', {
-          method: 'PUT',
-          body: JSON.stringify({ message: 'cms: update projects', content: utf8_to_b64(JSON.stringify(state.projectsData, null, 2)), sha: state.projectsSha, branch: state.gitConfig.branch }),
-        });
-        state.projectsSha = res.content?.sha || res.sha;
+        await publishProjects();
         toast('Projects published! Site will redeploy in ~2 min.', 'success');
       } catch (e) { toast(e.message, 'error'); }
       finally { btn.disabled = false; btn.textContent = 'Publish Projects Live'; }

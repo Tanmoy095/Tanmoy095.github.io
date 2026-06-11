@@ -171,5 +171,177 @@ import profile from '../data/profile.json';
             mobileMenu.classList.toggle('hidden');
         });
     </script>
+
+    <!-- Recruiter AI Assistant -->
+    <div id="ai-assistant-container" class="fixed bottom-6 right-6 z-[100] font-sans">
+        <!-- Floating Chat Icon -->
+        <button id="ai-chat-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none" aria-label="Open AI Assistant">
+            <span class="text-2xl">🤖</span>
+        </button>
+
+        <!-- Chat Panel -->
+        <div id="ai-chat-panel" class="hidden absolute bottom-18 right-0 w-[320px] sm:w-[380px] h-[480px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden transition-all duration-200">
+            <!-- Chat Header -->
+            <div class="p-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🤖</span>
+                    <div>
+                        <h3 class="font-bold text-sm leading-tight">Tanmoy's AI Copilot</h3>
+                        <p class="text-[9px] text-indigo-100 font-semibold tracking-wider uppercase">RECRUITER ASSISTANT</p>
+                    </div>
+                </div>
+                <button id="close-chat-btn" class="text-white hover:text-indigo-100 text-sm font-bold font-mono focus:outline-none">✕</button>
+            </div>
+
+            <!-- Chat Messages Area -->
+            <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3 bg-slate-50/50 dark:bg-slate-950/20 text-xs">
+                <!-- Welcome Message -->
+                <div class="flex gap-2 items-start max-w-[85%]">
+                    <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xs flex-shrink-0">🤖</div>
+                    <div class="p-3 bg-white dark:bg-slate-850 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800/80 shadow-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                        Hi! I am Tanmoy's AI Platform Assistant. Ask me anything about his Go backend engineering, Kubernetes platform work, or AI gateways!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions -->
+            <div class="p-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap gap-1.5 bg-white dark:bg-slate-900">
+                <button class="chat-suggest-btn text-[10px] px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition text-left text-slate-600 dark:text-slate-400 font-medium" data-q="What are your core technical skills?">🛠️ Skills</button>
+                <button class="chat-suggest-btn text-[10px] px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition text-left text-slate-600 dark:text-slate-400 font-medium" data-q="Tell me about your LogiFlow AI project.">🚀 LogiFlow AI</button>
+                <button class="chat-suggest-btn text-[10px] px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition text-left text-slate-600 dark:text-slate-400 font-medium" data-q="Are you open to remote jobs?">💼 Hiring Info</button>
+            </div>
+
+            <!-- Input area -->
+            <form id="chat-input-form" class="p-2.5 border-t border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-900 flex gap-2">
+                <input type="text" id="chat-input" placeholder="Type a question..." required class="flex-grow bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-200" />
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold transition">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- AI Bot Logic -->
+    <script is:inline>
+        (function() {
+            const chatBtn = document.getElementById('ai-chat-btn');
+            const chatPanel = document.getElementById('ai-chat-panel');
+            const closeBtn = document.getElementById('close-chat-btn');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatForm = document.getElementById('chat-input-form');
+            const chatInput = document.getElementById('chat-input');
+            const suggestBtns = document.querySelectorAll('.chat-suggest-btn');
+
+            // Toggle Panel
+            chatBtn.addEventListener('click', () => {
+                chatPanel.classList.toggle('hidden');
+                chatInput.focus();
+            });
+
+            closeBtn.addEventListener('click', () => {
+                chatPanel.classList.add('hidden');
+            });
+
+            // Quick suggestions
+            suggestBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const q = btn.getAttribute('data-q');
+                    handleUserQuestion(q);
+                });
+            });
+
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const q = chatInput.value.trim();
+                if (!q) return;
+                chatInput.value = '';
+                handleUserQuestion(q);
+            });
+
+            function appendMessage(sender, text) {
+                const isBot = sender === 'bot';
+                const msgWrap = document.createElement('div');
+                msgWrap.className = `flex gap-2 items-start ${isBot ? 'max-w-[85%]' : 'max-w-[85%] ml-auto flex-row-reverse'}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${isBot ? 'bg-indigo-100 dark:bg-indigo-950' : 'bg-pink-100 dark:bg-pink-950'}`;
+                avatar.textContent = isBot ? '🤖' : '💼';
+                
+                const msgBox = document.createElement('div');
+                msgBox.className = `p-3 rounded-2xl border shadow-sm leading-relaxed ${
+                    isBot 
+                        ? 'bg-white dark:bg-slate-850 rounded-tl-none border-slate-100 dark:border-slate-800/80 text-slate-700 dark:text-slate-200' 
+                        : 'bg-indigo-600 border-indigo-700 text-white rounded-tr-none'
+                }`;
+                
+                msgBox.innerHTML = text.replace(/\n/g, '<br/>');
+                msgWrap.appendChild(avatar);
+                msgWrap.appendChild(msgBox);
+                chatMessages.appendChild(msgWrap);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return msgBox;
+            }
+
+            function simulateTyping(answer, callback) {
+                // Show typing indicator
+                const indicator = document.createElement('div');
+                indicator.className = 'flex gap-2 items-start max-w-[85%] typing-indicator';
+                indicator.innerHTML = `
+                    <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xs flex-shrink-0">🤖</div>
+                    <div class="p-3 bg-white dark:bg-slate-850 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800/80 shadow-sm flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                    </div>
+                `;
+                chatMessages.appendChild(indicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                setTimeout(() => {
+                    indicator.remove();
+                    const box = appendMessage('bot', '');
+                    let i = 0;
+                    const interval = setInterval(() => {
+                        if (i < answer.length) {
+                            // handles simple tags/newlines
+                            if (answer.slice(i, i + 4) === '<br>') {
+                                box.innerHTML += '<br>';
+                                i += 4;
+                            } else {
+                                box.textContent += answer[i];
+                                // re-parse newlines to HTML
+                                box.innerHTML = box.textContent.replace(/\n/g, '<br/>');
+                                i++;
+                            }
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        } else {
+                            clearInterval(interval);
+                            if (callback) callback();
+                        }
+                    }, 12);
+                }, 800);
+            }
+
+            function handleUserQuestion(q) {
+                appendMessage('user', q);
+                const query = q.toLowerCase();
+                let answer = '';
+
+                if (query.includes('skill') || query.includes('experience') || query.includes('expert') || query.includes('tech') || query.includes('stack') || query.includes('language') || query.includes('go') || query.includes('golang')) {
+                    answer = "🛠️ Tanmoy is a Senior Go Backend & Platform Engineer with 4+ years of production experience.\n\nHis primary core stacks are:\n• Go (Microservices, gRPC, Domain-Driven Design)\n• Kubernetes operators, controllers, controllers-runtime, CRDs\n• Distributed systems: Kafka, RabbitMQ, Temporal Workflows\n• AI Infrastructure: LLM gateways, semantic caching, pgvector, RAG, and Model Context Protocol (MCP) integrations.";
+                } else if (query.includes('logiflow') || query.includes('project') || query.includes('showcase') || query.includes('logisynapse')) {
+                    answer = "🚀 Tanmoy's featured project is LogiFlow AI, an enterprise-grade AI Infrastructure & Orchestration platform. It solves standard LLM orchestration challenges with:\n• Dynamic multi-provider routing (OpenAI, Anthropic, local vLLM)\n• Durable agent execution workflows built on Temporal\n• A custom Kubernetes operator for multi-tenant workspace isolation\n• A secure OIDC/JWT OAuth2 server for API key management.";
+                } else if (query.includes('job') || query.includes('hire') || query.includes('available') || query.includes('remote') || query.includes('work') || query.includes('availability') || query.includes('recrut')) {
+                    answer = "💼 Tanmoy is currently open to full-time remote opportunities, contract roles, or technical consulting engagements.\n\nHe is looking for roles like:\n• Senior Go Backend Engineer\n• Platform / Infrastructure Engineer\n• AI Infrastructure/Platform Engineer\n• Distributed Systems Engineer";
+                } else if (query.includes('contact') || query.includes('email') || query.includes('phone') || query.includes('linkedin') || query.includes('github') || query.includes('connect')) {
+                    answer = "📞 You can connect with Tanmoy directly:\n• Email: adtanmoy95@gmail.com\n• Phone: +8801850371329\n• LinkedIn: linkedin.com/in/aunmoy-dey-tanmoy095\n• GitHub: github.com/Tanmoy095";
+                } else if (query.includes('resume') || query.includes('cv') || query.includes('pdf')) {
+                    answer = "📄 You can download Tanmoy's latest resume directly from the homepage or by clicking the link below:\n\n👉 <a href='/cv.pdf' download class='text-indigo-400 font-bold hover:underline'>Download Resume (PDF)</a>";
+                } else {
+                    answer = "💡 I can answer detailed questions about Tanmoy's Go experience, his Kubernetes operator projects, distributed systems design, or his availability.\n\nTry asking: 'Tell me about LogiFlow AI' or 'What is his Go experience?'";
+                }
+
+                simulateTyping(answer);
+            }
+        })();
+    </script>
 </body>
 </html>

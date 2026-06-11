@@ -171,10 +171,15 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd
                         <div><label class="label-heading">Description</label><textarea id="proj-desc" rows="3" required class="form-input"></textarea></div>
                         <div><label class="label-heading">Cover Image URL</label><input type="text" id="proj-image" placeholder="/blog-assets/project-cover.jpg" class="form-input" /></div>
                         <div><label class="label-heading">Technologies (comma-separated)</label><input type="text" id="proj-tech" class="form-input" /></div>
-                        <div><label class="label-heading">Features JSON</label><textarea id="proj-features-json" rows="5" class="form-input font-mono text-xs"></textarea></div>
-                        <p id="proj-json-error" class="hidden text-rose-500 text-xs font-semibold py-2"></p>
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="label-heading mb-0">Project Key Features</label>
+                                <button type="button" id="btn-add-proj-feature" class="text-xs text-indigo-600 font-semibold">+ Add Feature</button>
+                            </div>
+                            <div id="proj-features-editor" class="space-y-3"></div>
+                        </div>
                         <div class="flex gap-2">
-                            <button type="submit" class="btn-primary py-2 px-4 text-xs">Save to List</button>
+                            <button type="submit" class="btn-primary py-2 px-4 text-xs">Publish Project Live</button>
                             <button id="btn-cancel-project" type="button" class="btn-secondary py-2 px-4 text-xs">Cancel</button>
                         </div>
                     </form>
