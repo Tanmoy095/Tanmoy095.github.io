@@ -22,39 +22,31 @@ package main
 ```go
 
 type ShipmentStore interface {
-```
 
-    Save(id string, payload []byte) error
-    FindByID(id string) ([]byte, error)
-    Delete(id string) error
+    Save(id string, payload []byte) error
+    FindByID(id string) ([]byte, error)
+    Delete(id string) error
 }
 
 // Postgres supports full CRUD
 
-```go
 
 type PostgresStore struct{}
 
 func (p *PostgresStore) Save(id string, payload []byte) error {
-    fmt.Println("Postgres: saving shipment", id)
-    return nil
+    fmt.Println("Postgres: saving shipment", id)
+    return nil
 }
-```
 
-
-```go
 
 func (p *PostgresStore) FindByID(id string) ([]byte, error) {
-    return []byte("Postgres data for " + id), nil
+    return []byte("Postgres data for " + id), nil
 }
-```
 
-
-```go
 
 func (p *PostgresStore) Delete(id string) error {
-    fmt.Println("Postgres: deleting shipment", id)
-    return nil
+    fmt.Println("Postgres: deleting shipment", id)
+    return nil
 }
 ```
 
@@ -68,16 +60,13 @@ func (p *PostgresStore) Delete(id string) error {
 type RedisStore struct{}
 
 func (r *RedisStore) Save(id string, payload []byte) error {
-    fmt.Println("Redis: caching shipment", id)
-    return nil
+    fmt.Println("Redis: caching shipment", id)
+    return nil
 }
-```
 
-
-```go
 
 func (r *RedisStore) FindByID(id string) ([]byte, error) {
-    return []byte("Redis cached data for " + id), nil
+    return []byte("Redis cached data for " + id), nil
 }
 ```
 
@@ -87,7 +76,7 @@ func (r *RedisStore) FindByID(id string) ([]byte, error) {
 ```go
 
 func (r *RedisStore) Delete(id string) error {
-    return errors.New("operation not supported: Redis cannot delete")
+    return errors.New("operation not supported: Redis cannot delete")
 }
 ```
 
@@ -97,26 +86,21 @@ func (r *RedisStore) Delete(id string) error {
 ```go
 
 type ShipmentService struct {
-    store ShipmentStore
+    store ShipmentStore
 }
-```
 
-
-
-```go
 
 func (s *ShipmentService) RemoveShipment(id string) {
- //❌ Architectural crime: special-case handling .Service Must check using type 
+ //❌ Architectural crime: special-case handling .Service Must check using type 
 //That means the abstraction (ShipmentStore) is useless — the caller isn’t blind anymore.
 //Every new store type (Mongo, Cloud, etc.) would force changes here.
 //This is why it’s called an architectural crime: business logic is now tightly coupled to infrastructure details.
-    switch impl := s.store.(type) {
-    case *PostgresStore:
-        impl.Delete(id)
-    case *RedisStore:
-        fmt.Println("Redis cannot delete shipments, skipping...")
-    }
-```
+    switch impl := s.store.(type) {
+    case *PostgresStore:
+        impl.Delete(id)
+    case *RedisStore:
+        fmt.Println("Redis cannot delete shipments, skipping...")
+    }
 
 }
 
@@ -125,37 +109,31 @@ We split responsibilities so each store only promises what it can actually do
 Step 1: Define Contracts (Interfaces). 
 // Core contracts
 
-```go
 
 type ShipmentReader interface {
-```
 
-    FindByID(id string) ([]byte, error)
+    FindByID(id string) ([]byte, error)
 }
 
 
-```go
 
 type ShipmentWriter interface {
-```
 
-    Save(id string, payload []byte) error
+    Save(id string, payload []byte) error
 }
 
 
-```go
 
 type ShipmentDeleter interface {
-```
 
-    Delete(id string) error
+    Delete(id string) error
 }
 
 // Full-featured store (CRUD)
 Type ShipmentStore interface {
-     ShipmentReader
-     ShipmentWriter
-     ShipmentDeleter
+     ShipmentReader
+     ShipmentWriter
+     ShipmentDeleter
 }
 
 Reader → for read-only stores (like cache).
@@ -166,81 +144,59 @@ ShipmentStore → full CRUD (Postgres, Mongo, etc.).
 Postgres (full CRUD)
 go
 
-```go
 
 type PostgresStore struct{}
 
 func (p *PostgresStore) Save(id string, payload []byte) error {
-    fmt.Println("Postgres: saving shipment", id)
-    return nil
+    fmt.Println("Postgres: saving shipment", id)
+    return nil
 }
-```
 
-
-```go
 
 func (p *PostgresStore) FindByID(id string) ([]byte, error) {
-    return []byte("Postgres data for " + id), nil
+    return []byte("Postgres data for " + id), nil
 }
-```
 
-
-```go
 
 func (p *PostgresStore) Delete(id string) error {
-    fmt.Println("Postgres: deleting shipment", id)
-    return nil
+    fmt.Println("Postgres: deleting shipment", id)
+    return nil
 }
-```
 
 Redis (read + write, but no delete)
 
-```go
 
 type RedisStore struct{}
 
 func (r *RedisStore) Save(id string, payload []byte) error {
-    fmt.Println("Redis: caching shipment", id)
-    return nil
+    fmt.Println("Redis: caching shipment", id)
+    return nil
 }
-```
 
-
-```go
 
 func (r *RedisStore) FindByID(id string) ([]byte, error) {
-    return []byte("Redis cached data for " + id), nil
+    return []byte("Redis cached data for " + id), nil
 }
-```
-
-
 
 Cloud Storage (read + write, delete optional): Cloud supports full CRUD (like S3/Blob)
 
-```go
 
 type CloudStore struct{}
 
 func (c *CloudStore) Save(id string, payload []byte) error {
-    fmt.Println("Cloud: uploading shipment", id)
-    return nil
+    fmt.Println("Cloud: uploading shipment", id)
+    return nil
 }
-```
 
-
-```go
 
 func (c *CloudStore) FindByID(id string) ([]byte, error) {
-    return []byte("Cloud data for " + id), nil
+    return []byte("Cloud data for " + id), nil
 }
-```
 
-
-```go
 
 func (c *CloudStore) Delete(id string) error {
-    fmt.Println("Cloud: deleting shipment", id)
-    return nil
+    fmt.Println("Cloud: deleting shipment", id)
+    return nil
 }
 ```
 
@@ -251,67 +207,52 @@ func (c *CloudStore) Delete(id string) error {
 ```go
 
 type ShipmentService struct {
-    store ShipmentStore   // durable DB (Postgres/Cloud)
-    cache ShipmentReader  // fast cache (Redis)
+    store ShipmentStore   // durable DB (Postgres/Cloud)
+    cache ShipmentReader  // fast cache (Redis)
 }
-```
 
-
-
-
-
-
-
-
-```go
 
 func (s *ShipmentService) CreateShipment(id string, payload []byte) {
-    // Save to DB
-    s.store.Save(id, payload)
-    // Save to cache if supported
-    if writer, ok := s.cache.(ShipmentWriter); ok {
-        writer.Save(id, payload)
-    }
-```
+    // Save to DB
+    s.store.Save(id, payload)
+    // Save to cache if supported
+    if writer, ok := s.cache.(ShipmentWriter); ok {
+        writer.Save(id, payload)
+    }
 
 }
 
 
-```go
 
 func (s *ShipmentService) GetShipment(id string) ([]byte, error) {
-    // Try cache first
-    data, err := s.cache.FindByID(id)
-    if err == nil && len(data) > 0 {
-        fmt.Println("Cache hit")
-        return data, nil
-    }
-```
+    // Try cache first
+    data, err := s.cache.FindByID(id)
+    if err == nil && len(data) > 0 {
+        fmt.Println("Cache hit")
+        return data, nil
+    }
 
+    // Fallback to DB
+    fmt.Println("Cache miss, hitting DB")
+    data, err = s.store.FindByID(id)
+    if err != nil {
+        return nil, err
+    }
 
-    // Fallback to DB
-    fmt.Println("Cache miss, hitting DB")
-    data, err = s.store.FindByID(id)
-    if err != nil {
-        return nil, err
-    }
-
-    // Update cache for next time
-    if writer, ok := s.cache.(ShipmentWriter); ok {
-        writer.Save(id, data)
-    }
-    return data, nil
+    // Update cache for next time
+    if writer, ok := s.cache.(ShipmentWriter); ok {
+        writer.Save(id, data)
+    }
+    return data, nil
 }
 //Evist Redis so that Stale Data Isnt Served.
 
-```go
 
 func (s *ShipmentService) RemoveShipment(id string) {
-    s.store.Delete(id)
-    if deleter, ok := s.cache.(ShipmentDeleter); ok {
-        deleter.Delete(id)
-    }
-```
+    s.store.Delete(id)
+    if deleter, ok := s.cache.(ShipmentDeleter); ok {
+        deleter.Delete(id)
+    }
 
 }
 
@@ -322,70 +263,61 @@ func (s *ShipmentService) RemoveShipment(id string) {
 
  Reporting service only needs reads
 
-```go
 
 type ReportingService struct {
-    db    ShipmentReader   // durable source (Postgres/Cloud)
-    cache ShipmentReader   // fast cache (Redis)
+    db    ShipmentReader   // durable source (Postgres/Cloud)
+    cache ShipmentReader   // fast cache (Redis)
 }
-```
 
-
-
-```go
 
 func (r *ReportingService) GenerateReport(id string) {
-    // Try cache first
-    data, err := r.cache.FindByID(id)
-    if err == nil && len(data) > 0 {
-        fmt.Println("Report (cache hit):", string(data))
-        return
-    }
-```
+    // Try cache first
+    data, err := r.cache.FindByID(id)
+    if err == nil && len(data) > 0 {
+        fmt.Println("Report (cache hit):", string(data))
+        return
+    }
 
+    // Fallback to DB
+    fmt.Println("Cache miss, hitting DB")
+    data, err = r.db.FindByID(id)
+    if err != nil {
+        fmt.Println("Error fetching from DB:", err)
+        return
+    }
 
-    // Fallback to DB
-    fmt.Println("Cache miss, hitting DB")
-    data, err = r.db.FindByID(id)
-    if err != nil {
-        fmt.Println("Error fetching from DB:", err)
-        return
-    }
+    // Update cache for next time
+    if writer, ok := r.cache.(ShipmentWriter); ok {
+        writer.Save(id, data)
+    }
 
-    // Update cache for next time
-    if writer, ok := r.cache.(ShipmentWriter); ok {
-        writer.Save(id, data)
-    }
-
-    fmt.Println("Report (from DB):", string(data))
+    fmt.Println("Report (from DB):", string(data))
 }
 Step 4: Main program
 
-```go
 
 func main() {
-    postgres := &PostgresStore{}
-    redis := &RedisStore{}
-    cloud := &CloudStore{}
+    postgres := &PostgresStore{}
+    redis := &RedisStore{}
+    cloud := &CloudStore{}
 
-    // ShipmentService with Postgres + Redis
-    shipmentService := ShipmentService{store: postgres, cache: redis}
-    shipmentService.CreateShipment("SHIP-123", []byte("payload"))
-    shipmentService.GetShipment("SHIP-123")
-    shipmentService.RemoveShipment("SHIP-123")
+    // ShipmentService with Postgres + Redis
+    shipmentService := ShipmentService{store: postgres, cache: redis}
+    shipmentService.CreateShipment("SHIP-123", []byte("payload"))
+    shipmentService.GetShipment("SHIP-123")
+    shipmentService.RemoveShipment("SHIP-123")
 
-    // Reporting service with Redis only
-    reporting := ReportingService{reader: redis, db: postgres
+    // Reporting service with Redis only
+    reporting := ReportingService{reader: redis, db: postgres
 }
-```
 
-    reporting.GenerateReport("SHIP-456")
+    reporting.GenerateReport("SHIP-456")
 
-    // ShipmentService with Cloud + Redis
-    shipmentService2 := ShipmentService{store: cloud, cache: redis}
-    shipmentService2.CreateShipment("SHIP-789", []byte("payload"))
-    shipmentService2.GetShipment("SHIP-789")
-    shipmentService2.RemoveShipment("SHIP-789")
+    // ShipmentService with Cloud + Redis
+    shipmentService2 := ShipmentService{store: cloud, cache: redis}
+    shipmentService2.CreateShipment("SHIP-789", []byte("payload"))
+    shipmentService2.GetShipment("SHIP-789")
+    shipmentService2.RemoveShipment("SHIP-789")
 }
 
 In the context of our shipment example, the first design violated LSP because Redis was forced to implement a Delete method even though it cannot truly support deletion in the same way a database does. That meant the abstraction (ShipmentStore) was lying: the caller expected deletion to work, but substituting Redis broke the promise. This led to specialcase handling in the service layer, which is exactly what LSP warns against — the client should not need to check “is this Postgres or Redis?” to decide how to behave.
@@ -393,73 +325,61 @@ By splitting responsibilities into smaller, capabilitybased interfaces (Shipment
 The theoretical takeaway is that LSP ensures substitutability without surprises. If a service depends on an abstraction, any implementation of that abstraction should behave consistently with the contract. Violating LSP forces the client to handle special cases and undermines the whole point of abstraction. Respecting LSP, as we did in the final design, keeps business logic decoupled from infrastructure details, makes the system easier to extend, and ensures that swapping one store for another does not break correctness
 
 
+```
+
 # LSP in Distributed Systems & Microservices
 
 Liskov Substitution Principle (LSP) in Distributed Shipment Systems
-The Liskov Substitution Principle (LSP) is the L in SOLID.It says:
+The Liskov Substitution Principle (LSP) is the L in SOLID.It says:
 Objects of a superclass should be replaceable with objects of its subclasses without affecting the correctness of the program.
-In distributed systems terms:If a component works with a base interface, you must be able to swap in any derived implementation – under high load, network partitions, and partial failures – without breaking the system’s business logic or safety guarantees.
+In distributed systems terms:If a component works with a base interface, you must be able to swap in any derived implementation – under high load, network partitions, and partial failures – without breaking the system’s business logic or safety guarantees.
 
 🚚 RealWorld Context: LogiSynapse Shipment Platform
 LogiSynapse handles millions of shipments daily across multiple carriers (FedEx, UPS, DHL, regional LTL, drone delivery). It also uses different routing engines, pricing calculators, and tracking providers.
-The business rules are highlevel:
-Create shipment → calculate price → assign carrier → track until delivery → handle exceptions
-These rules must not change when you swap:
-A pricing engine (flat rate → dynamic surcharge → zonebased)
-A carrier API (FedEx → UPS)
-A routing algorithm (Dijkstra → A* → timewindow constrained)
-LSP guarantees that every implementation of a given interface behaves in a way that the core orchestration logic can rely on – without specialcase if checks.
+The business rules are highlevel:
+- Create shipment → calculate price → assign carrier → track until delivery → handle exceptions
+These rules must not change when you swap:
+- A pricing engine (flat rate → dynamic surcharge → zonebased)
+- A carrier API (FedEx → UPS)
+- A routing algorithm (Dijkstra → A* → timewindow constrained)
+LSP guarantees that every implementation of a given interface behaves in a way that the core orchestration logic can rely on – without specialcase if checks.
 
 ❌ LSP Violation: The “Broken Carrier” Example
-Imagine you have a Carrier interface used by the ShipmentOrchestrator.
+Imagine you have a Carrier interface used by the ShipmentOrchestrator.
 go
 // Base abstraction
 
 ```go
 
 type Carrier interface {
-```
 
     CreateShipment(shipment Shipment) (TrackingID, error)
     CancelShipment(trackingID TrackingID) error
     GetTrackingStatus(trackingID TrackingID) (Status, error)
 }
 Now two implementations:
-FedExCarrier – works correctly
-CheapRegionalCarrier – violates LSP
+FedExCarrier – works correctly
+CheapRegionalCarrier – violates LSP
 go
 // FedEx implementation – follows expected behavior
 
-```go
 
 type FedExCarrier struct {
     client *fedex.Client
 }
-```
 
-
-
-```go
 
 func (f *FedExCarrier) CreateShipment(s Shipment) (TrackingID, error) {
     // Always returns a valid tracking ID within 2 seconds
     return f.client.BookShipment(s)
 }
-```
 
-
-
-```go
 
 func (f *FedExCarrier) CancelShipment(id TrackingID) error {
     // Cancellation always works within 5 seconds
     return f.client.VoidShipment(id)
 }
-```
 
-
-
-```go
 
 func (f *FedExCarrier) GetTrackingStatus(id TrackingID) (Status, error) {
     // Returns one of: CREATED, IN_TRANSIT, DELIVERED, EXCEPTION
@@ -475,18 +395,13 @@ func (f *FedExCarrier) GetTrackingStatus(id TrackingID) (Status, error) {
 type RegionalCarrier struct {
     client *regional.Client
 }
-```
 
-
-
-```go
 
 func (r *RegionalCarrier) CreateShipment(s Shipment) (TrackingID, error) {
     // Violation #1: Stronger precondition – cannot handle shipments > 50kg
     if s.WeightKg > 50 {
         return "", errors.New("weight limit exceeded")  // New error type
     }
-```
 
     // Violation #2: Sometimes returns empty string as tracking ID
     if s.Destination == "rural" {
@@ -496,40 +411,29 @@ func (r *RegionalCarrier) CreateShipment(s Shipment) (TrackingID, error) {
 }
 
 
-```go
 
 func (r *RegionalCarrier) CancelShipment(id TrackingID) error {
     // Violation #3: Cancellation not supported – throws new error type
     return errors.New("cancellation not allowed after 1 hour")
 }
-```
 
-
-
-```go
 
 func (r *RegionalCarrier) GetTrackingStatus(id TrackingID) (Status, error) {
     // Violation #4: Returns status values not in the original set
     if id == "" {
         return "UNKNOWN", nil  // UNKNOWN not in base contract
     }
-```
 
     return "PENDING", nil       // PENDING instead of CREATED – different semantics
 }
 Now the core orchestration logic:
 go
 
-```go
 
 type ShipmentOrchestrator struct {
     carrier Carrier
 }
-```
 
-
-
-```go
 
 func (o *ShipmentOrchestrator) ProcessShipment(ctx context.Context, req *ShipmentRequest) error {
     // Step 1: Create shipment
@@ -537,7 +441,6 @@ func (o *ShipmentOrchestrator) ProcessShipment(ctx context.Context, req *Shipmen
     if err != nil {
         return fmt.Errorf("create failed: %w", err)
     }
-```
 
     if trackingID == "" {
         // LSP violation: base contract never allows empty ID
@@ -556,33 +459,22 @@ func (o *ShipmentOrchestrator) ProcessShipment(ctx context.Context, req *Shipmen
     go o.monitorTracking(trackingID)
     return nil
 }
-What happens when you swap FedExCarrier for RegionalCarrier?
+What happens when you swap FedExCarrier for RegionalCarrier?
 Shipments over 50kg start failing with a new error type that the orchestrator never expected → retry loops → resource exhaustion.
-Rural shipments return empty trackingID → storeMapping fails → orchestrator panics.
-Cancellation after 1 hour fails silently (new error type is ignored by _ but should have been handled).
-Monitoring goroutine receives "PENDING" status, which the business logic doesn’t recognise → metrics break, alerts misfire.
-Result: The system becomes incorrect despite no change to the business logic. That’s an LSP violation.
+Rural shipments return empty trackingID → storeMapping fails → orchestrator panics.
+Cancellation after 1 hour fails silently (new error type is ignored by _ but should have been handled).
+Monitoring goroutine receives "PENDING" status, which the business logic doesn’t recognise → metrics break, alerts misfire.
+Result: The system becomes incorrect despite no change to the business logic. That’s an LSP violation.
 
 🔥 HighConcurrency Implications of LSP Violations
 In a distributed system doing 10k+ RPS, LSP violations cause subtle, catastrophic failures:
-Violation Type
-Behaviour Under Load
-Failure Mode
-Stronger precondition (e.g., weight limit)
-Requests start failing at rate of violated condition
-Circuit breaker opens → all shipments blocked
-Weaker postcondition (e.g., empty ID)
-Downstream stores receive invalid keys → DB constraint violation
-Cascading writes fail, transaction aborts
-New error type not in base
-Error handling code ignores it → resource leak (shipment never cancelled)
-Carrier bills you, customer never notified
-Different semantics (status values)
-Aggregators doublecount states → SLA dashboard shows 200% delivered
-Incorrect business decisions, customer complaints
-Hidden side effects (e.g., writes to local disk)
-Concurrent calls race on file → corruption, panics
-Whole service crashes intermittently
+| Violation Type                                   | Behaviour Under Load                                                      | Failure Mode                                      |
+| ------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------------------- |
+| Stronger precondition (e.g., weight limit)       | Requests start failing at rate of violated condition                      | Circuit breaker opens → all shipments blocked     |
+| Weaker postcondition (e.g., empty ID)            | Downstream stores receive invalid keys → DB constraint violation          | Cascading writes fail, transaction aborts         |
+| New error type not in base                       | Error handling code ignores it → resource leak (shipment never cancelled) | Carrier bills you, customer never notified        |
+| Different semantics (status values)              | Aggregators doublecount states → SLA dashboard shows 200% delivered       | Incorrect business decisions, customer complaints |
+| Hidden side effects (e.g., writes to local disk) | Concurrent calls race on file → corruption, panics                        | Whole service crashes intermittently              |
 Senior interview insight:“When you design an interface for a highthroughput system, you are not just defining method signatures. You are defining a behavioural contract that every implementation must honour – even under partial failures, retries, and concurrency.”
 
 ✅ LSPCompliant Design for Shipment Carriers
@@ -612,10 +504,8 @@ go
 // 4. Concurrency: all methods are safe to call from multiple goroutines simultaneously.
 // 5. Backpressure: implementations must respect context cancellation and deadlines.
 
-```go
 
 type Carrier interface {
-```
 
     CreateShipment(ctx context.Context, shipment Shipment) (TrackingID, error)
     CancelShipment(ctx context.Context, trackingID TrackingID) error
@@ -625,24 +515,18 @@ Step 2 – Implement each carrier respecting the contract
 go
 // FedExCarrier – follows contract
 
-```go
 
 type FedExCarrier struct {
     client *fedex.Client
     mu     sync.RWMutex  // for internal metrics, not needed for concurrency
 }
-```
 
-
-
-```go
 
 func (f *FedExCarrier) CreateShipment(ctx context.Context, s Shipment) (TrackingID, error) {
     // Handle heavy shipments by splitting (internal adaptation)
     if s.WeightKg > 50 {
         s = s.SplitIntoParcels()  // No error, just different implementation
     }
-```
 
     id, err := f.client.BookWithContext(ctx, s)
     if err != nil {
@@ -659,17 +543,12 @@ func (f *FedExCarrier) CreateShipment(ctx context.Context, s Shipment) (Tracking
 
 // RegionalCarrier – fixed to obey LSP
 
-```go
 
 type RegionalCarrier struct {
     client   *regional.Client
     fallback Carrier  // for shipments beyond capability
 }
-```
 
-
-
-```go
 
 func (r *RegionalCarrier) CreateShipment(ctx context.Context, s Shipment) (TrackingID, error) {
     // No precondition – handle internally
@@ -677,7 +556,6 @@ func (r *RegionalCarrier) CreateShipment(ctx context.Context, s Shipment) (Track
         // Instead of error, use fallback carrier (LSPcompliant composition)
         return r.fallback.CreateShipment(ctx, s)
     }
-```
 
     id, err := r.client.Book(ctx, s)
     if err != nil {
@@ -691,27 +569,23 @@ func (r *RegionalCarrier) CreateShipment(ctx context.Context, s Shipment) (Track
 }
 
 
-```go
 
 func (r *RegionalCarrier) CancelShipment(ctx context.Context, id TrackingID) error {
     // If cancellation not supported, noop (idempotent) but never error
     if time.Since(id.CreatedAt) > 1*time.Hour {
         return nil  // Silently ignore – still obeys contract
     }
-```
 
     return r.client.Cancel(ctx, string(id))
 }
 
 
-```go
 
 func (r *RegionalCarrier) GetTrackingStatus(ctx context.Context, id TrackingID) (Status, error) {
     raw, err := r.client.Status(ctx, string(id))
     if err != nil {
         return StatusUnknown, err
     }
-```
 
     // Map custom statuses to standard enum
     switch raw {
@@ -725,13 +599,12 @@ func (r *RegionalCarrier) GetTrackingStatus(ctx context.Context, id TrackingID) 
         return StatusException, nil
     }
 }
-Now the ShipmentOrchestrator works identically for any carrier – FedEx, Regional, DHL, even a mock for testing – without any if carrier == regional checks.
+Now the ShipmentOrchestrator works identically for any carrier – FedEx, Regional, DHL, even a mock for testing – without any if carrier == regional checks.
 
 🧪 Testing LSP Under High Concurrency
-You must write propertybased or fuzz tests that verify substitutability:
+You must write propertybased or fuzz tests that verify substitutability:
 go
 
-```go
 
 func TestCarrierSubstitution(t *testing.T) {
     carriers := []Carrier{
@@ -739,8 +612,6 @@ func TestCarrierSubstitution(t *testing.T) {
         &RegionalCarrier{fallback: &FedExCarrier{}},
         &MockCarrier{},
     }
-```
-
 
     for _, carrier := range carriers {
         t.Run(reflect.TypeOf(carrier).Name(), func(t *testing.T) {
@@ -774,22 +645,17 @@ func TestCarrierSubstitution(t *testing.T) {
 }
 
 📦 RealWorld Distributed System Example: MultiCarrier Shipment Router
-LogiSynapse has a Shipment Router that chooses the cheapest carrier meeting delivery SLA. It works with a Carrier interface. Because all carriers obey LSP, the router can:
+LogiSynapse has a Shipment Router that chooses the cheapest carrier meeting delivery SLA. It works with a Carrier interface. Because all carriers obey LSP, the router can:
 Query each carrier in parallel for price and estimated transit time
 Select the best one
 Fallback gracefully when one carrier is slow or failing
 go
 
-```go
 
 type CarrierRouter struct {
     carriers []Carrier
 }
-```
 
-
-
-```go
 
 func (r *CarrierRouter) Route(ctx context.Context, shipment Shipment) (*Decision, error) {
     type result struct {
@@ -797,7 +663,6 @@ func (r *CarrierRouter) Route(ctx context.Context, shipment Shipment) (*Decision
         quote   *Quote
         err     error
     }
-```
 
     results := make(chan result, len(r.carriers))
 
@@ -834,14 +699,14 @@ func (r *CarrierRouter) Route(ctx context.Context, shipment Shipment) (*Decision
     }
     return &Decision{Carrier: bestCarrier, Quote: best}, nil
 }
-Because every Carrier implements the same behavioural contract, this router works correctly even when some carriers are slow, return errors, or have internal complexities. No switch on carrier type needed.
+Because every Carrier implements the same behavioural contract, this router works correctly even when some carriers are slow, return errors, or have internal complexities. No switch on carrier type needed.
 
 🔍 How to Detect LSP Violations in Your Codebase
 Code Smell
 Likely LSP Violation
 Type assertion or type switch on interface value
 Subtypes need special handling → not substitutable
-Method that returns error but only some implementations return that error
+Method that returns error but only some implementations return that error
 Contract not honoured
 Comments like “this implementation doesn’t support X”
 Stronger precondition
@@ -854,12 +719,12 @@ Unexpected error types or idempotency broken
 
 📌 Summary for a Senior System Design Interview
 LSP is not about syntax – it’s about semantics.
-“If you have a Carrier interface, swapping from FedEx to RegionalCarrier should not require changing any line of business logic, even under 10k RPS and network partitions.”
+“If you have a Carrier interface, swapping from FedEx to RegionalCarrier should not require changing any line of business logic, even under 10k RPS and network partitions.”
 Key takeaways for distributed systems:
-Define contracts explicitly – input ranges, output guarantees, error types, concurrency safety, latency bounds.
-Subtypes may only weaken preconditions and strengthen postconditions – never the opposite.
-Test substitutability under high concurrency – property tests, fuzz tests, chaos experiments.
-Use composition and fallbacks to adapt nonconforming implementations without breaking LSP.
-Remember: In a microservices world, your interfaces are APIs – swapping a client for another must not break the caller’s assumptions.
-The ultimate LSP test:Could you replace a core implementation with a completely different technology (gRPC → message queue, SQL → NoSQL, FedEx → drone swarm) without changing the orchestrator?If yes → you’ve followed LSP.If no → you have a design that will hurt you in production.
+Define contracts explicitly – input ranges, output guarantees, error types, concurrency safety, latency bounds.
+Subtypes may only weaken preconditions and strengthen postconditions – never the opposite.
+Test substitutability under high concurrency – property tests, fuzz tests, chaos experiments.
+Use composition and fallbacks to adapt nonconforming implementations without breaking LSP.
+Remember: In a microservices world, your interfaces are APIs – swapping a client for another must not break the caller’s assumptions.
+The ultimate LSP test:Could you replace a core implementation with a completely different technology (gRPC → message queue, SQL → NoSQL, FedEx → drone swarm) without changing the orchestrator?If yes → you’ve followed LSP.If no → you have a design that will hurt you in production.
 
