@@ -1,9 +1,9 @@
 ---
-title: "High-Concurrency DAG Execution Engine: Architecture & Design"
+title: "11High-Concurrency DAG Execution Engine: Architecture & Design"
 description: "A deep technical dive into building a distributed DAG execution engine, covering scheduling, state consensus, idempotency, backpressure, and fault tolerance."
 pubDate: "2026-06-09"
 author: "Aunmoy Dey Tanmoy"
-tags: ['Go', 'Distributed Systems', 'Concurrency', 'Database']
+tags: ["Go", "Distributed Systems", "Concurrency", "Database"]
 image: "/blog-assets/building-high-concurrency-dag-engine.svg"
 ---
 
@@ -446,4 +446,3 @@ Solution:
 A 2026 DAG execution engine is not just dependency-aware orchestration—it is a secure, cost-optimized, AI-augmented, multi-tenant, hybrid batch+streaming system with advanced observability, resilience, and developer experience, designed to run distributed AI workflows at global scale.
 👉 This extended version makes your note interview-proof for 2026. It shows you understand not only the mechanics of DAGs but also the business, security, cost, and AI orchestration realities that senior/staff engineers must handle.
 Would you like me to merge these new sections directly into your existing DAG note so you have a single polished document, or keep them as an “add-on appendix” for interview prep?
-
