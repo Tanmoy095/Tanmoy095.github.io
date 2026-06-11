@@ -395,6 +395,8 @@
       }
       return obj;
     });
+  }
+
   function renderProjFeaturesEditor(features) {
     const el = $('proj-features-editor');
     if (!el) return;
