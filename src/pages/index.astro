@@ -1,6 +1,17 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import profile from '../data/profile.json';
+import { getCollection } from 'astro:content';
+
+// Get latest 3 blog posts
+const latestPosts = (await getCollection('blog'))
+    .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf())
+    .slice(0, 3);
+
+// Get latest 3 learnings
+const latestLearnings = (await getCollection('learning'))
+    .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf())
+    .slice(0, 3);
 ---
 
 <MainLayout title="Home - Technical Portfolio">
@@ -24,6 +35,11 @@ import profile from '../data/profile.json';
                 <a href="/projects" class="px-6 py-3.5 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-semibold hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition duration-200 text-sm uppercase tracking-wider">
                     View Projects
                 </a>
+                {profile.cvUrl && (
+                    <a href={profile.cvUrl} download class="px-6 py-3.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl font-semibold hover:shadow-lg hover:shadow-slate-500/20 active:scale-95 transition duration-200 text-sm uppercase tracking-wider flex items-center gap-2">
+                        <span>📄</span> Download CV
+                    </a>
+                )}
             </div>
         </div>
 
@@ -40,6 +56,51 @@ import profile from '../data/profile.json';
             <div class="p-8 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-sm">
                 <div class="text-4xl font-extrabold text-pink-600 dark:text-pink-400 mb-2">20+</div>
                 <div class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Projects Delivered</div>
+            </div>
+        </div>
+
+        <!-- Recent Blogs & Learnings Section for Recruiters -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
+            <!-- Latest Blog Posts -->
+            <div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-extrabold tracking-tight">Recent Articles</h2>
+                    <a href="/blog" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">View All →</a>
+                </div>
+                <div class="space-y-4">
+                    {latestPosts.map(post => (
+                        <a href={`/blog/${post.slug}`} class="block p-5 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:shadow-md transition-all duration-200 group">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-xs font-mono text-slate-400">{new Date(post.data.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                <span class="text-slate-300">|</span>
+                                <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">{post.data.tags[0]}</span>
+                            </div>
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">{post.data.title}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{post.data.description}</p>
+                        </a>
+                    ))}
+                </div>
+            </div>
+
+            <!-- Latest Learnings & ADRs -->
+            <div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-extrabold tracking-tight">Recent Activity</h2>
+                    <a href="/learning" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">View All →</a>
+                </div>
+                <div class="space-y-4">
+                    {latestLearnings.map(entry => (
+                        <a href={`/learning/${entry.slug}`} class="block p-5 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:shadow-md transition-all duration-200 group">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-xs font-mono text-slate-400">{new Date(entry.data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                <span class="bg-purple-100 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded">{entry.data.category}</span>
+                                {entry.data.isADR && <span class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded">ADR</span>}
+                            </div>
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">{entry.data.title}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">Daily tech log tracing platform design, implementation decisions, and advanced architecture insights.</p>
+                        </a>
+                    ))}
+                </div>
             </div>
         </div>
 

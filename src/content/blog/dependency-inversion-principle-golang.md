@@ -4,7 +4,7 @@ description: "Learn how to implement the Dependency Inversion Principle in Go, m
 pubDate: "2026-06-06"
 author: "Aunmoy Dey Tanmoy"
 tags: ['Design Patterns', 'SOLID', 'Go', 'Clean Code']
-image: "/blog-assets/dependency-inversion-principle-golang.jpg"
+image: "/blog-assets/dependency-inversion-principle-golang.svg"
 ---
 
 Dependency Inversion Principle (DIP) in Golang

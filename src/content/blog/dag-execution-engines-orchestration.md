@@ -4,7 +4,7 @@ description: "Explore the power of Directed Acyclic Graph (DAG) execution engine
 pubDate: "2026-06-09"
 author: "Aunmoy Dey Tanmoy"
 tags: ['System Design', 'Distributed Systems', 'DAG', 'Orchestration']
-image: "/blog-assets/dag-execution-engines-orchestration.jpg"
+image: "/blog-assets/dag-execution-engines-orchestration.svg"
 ---
 
 🚀 How Netflix, OpenAI, and Uber Handle Millions of Tasks in Seconds

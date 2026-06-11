@@ -4,7 +4,7 @@ description: "How the Liskov Substitution Principle translates to Go's implicit 
 pubDate: "2026-06-06"
 author: "Aunmoy Dey Tanmoy"
 tags: ['Go', 'SOLID', 'Distributed Systems', 'Clean Code']
-image: "/blog-assets/liskov-substitution-principle-golang.jpg"
+image: "/blog-assets/liskov-substitution-principle-golang.svg"
 ---
 
 # Liskov Substitution Principle (LSP) in Go Lang

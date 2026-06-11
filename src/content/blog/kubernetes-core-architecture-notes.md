@@ -4,7 +4,7 @@ description: "Master Kubernetes internals - from control plane scheduling and co
 pubDate: "2026-06-07"
 author: "Aunmoy Dey Tanmoy"
 tags: ['Kubernetes', 'DevOps', 'Infrastructure', 'Containers']
-image: "/blog-assets/kubernetes-core-architecture-notes.jpg"
+image: "/blog-assets/kubernetes-core-architecture-notes.svg"
 ---
 
 Kubernetes from the Ground Up: A Senior Engineer’s Deep Dive1st Part-The first part of this note covered the historical context, deep component internals, and a lowlevel walkthrough of a rolling update.

@@ -2,7 +2,7 @@
 import MainLayout from '../layouts/MainLayout.astro';
 
 const adminEmail = import.meta.env.PUBLIC_ADMIN_EMAIL || 'adtanmoy95@gmail.com';
-const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '';
+const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // default: admin123
 ---
 
 <MainLayout title="Admin Dashboard - CMS Panel">
@@ -100,6 +100,16 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '';
                             <div><label class="label-heading">GitHub</label><input type="url" id="prof-github" class="form-input" /></div>
                             <div><label class="label-heading">LinkedIn</label><input type="url" id="prof-linkedin" class="form-input" /></div>
                             <div><label class="label-heading">Twitter</label><input type="url" id="prof-twitter" class="form-input" /></div>
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4 items-end">
+                            <div>
+                                <label class="label-heading">CV / Resume PDF Upload</label>
+                                <input type="file" id="prof-cv-file" accept="application/pdf" class="form-input text-xs" />
+                            </div>
+                            <div>
+                                <label class="label-heading">CV URL Path</label>
+                                <input type="text" id="prof-cv-url" placeholder="/cv.pdf" class="form-input" />
+                            </div>
                         </div>
                         <div><label class="label-heading">Homepage Summary</label><textarea id="prof-summary" rows="3" class="form-input"></textarea></div>
                         <div><label class="label-heading">About Page — Detailed Summary</label><textarea id="prof-detailedSummary" rows="4" class="form-input"></textarea></div>
@@ -277,7 +287,13 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '';
                         <div><label class="label-heading">GitHub Owner</label><input type="text" id="cfg-owner" class="form-input" /></div>
                         <div><label class="label-heading">Repository</label><input type="text" id="cfg-repo" class="form-input" /></div>
                         <div><label class="label-heading">Branch</label><input type="text" id="cfg-branch" class="form-input" /></div>
-                        <div><label class="label-heading">Personal Access Token</label><input type="password" id="cfg-token" class="form-input" placeholder="ghp_..." /></div>
+                        <div>
+                            <label class="label-heading">Personal Access Token</label>
+                            <input type="password" id="cfg-token" class="form-input" placeholder="ghp_..." />
+                            <p class="text-[10px] text-slate-400 mt-1">
+                                💡 Ensure your token has <strong>write permissions</strong>. For classic tokens, check the <code>repo</code> scope. For fine-grained tokens, grant <strong>Read and Write</strong> access to <strong>Repository Contents</strong>. Note: <em>Test Connection</em> only verifies read access.
+                            </p>
+                        </div>
                         <div class="flex gap-3">
                             <button type="submit" class="btn-primary flex-1 py-3 text-sm uppercase font-semibold">Save Settings</button>
                             <button type="button" id="btn-test-connection" class="btn-secondary py-3 px-5 text-sm font-semibold">Test Connection</button>

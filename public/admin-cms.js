@@ -38,8 +38,16 @@
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  function utf8_to_b64(str) { return btoa(unescape(encodeURIComponent(str))); }
-  function b64_to_utf8(str) { return decodeURIComponent(escape(atob(str))); }
+  function utf8_to_b64(str) {
+    const bytes = new TextEncoder().encode(str);
+    const binString = String.fromCodePoint(...bytes);
+    return btoa(binString);
+  }
+  function b64_to_utf8(str) {
+    const binString = atob(str);
+    const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0));
+    return new TextDecoder().decode(bytes);
+  }
 
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
@@ -136,7 +144,9 @@
     }
 
     if (!state.gitConfig.token) throw new Error('Configure GitHub PAT in Settings tab');
-    const url = `https://api.github.com/repos/${state.gitConfig.owner}/${state.gitConfig.repo}/contents/${path}`;
+    const method = (options.method || 'GET').toUpperCase();
+    const url = `https://api.github.com/repos/${state.gitConfig.owner}/${state.gitConfig.repo}/contents/${path}${method === 'GET' ? `?ref=${ref}` : ''}`;
+    console.log('[CMS API Request]', method, url);
     const res = await fetch(url, {
       ...options,
       headers: {
@@ -146,7 +156,10 @@
       },
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'GitHub API error');
+    if (!res.ok) {
+      console.error('[CMS API Error]', method, url, data);
+      throw new Error(data.message || 'GitHub API error');
+    }
     return data;
   }
 
@@ -175,6 +188,18 @@
       body: JSON.stringify({ message: `cms: upload ${filename}`, content: base64, sha, branch: state.gitConfig.branch }),
     });
     return `/blog-assets/${filename}`;
+  }
+
+  async function uploadCV(file) {
+    const base64 = await fileToBase64(file);
+    const cvPath = `public/cv.pdf`;
+    let sha;
+    try { const ex = await apiGet(cvPath); sha = ex.sha; } catch {}
+    await apiRequest(cvPath, {
+      method: 'PUT',
+      body: JSON.stringify({ message: 'cms: upload CV / Resume', content: base64, sha, branch: state.gitConfig.branch }),
+    });
+    return `/cv.pdf`;
   }
 
   // ─── Frontmatter helpers ───────────────────────────────────────
@@ -426,6 +451,7 @@
     $('prof-github').value = state.profileData.github || '';
     $('prof-linkedin').value = state.profileData.linkedin || '';
     $('prof-twitter').value = state.profileData.twitter || '';
+    $('prof-cv-url').value = state.profileData.cvUrl || '/cv.pdf';
     $('prof-summary').value = state.profileData.summary || '';
     $('prof-detailedSummary').value = state.profileData.detailedSummary || '';
     $('prof-objective').value = state.profileData.objective || '';
@@ -771,11 +797,19 @@
       const btn = e.target.querySelector('button[type="submit"]');
       btn.disabled = true; btn.textContent = 'Publishing...';
       try {
+        let cvUrl = $('prof-cv-url').value.trim() || '/cv.pdf';
+        const cvFile = $('prof-cv-file').files[0];
+        if (cvFile) {
+          cvUrl = await uploadCV(cvFile);
+          $('prof-cv-url').value = cvUrl;
+          $('prof-cv-file').value = '';
+        }
         const updated = {
           ...state.profileData,
           name: $('prof-name').value, title: $('prof-title').value,
           email: $('prof-email').value, phone: $('prof-phone').value, location: $('prof-location').value,
           github: $('prof-github').value, linkedin: $('prof-linkedin').value, twitter: $('prof-twitter').value,
+          cvUrl: cvUrl,
           summary: $('prof-summary').value, detailedSummary: $('prof-detailedSummary').value,
           objective: $('prof-objective').value, recruiterSummary: $('prof-recruiter').value,
           skills: collectSkills(),

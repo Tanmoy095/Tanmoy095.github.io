@@ -4,7 +4,7 @@ description: "A deep dive into Go's buffered channels, showing how worker pools,
 pubDate: "2026-06-10"
 author: "Aunmoy Dey Tanmoy"
 tags: ['Go', 'Concurrency', 'Worker Pool', 'Billing Systems']
-image: "/blog-assets/why-use-buffered-channels-go.jpg"
+image: "/blog-assets/why-use-buffered-channels-go.svg"
 ---
 
 Why Use a Buffered Channel: eventChan: make(chan UsageEvent, 1000)

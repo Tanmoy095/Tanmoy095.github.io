@@ -23,6 +23,13 @@ import profile from '../data/profile.json';
                         ))}
                     </div>
                 )}
+                {profile.cvUrl && (
+                    <div class="mt-6 pt-6 border-t border-indigo-100/30 dark:border-indigo-900/30">
+                        <a href={profile.cvUrl} download class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition duration-200">
+                            <span>📄</span> Download CV / Resume (PDF)
+                        </a>
+                    </div>
+                )}
             </section>
         )}
 

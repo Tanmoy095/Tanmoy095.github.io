@@ -4,7 +4,7 @@ description: "A deep technical dive into building a distributed DAG execution en
 pubDate: "2026-06-09"
 author: "Aunmoy Dey Tanmoy"
 tags: ['Go', 'Distributed Systems', 'Concurrency', 'Database']
-image: "/blog-assets/building-high-concurrency-dag-engine.jpg"
+image: "/blog-assets/building-high-concurrency-dag-engine.svg"
 ---
 
 High-Concurrency DAG Execution Engine

@@ -7,6 +7,7 @@
   "github": "https://github.com/Tanmoy095",
   "linkedin": "https://www.linkedin.com/in/aunmoy-dey-tanmoy095",
   "twitter": "https://twitter.com/tanmoy095",
+  "cvUrl": "/cv.pdf",
   "nav": [
     { "label": "Home", "url": "/" },
     { "label": "About", "url": "/about" },

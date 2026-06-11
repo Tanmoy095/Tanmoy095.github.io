@@ -4,7 +4,7 @@ description: "Go doesn't have classes, but it has package-level encapsulation, i
 pubDate: "2026-06-05"
 author: "Aunmoy Dey Tanmoy"
 tags: ['Go', 'OOP', 'Design Patterns', 'Clean Code']
-image: "/blog-assets/oop-in-go-low-level-design.jpg"
+image: "/blog-assets/oop-in-go-low-level-design.svg"
 ---
 
 Object-Oriented Programming in Go ( LLD )

@@ -4,7 +4,7 @@ description: "A comprehensive guide to caching in distributed systems, covering 
 pubDate: "2026-06-08"
 author: "Aunmoy Dey Tanmoy"
 tags: ['System Design', 'Caching', 'Redis', 'Infrastructure']
-image: "/blog-assets/caching-high-level-design.jpg"
+image: "/blog-assets/caching-high-level-design.svg"
 ---
 
 What is Caching A Cache is Just a temporary storage that keeps recently used data handy so that you can get it much faster next timea look at an example here. And consider the difference in speed between where data usually lives in a database and where it can live in a cache. And so, accessing data from disk, like an SSD in the case of a database, takes about a millisecond on average. Accessing data from memory or RAM on the other hand takes about 100 nanoseconds. This is roughly 10,000 times faster. Now, that gap adds up really quickly when you're serving thousands of requests per second. And caching takes advantage of that big differenceIt keeps copies of frequently used data in a faster layer, often times memory, but not always. We'll talk about that later on. So, that systems don't have to reach all the way back into that slower source every single time. So, you have the basic idea. Caching trades a bit of storage and complexity for speed. Now, the next question is, where should you cache your data? And there's a few different layers in your system where caching can live, each of which have their own set of trade-offs, of course.
@@ -15,6 +15,8 @@ What is Caching A Cache is Just a temporary storage that keeps recently used dat
 ## External caching
 
 First one, and by far the most common in system design interviews, is called external caching. This is where you introduce a dedicated caching service like Redis or Memcached. It runs, importantly, on its own server and manages its own memory, and it's totally separate from your application or your database, right? It's your own component in the system here. And so, when your application needs data, it first checks the cache. If the data is found there, that's a cache hit, and it returns your data instantly, super fast. If it's not there, we call that a cache miss, and it has to fall back to the database, fetch the data, and it stores a copy of that data back in the cache, and also returns it back to the client, right? Uh now, the nice thing here is that in a scaled system, which might have multiple application servers like we represented here, all of these different application servers can share that same external cache. This way, once one server has fetched and cached the data, the others can all reuse it instantly instead of all hitting the database separately, right? Because this is a global view. It's a global cache that's shared by all of the different application servers
+
+![In-Process Caching](/blog-assets/caching-high-level-design-2.png)
 
 ## In-process caching
 

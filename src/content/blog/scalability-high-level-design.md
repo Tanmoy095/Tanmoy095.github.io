@@ -4,7 +4,7 @@ description: "A senior engineer's guide to scalability, sharding keys, database 
 pubDate: "2026-06-04"
 author: "Aunmoy Dey Tanmoy"
 tags: ['System Design', 'Scalability', 'Database', 'Architecture']
-image: "/blog-assets/scalability-high-level-design.jpg"
+image: "/blog-assets/scalability-high-level-design.svg"
 ---
 
 Scalability is a measure of a system’s ability to handle a growing amount of work or an increasing number of users efficiently. It means that if your application serves 1,000 users today, and that number grows to 10 million, the system should continue to perform reliably — without crashing or suffering major performance degradation.Why do we need it? (The "Why")

@@ -4,7 +4,7 @@ description: "A deep dive into Event-Driven Architecture (EDA) for high-scale di
 pubDate: "2026-06-08"
 author: "Aunmoy Dey Tanmoy"
 tags: ["System Design", "Distributed Systems", "EDA", "Kafka"]
-image: "/blog-assets/event-driven-architecture-hld.jpg"
+image: "/blog-assets/event-driven-architecture-hld.svg"
 ---
 
 # Event-Driven Architecture (EDA) at Scale
