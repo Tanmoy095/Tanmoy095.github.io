@@ -760,13 +760,35 @@
     else { prev.src = ''; prev.classList.add('hidden'); }
   }
 
-  // ─── Settings: Test Connection ──────────────────────────────────
   async function testGitConnection() {
     const btn = $('btn-test-connection');
     if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
     try {
-      await apiGet('src/data/profile.json');
-      toast('✅ GitHub connection successful!', 'success');
+      const url = `https://api.github.com/repos/${state.gitConfig.owner}/${state.gitConfig.repo}`;
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${state.gitConfig.token}`,
+          Accept: 'application/vnd.github.v3+json',
+        }
+      });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          throw new Error('Invalid or expired Personal Access Token');
+        }
+        if (res.status === 404) {
+          throw new Error(`Repository '${state.gitConfig.owner}/${state.gitConfig.repo}' not found. Verify owner and repository name.`);
+        }
+        throw new Error(`GitHub API error (${res.status})`);
+      }
+      
+      const data = await res.json();
+      console.log('[CMS Test Connection]', data);
+      
+      if (data.permissions && data.permissions.push) {
+        toast('✅ Connection successful! Write access verified.', 'success');
+      } else {
+        toast('❌ Token has READ-ONLY access. You need to recreate your PAT with write/repo scopes.', 'error');
+      }
     } catch (e) {
       toast('❌ Connection failed: ' + e.message, 'error');
     } finally {
