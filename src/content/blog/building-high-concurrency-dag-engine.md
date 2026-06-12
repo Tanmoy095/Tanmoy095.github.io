@@ -1,5 +1,5 @@
 ---
-title: "11High-Concurrency DAG Execution Engine: Architecture & Design"
+title: "High-Concurrency DAG Execution Engine: Architecture & Design"
 description: "A deep technical dive into building a distributed DAG execution engine, covering scheduling, state consensus, idempotency, backpressure, and fault tolerance."
 pubDate: "2026-06-09"
 author: "Aunmoy Dey Tanmoy"
