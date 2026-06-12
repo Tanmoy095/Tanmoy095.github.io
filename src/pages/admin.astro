@@ -124,6 +124,32 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd
                                 </div>
                             </div>
                         </div>
+                        <!-- Profile Photo Management Section -->
+                        <div class="p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl space-y-4">
+                            <div class="flex items-center justify-between flex-wrap gap-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-800 flex items-center justify-center text-xl">
+                                        <img id="prof-avatar-preview" class="hidden w-full h-full object-cover" alt="Avatar Preview" />
+                                        <span id="prof-avatar-placeholder">👤</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-semibold text-slate-950 dark:text-slate-100" id="avatar-status-title">Profile Photo</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400 font-mono" id="avatar-status-path">No photo uploaded</div>
+                                    </div>
+                                </div>
+                                <button type="button" id="btn-delete-avatar" class="px-4 py-2 text-xs bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/30 dark:border-rose-900/30 rounded-xl font-semibold transition active:scale-95">Delete Photo</button>
+                            </div>
+                            <div class="grid sm:grid-cols-2 gap-4 items-end pt-2 border-t border-slate-200/30 dark:border-slate-800/30">
+                                <div>
+                                    <label class="label-heading">Upload / Reupload Photo</label>
+                                    <input type="file" id="prof-avatar-file" accept="image/*" class="form-input text-xs" />
+                                </div>
+                                <div>
+                                    <label class="label-heading">Photo URL Path</label>
+                                    <input type="text" id="prof-avatar-url" placeholder="/profile-assets/avatar.jpg" class="form-input" />
+                                </div>
+                            </div>
+                        </div>
                         <div><label class="label-heading">Homepage Summary</label><textarea id="prof-summary" rows="3" class="form-input"></textarea></div>
                         <div><label class="label-heading">About Page — Detailed Summary</label><textarea id="prof-detailedSummary" rows="4" class="form-input"></textarea></div>
                         <div><label class="label-heading">Career Objective</label><textarea id="prof-objective" rows="3" class="form-input"></textarea></div>

@@ -220,6 +220,49 @@
     }
   }
 
+  async function uploadAvatar(file) {
+    const base64 = await fileToBase64(file);
+    const ext = file.name.split('.').pop() || 'jpg';
+    const avatarPath = `public/profile-assets/profile-avatar.${ext}`;
+    let sha;
+    try { const ex = await apiGet(avatarPath); sha = ex.sha; } catch {}
+    await apiRequest(avatarPath, {
+      method: 'PUT',
+      body: JSON.stringify({ message: 'cms: upload profile avatar', content: base64, sha, branch: state.gitConfig.branch }),
+    });
+    return `/profile-assets/profile-avatar.${ext}`;
+  }
+
+  function updateAvatarStatusDisplay(avatarUrl) {
+    const titleEl = $('avatar-status-title');
+    const pathEl = $('avatar-status-path');
+    const btnDel = $('btn-delete-avatar');
+    const imgPrev = $('prof-avatar-preview');
+    const imgPlac = $('prof-avatar-placeholder');
+    if (!titleEl || !pathEl) return;
+    if (avatarUrl) {
+      titleEl.textContent = 'Current Profile Photo';
+      titleEl.className = 'text-sm font-semibold text-slate-950 dark:text-slate-100';
+      pathEl.textContent = avatarUrl;
+      if (btnDel) btnDel.classList.remove('hidden');
+      if (imgPrev) {
+        imgPrev.src = avatarUrl + '?t=' + Date.now();
+        imgPrev.classList.remove('hidden');
+      }
+      if (imgPlac) imgPlac.classList.add('hidden');
+    } else {
+      titleEl.textContent = 'No photo uploaded';
+      titleEl.className = 'text-sm font-semibold text-slate-400 dark:text-slate-500';
+      pathEl.textContent = 'None';
+      if (btnDel) btnDel.classList.add('hidden');
+      if (imgPrev) {
+        imgPrev.src = '';
+        imgPrev.classList.add('hidden');
+      }
+      if (imgPlac) imgPlac.classList.remove('hidden');
+    }
+  }
+
   // ─── Frontmatter helpers ───────────────────────────────────────
   function parseFrontmatter(text) {
     // Normalize CRLF and lone CR to LF before regex matching
@@ -504,6 +547,9 @@
     const cvUrlVal = state.profileData.cvUrl !== undefined ? state.profileData.cvUrl : '/cv.pdf';
     $('prof-cv-url').value = cvUrlVal;
     updateCVStatusDisplay(cvUrlVal);
+    const avatarUrlVal = state.profileData.avatarUrl || '';
+    $('prof-avatar-url').value = avatarUrlVal;
+    updateAvatarStatusDisplay(avatarUrlVal);
     $('prof-summary').value = state.profileData.summary || '';
     $('prof-detailedSummary').value = state.profileData.detailedSummary || '';
     $('prof-objective').value = state.profileData.objective || '';
@@ -869,6 +915,46 @@
       }
     });
 
+    $('btn-delete-avatar')?.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to delete the profile photo from GitHub?')) return;
+      try {
+        const avatarUrl = $('prof-avatar-url').value.trim();
+        if (avatarUrl && avatarUrl.startsWith('/profile-assets/')) {
+          const avatarPath = `public${avatarUrl}`;
+          let sha;
+          try { const ex = await apiGet(avatarPath); sha = ex.sha; } catch {}
+          if (sha) {
+            await apiRequest(avatarPath, {
+              method: 'DELETE',
+              body: JSON.stringify({ message: 'cms: delete profile photo file', sha, branch: state.gitConfig.branch }),
+            });
+          }
+        }
+        $('prof-avatar-url').value = '';
+        $('prof-avatar-file').value = '';
+        updateAvatarStatusDisplay('');
+        toast('Profile photo deleted from GitHub. Remember to click "Publish About & Profile Live" to save!', 'info');
+      } catch (e) {
+        toast('Failed to delete photo: ' + e.message, 'error');
+      }
+    });
+
+    $('prof-avatar-file')?.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const imgPrev = $('prof-avatar-preview');
+        const imgPlac = $('prof-avatar-placeholder');
+        if (imgPrev) {
+          imgPrev.src = reader.result;
+          imgPrev.classList.remove('hidden');
+        }
+        if (imgPlac) imgPlac.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+
     document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.target)));
 
     $('config-form')?.addEventListener('submit', e => {
@@ -923,12 +1009,23 @@
           $('prof-cv-file').value = '';
         }
         updateCVStatusDisplay(cvUrl);
+
+        let avatarUrl = $('prof-avatar-url').value.trim();
+        const avatarFile = $('prof-avatar-file').files[0];
+        if (avatarFile) {
+          avatarUrl = await uploadAvatar(avatarFile);
+          $('prof-avatar-url').value = avatarUrl;
+          $('prof-avatar-file').value = '';
+        }
+        updateAvatarStatusDisplay(avatarUrl);
+
         const updated = {
           ...state.profileData,
           name: $('prof-name').value, title: $('prof-title').value,
           email: $('prof-email').value, phone: $('prof-phone').value, location: $('prof-location').value,
           github: $('prof-github').value, linkedin: $('prof-linkedin').value, twitter: $('prof-twitter').value,
           cvUrl: cvUrl,
+          avatarUrl: avatarUrl,
           summary: $('prof-summary').value, detailedSummary: $('prof-detailedSummary').value,
           objective: $('prof-objective').value, recruiterSummary: $('prof-recruiter').value,
           skills: collectSkills(),
