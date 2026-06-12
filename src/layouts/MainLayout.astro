@@ -198,7 +198,7 @@ import profile from '../data/profile.json';
                 <!-- Welcome Message -->
                 <div class="flex gap-2 items-start max-w-[85%]">
                     <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xs flex-shrink-0">🤖</div>
-                    <div class="p-3 bg-white dark:bg-slate-850 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800/80 shadow-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                    <div class="p-3 bg-white dark:bg-slate-900 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800/80 shadow-sm leading-relaxed text-slate-700 dark:text-slate-200">
                         Hi! I am Tanmoy's AI Platform Assistant. Ask me anything about his Go backend engineering, Kubernetes platform work, or AI gateways!
                     </div>
                 </div>
@@ -213,7 +213,7 @@ import profile from '../data/profile.json';
 
             <!-- Input area -->
             <form id="chat-input-form" class="p-2.5 border-t border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-900 flex gap-2">
-                <input type="text" id="chat-input" placeholder="Type a question..." required class="flex-grow bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-200" />
+                <input type="text" id="chat-input" placeholder="Type a question..." required class="flex-grow bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-200" />
                 <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold transition">Send</button>
             </form>
         </div>
@@ -268,7 +268,7 @@ import profile from '../data/profile.json';
                 const msgBox = document.createElement('div');
                 msgBox.className = `p-3 rounded-2xl border shadow-sm leading-relaxed ${
                     isBot 
-                        ? 'bg-white dark:bg-slate-850 rounded-tl-none border-slate-100 dark:border-slate-800/80 text-slate-700 dark:text-slate-200' 
+                        ? 'bg-white dark:bg-slate-900 rounded-tl-none border-slate-100 dark:border-slate-800/80 text-slate-700 dark:text-slate-200' 
                         : 'bg-indigo-600 border-indigo-700 text-white rounded-tr-none'
                 }`;
                 
@@ -286,7 +286,7 @@ import profile from '../data/profile.json';
                 indicator.className = 'flex gap-2 items-start max-w-[85%] typing-indicator';
                 indicator.innerHTML = `
                     <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xs flex-shrink-0">🤖</div>
-                    <div class="p-3 bg-white dark:bg-slate-850 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800/80 shadow-sm flex items-center gap-1">
+                    <div class="p-3 bg-white dark:bg-slate-900 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800/80 shadow-sm flex items-center gap-1">
                         <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
                         <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
                         <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>

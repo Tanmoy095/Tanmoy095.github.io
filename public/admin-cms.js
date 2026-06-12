@@ -202,6 +202,24 @@
     return `/cv.pdf`;
   }
 
+  function updateCVStatusDisplay(cvUrl) {
+    const titleEl = $('cv-status-title');
+    const pathEl = $('cv-status-path');
+    const btnDel = $('btn-delete-cv');
+    if (!titleEl || !pathEl) return;
+    if (cvUrl) {
+      titleEl.textContent = 'Current CV';
+      titleEl.className = 'text-sm font-semibold text-slate-950 dark:text-slate-100';
+      pathEl.textContent = cvUrl;
+      if (btnDel) btnDel.classList.remove('hidden');
+    } else {
+      titleEl.textContent = 'No CV uploaded';
+      titleEl.className = 'text-sm font-semibold text-slate-400 dark:text-slate-500';
+      pathEl.textContent = 'None';
+      if (btnDel) btnDel.classList.add('hidden');
+    }
+  }
+
   // ─── Frontmatter helpers ───────────────────────────────────────
   function parseFrontmatter(text) {
     // Normalize CRLF and lone CR to LF before regex matching
@@ -483,7 +501,9 @@
     $('prof-github').value = state.profileData.github || '';
     $('prof-linkedin').value = state.profileData.linkedin || '';
     $('prof-twitter').value = state.profileData.twitter || '';
-    $('prof-cv-url').value = state.profileData.cvUrl || '/cv.pdf';
+    const cvUrlVal = state.profileData.cvUrl !== undefined ? state.profileData.cvUrl : '/cv.pdf';
+    $('prof-cv-url').value = cvUrlVal;
+    updateCVStatusDisplay(cvUrlVal);
     $('prof-summary').value = state.profileData.summary || '';
     $('prof-detailedSummary').value = state.profileData.detailedSummary || '';
     $('prof-objective').value = state.profileData.objective || '';
@@ -828,6 +848,27 @@
 
     $('btn-logout')?.addEventListener('click', logout);
 
+    $('btn-delete-cv')?.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to delete the CV file from GitHub?')) return;
+      try {
+        const cvPath = 'public/cv.pdf';
+        let sha;
+        try { const ex = await apiGet(cvPath); sha = ex.sha; } catch {}
+        if (sha) {
+          await apiRequest(cvPath, {
+            method: 'DELETE',
+            body: JSON.stringify({ message: 'cms: delete CV / Resume file', sha, branch: state.gitConfig.branch }),
+          });
+        }
+        $('prof-cv-url').value = '';
+        $('prof-cv-file').value = '';
+        updateCVStatusDisplay('');
+        toast('CV file deleted from GitHub. Remember to click "Publish About & Profile Live" to save!', 'info');
+      } catch (e) {
+        toast('Failed to delete CV: ' + e.message, 'error');
+      }
+    });
+
     document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.target)));
 
     $('config-form')?.addEventListener('submit', e => {
@@ -874,13 +915,14 @@
       const btn = e.target.querySelector('button[type="submit"]');
       btn.disabled = true; btn.textContent = 'Publishing...';
       try {
-        let cvUrl = $('prof-cv-url').value.trim() || '/cv.pdf';
+        let cvUrl = $('prof-cv-url').value.trim();
         const cvFile = $('prof-cv-file').files[0];
         if (cvFile) {
           cvUrl = await uploadCV(cvFile);
           $('prof-cv-url').value = cvUrl;
           $('prof-cv-file').value = '';
         }
+        updateCVStatusDisplay(cvUrl);
         const updated = {
           ...state.profileData,
           name: $('prof-name').value, title: $('prof-title').value,
