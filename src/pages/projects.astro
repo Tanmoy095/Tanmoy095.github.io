@@ -8,7 +8,7 @@ import projects from '../data/projects.json';
         <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
             Technical <span class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">Showcase</span>
         </h1>
-        <p class="text-slate-500 dark:text-slate-400 mb-12 text-lg">A detailed view of production-grade platforms, system designs, and cloud-native solutions I have architected and built.</p>
+        <p class="text-slate-500 dark:text-slate-400 mb-12 text-lg">Personal project work exploring Go services, system design, distributed workflows, and cloud-native engineering.</p>
 
         <!-- Projects Grid -->
         <div class="space-y-12">
@@ -20,6 +20,7 @@ import projects from '../data/projects.json';
                                 {project.tagline}
                             </span>
                             <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{project.name}</h2>
+                            <p class="mt-2 text-xs font-semibold text-slate-500">{project.type || 'Project'} · {project.status || 'Status not specified'}</p>
                         </div>
                     </div>
 
@@ -33,7 +34,7 @@ import projects from '../data/projects.json';
 
                     <!-- Key Features Accordion/List -->
                     <div class="mb-8">
-                        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">Core Components & Features</h3>
+                        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">Areas Explored or Planned</h3>
                         <div class="grid gap-4 sm:grid-cols-2">
                             {project.features.map(feature => (
                                 <div class="p-5 bg-slate-50 dark:bg-slate-950/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl">

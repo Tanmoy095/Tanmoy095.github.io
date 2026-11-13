@@ -1,20 +1,30 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import MainLayout from '../../layouts/MainLayout.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map(post => ({
-    params: { slug: post.slug },
+    params: { slug: post.id },
     props: { post }
   }));
 }
 
 const { post } = Astro.props;
-const { Content } = await post.render();
+const { Content } = await render(post);
 ---
 
 <MainLayout title={post.data.title} description={post.data.description}>
+    <script type="application/ld+json" set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.data.title,
+        description: post.data.description,
+        datePublished: post.data.pubDate.toISOString(),
+        author: { '@type': 'Person', name: post.data.author },
+        image: post.data.image ? new URL(post.data.image, Astro.site || 'https://tanmoy095.github.io').toString() : undefined,
+        mainEntityOfPage: new URL(Astro.url.pathname, Astro.site || 'https://tanmoy095.github.io').toString(),
+    }).replace(/</g, '\\u003c')} />
     <div class="py-6 max-w-3xl mx-auto">
         <!-- Back Link -->
         <a href="/blog" class="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm uppercase tracking-wider mb-8 transition-colors duration-200">

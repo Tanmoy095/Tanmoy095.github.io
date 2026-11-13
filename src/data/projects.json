@@ -3,28 +3,31 @@
     "id": "logiflow-ai",
     "name": "LogiFlow AI",
     "tagline": "AI Infrastructure & Orchestration Platform",
-    "description": "A production-grade AI infrastructure platform designed to combine platform engineering, distributed systems, AI operations, and cloud-native automation.",
+    "description": "A personal project exploring AI infrastructure, service templates, and cloud-native automation. The listed capabilities describe the project direction; production deployment is not claimed.",
+    "status": "In development",
+    "type": "Personal project",
+    "image": "",
     "technologies": ["Go", "Kubernetes", "PostgreSQL", "pgvector", "Kafka", "RabbitMQ", "Temporal", "OpenTelemetry", "Prometheus", "Grafana", "Terraform", "Helm", "ArgoCD"],
     "features": [
       {
         "title": "AI Gateway",
-        "detail": "Provides multi-provider LLM routing (OpenAI, Anthropic, vLLM/Ollama), semantic caching, prompt versioning, cost governance, rate limiting, and circuit breakers."
+        "detail": "Exploration area: provider-neutral routing, semantic caching, prompt versioning, cost controls, rate limiting, and circuit breakers."
       },
       {
         "title": "MCP Server Integration",
-        "detail": "Model Context Protocol implementation allowing secure tool exposure and agent interoperability with JWT-secured access."
+        "detail": "Exploration area: safe tool exposure and agent interoperability using Model Context Protocol concepts."
       },
       {
         "title": "Multi-Agent Workflow Engine",
-        "detail": "Uses Temporal for durable execution, human-in-the-loop approvals, long-running workflows, and Saga-based compensation patterns."
+        "detail": "Design direction: durable execution, approval steps, long-running workflows, retries, and compensation patterns."
       },
       {
         "title": "RAG Platform",
-        "detail": "Real-time document ingestion, vector indexing, hybrid search, and context assembly pipelines."
+        "detail": "Design direction: document ingestion, vector indexing, hybrid search, and context assembly."
       },
       {
         "title": "Kubernetes Operator",
-        "detail": "Automated tenant provisioning, namespace management, resource quotas, network policies, and multi-tenant isolation."
+        "detail": "Design direction: tenant provisioning, namespaces, resource quotas, network policies, and workload isolation."
       }
     ]
   },
@@ -32,28 +35,31 @@
     "id": "logisynapse",
     "name": "LogiSynapse",
     "tagline": "Logistics Intelligence & Event-Driven Platform",
-    "description": "A large-scale distributed logistics platform designed to demonstrate production-grade backend and platform engineering practices.",
+    "description": "A personal logistics SaaS and distributed systems project for exploring service boundaries, event-driven workflows, and API design. Production scale or deployment is not claimed.",
+    "status": "In development",
+    "type": "Personal project",
+    "image": "",
     "technologies": ["Go", "gRPC", "PostgreSQL", "RabbitMQ", "WebSocket", "GraphQL", "Temporal", "Docker", "Kubernetes"],
     "features": [
       {
         "title": "Shipment Service",
-        "detail": "Built in Go with gRPC APIs and PostgreSQL database, using an event-driven architecture."
+        "detail": "Design scope: a Go service with gRPC APIs, PostgreSQL persistence, and event-driven boundaries."
       },
       {
         "title": "Route Engine & ETA Predictor",
-        "detail": "Calculates ETA predictions using high-performance routing workflows and support for ML integrations."
+        "detail": "Design scope: routing and ETA workflows with room for later machine-learning integration."
       },
       {
         "title": "Workflow Orchestrator",
-        "detail": "Temporal workflows designed to automate complex logistics operations and business processes with resilient retry and fallback mechanics."
+        "detail": "Design scope: durable orchestration, retries, and fallback handling for logistics workflows."
       },
       {
         "title": "Real-Time Notifications",
-        "detail": "Uses RabbitMQ and WebSockets to push live shipment updates and location tracking directly to clients."
+        "detail": "Design scope: messaging and WebSocket delivery for shipment updates."
       },
       {
         "title": "GraphQL Gateway",
-        "detail": "A federated gateway combining microservices under a single schema, translating external requests to internal gRPC calls."
+        "detail": "Design scope: a GraphQL entry point coordinating service APIs and internal RPC calls."
       }
     ]
   },
@@ -61,24 +67,27 @@
     "id": "enterprise-auth-platform",
     "name": "Enterprise Authentication Platform",
     "tagline": "Multi-Tenant OAuth2 & Identity Platform",
-    "description": "A standalone authentication and identity platform designed around enterprise-grade security and multi-tenancy requirements.",
+    "description": "A personal authentication platform concept exploring OAuth2, identity, tenant isolation, and auditability. Capabilities are project goals and are not presented as a production service.",
+    "status": "Project work",
+    "type": "Personal project",
+    "image": "",
     "technologies": ["Go", "PostgreSQL", "Redis", "Kafka", "Kubernetes"],
     "features": [
       {
         "title": "Identity & OIDC Server",
-        "detail": "Full OAuth2 and OpenID Connect authorization server for identity provisioning and federation."
+        "detail": "Exploration area: OAuth2 and OpenID Connect flows for identity and federation."
       },
       {
         "title": "Multi-Tenant Isolation",
-        "detail": "Tenant isolation, role-based access control (RBAC), and multi-tenant user authentication."
+        "detail": "Exploration area: tenant isolation, role-based authorization, and user authentication."
       },
       {
         "title": "MFA & API Key Management",
-        "detail": "Multi-factor authentication (MFA) and API key lifecycle management (creation, rotation, scoping, and deprecation)."
+        "detail": "Exploration area: multi-factor authentication and scoped API key lifecycle management."
       },
       {
         "title": "Security & Auditing",
-        "detail": "Enforces session management policies, device trust scoring, and maintains immutable audit logs pushed to Kafka."
+        "detail": "Exploration area: session controls and auditable security events."
       }
     ]
   }

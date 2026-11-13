@@ -1,54 +1,56 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
-const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000; // 8 hours
+const SESSION_MAX_AGE_MS = 30 * 60 * 1000;
+const attempts = new Map();
 
-export function getAdminEmail() {
-  return process.env.ADMIN_EMAIL || 'adtanmoy95@gmail.com';
+export function getAdminEmail() { return process.env.ADMIN_EMAIL || ''; }
+
+export async function verifyCredentials(email, password) {
+  const configuredEmail = getAdminEmail();
+  const encoded = process.env.ADMIN_PASSWORD_HASH || '';
+  const match = /^scrypt\$([A-Za-z0-9_-]{16,})\$([A-Za-z0-9_-]{80,})$/.exec(encoded);
+  if (!configuredEmail || !match || typeof password !== 'string' || password.length > 1024) return false;
+  const [salt, expected] = [Buffer.from(match[1], 'base64url'), Buffer.from(match[2], 'base64url')];
+  if (email?.trim().toLowerCase() !== configuredEmail.trim().toLowerCase()) return false;
+  const actual = await new Promise((resolve, reject) => crypto.scrypt(password, salt, expected.length, (err, key) => err ? reject(err) : resolve(key)));
+  return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
 }
 
-export function verifyCredentials(email, password) {
-  const adminEmail = getAdminEmail();
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
-  return email?.toLowerCase() === adminEmail.toLowerCase() && password === adminPassword;
+export function isRateLimited(key) {
+  const now = Date.now();
+  const current = attempts.get(key);
+  if (!current || now - current.started > 15 * 60 * 1000) { attempts.set(key, { started: now, count: 1 }); return false; }
+  current.count += 1;
+  return current.count > 8;
 }
+export function clearRateLimit(key) { attempts.delete(key); }
 
 export function createSessionToken(email) {
-  const payload = {
-    email: email.toLowerCase(),
-    exp: Date.now() + SESSION_MAX_AGE_MS,
-    nonce: crypto.randomBytes(8).toString('hex'),
-  };
-  const secret = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || 'change-me';
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (!secret || secret.length < 32) throw new Error('CMS session signing is not configured');
+  const payload = { email: email.toLowerCase(), exp: Date.now() + SESSION_MAX_AGE_MS, nonce: crypto.randomBytes(16).toString('hex') };
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const sig = crypto.createHmac('sha256', secret).update(body).digest('base64url');
-  return `${body}.${sig}`;
+  return `${body}.${crypto.createHmac('sha256', secret).update(body).digest('base64url')}`;
 }
 
 export function parseSessionToken(token) {
-  if (!token) return null;
-  const [body, sig] = token.split('.');
-  if (!body || !sig) return null;
-  const secret = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || 'change-me';
-  const expected = crypto.createHmac('sha256', secret).update(body).digest('base64url');
-  if (sig !== expected) return null;
+  if (!token || typeof token !== 'string') return null;
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (!secret || secret.length < 32) return null;
+  const [body, signature, ...extra] = token.split('.');
+  if (!body || !signature || extra.length) return null;
+  const expected = crypto.createHmac('sha256', secret).update(body).digest();
+  let actual;
+  try { actual = Buffer.from(signature, 'base64url'); } catch { return null; }
+  if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) return null;
   try {
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
-    if (!payload.exp || Date.now() > payload.exp) return null;
+    if (payload.email !== getAdminEmail().toLowerCase() || !Number.isFinite(payload.exp) || Date.now() >= payload.exp) return null;
     return payload;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 export function getTokenFromRequest(req) {
   const auth = req.headers.authorization || '';
-  if (auth.startsWith('Bearer ')) return auth.slice(7);
-  const cookie = req.headers.cookie || '';
-  const match = cookie.match(/admin_session=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-export function sessionCookie(token) {
-  return `admin_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_MAX_AGE_MS / 1000}`;
+  return auth.startsWith('Bearer ') ? auth.slice(7) : null;
 }

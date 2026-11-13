@@ -1,13 +1,13 @@
 {
   "name": "Aunmoy Dey Tanmoy",
-  "title": "AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer",
+  "title": "Backend Engineer | Go, Distributed Systems & AI Infrastructure",
   "email": "adtanmoy95@gmail.com",
   "phone": "+8801850371329",
   "location": "Remote",
   "github": "https://github.com/Tanmoy095",
   "linkedin": "https://www.linkedin.com/in/aunmoy-dey-tanmoy095",
   "twitter": "https://twitter.com/tanmoy095",
-  "cvUrl": "/cv.pdf",
+  "cvUrl": "",
   "nav": [
     { "label": "Home", "url": "/" },
     { "label": "About", "url": "/about" },
@@ -16,18 +16,15 @@
     { "label": "Learning", "url": "/learning" },
     { "label": "Admin", "url": "/admin" }
   ],
-  "summary": "I design and build scalable backend systems, cloud-native platforms, and AI infrastructure using Go, Kubernetes, distributed systems, and modern LLM technologies. My expertise spans event-driven architectures, multi-tenant SaaS platforms, Kubernetes platform engineering, AI gateways, RAG systems, observability, and production-grade cloud infrastructure.",
-  "detailedSummary": "I specialize in building systems that are reliable, observable, secure, and capable of operating at scale. My focus is not only on writing software but on designing complete platforms that solve real-world business problems through automation, intelligent workflows, and resilient distributed architectures. Currently, I am building LogiFlow AI, a production-grade AI infrastructure platform that combines Kubernetes automation, multi-agent workflows, Retrieval-Augmented Generation (RAG), Model Context Protocol (MCP), LLM routing, event-driven architecture, and enterprise-grade observability.",
-  "objective": "My goal is to bridge the gap between traditional backend engineering and next-generation AI systems by building the infrastructure that powers intelligent applications. I enjoy solving complex technical problems, designing scalable architectures, and building systems that operate reliably at production scale.",
-  "recruiterSummary": "I am a Go-focused Backend, Platform, and AI Infrastructure Engineer who specializes in building production-grade distributed systems. My work combines cloud-native engineering, Kubernetes automation, event-driven architectures, AI infrastructure, and observability to create scalable and reliable platforms. I am particularly interested in AI Infrastructure Engineering, Platform Engineering, Distributed Systems Engineering, Senior Backend Engineering, and Cloud Native Engineering roles.",
+  "summary": "I am a software engineer focused on Go backend development, APIs, distributed systems, and AI infrastructure. I build and document personal engineering projects including LogiFlow AI and LogiSynapse, with an emphasis on clear architecture, reliable services, and practical trade-offs.",
+  "detailedSummary": "My interests include REST, gRPC and GraphQL APIs, service boundaries, PostgreSQL and Redis, event-driven systems, Kubernetes, and infrastructure for LLM applications. I also take on freelance software engineering work for international clients. I am completing a BSc in Industrial and Production Engineering at Ahsanullah University of Science and Technology (AUST), expected in 2026.",
+  "objective": "I am looking for backend engineering work where I can contribute to Go services, distributed systems, and dependable developer infrastructure while continuing to grow through hands-on delivery and technical writing.",
+  "recruiterSummary": "Go-focused software engineer with freelance delivery experience and a technical focus on backend systems, distributed architecture, and AI infrastructure. Interested in backend engineering roles involving APIs, service development, databases, and cloud-native systems.",
   "targetRoles": [
-    "Senior Go Backend Engineer",
-    "Platform Engineer",
-    "AI Infrastructure Engineer",
-    "AI Platform Engineer",
-    "Cloud Native Engineer",
+    "Go Backend Engineer",
+    "Backend Software Engineer",
     "Distributed Systems Engineer",
-    "Staff Software Engineer"
+    "AI Infrastructure Engineer"
   ],
   "skills": [
     {
@@ -61,38 +58,49 @@
   ],
   "experienceHighlights": [
     {
-      "title": "AI Infrastructure Platform Development",
-      "description": "Designing and implementing a complete AI infrastructure platform including multi-provider LLM Gateway, MCP Server integration, RAG pipelines, agentic workflows, tenant isolation, usage billing, and Kubernetes automation."
+      "title": "AI Infrastructure Interests",
+      "description": "Exploring provider-neutral LLM gateways, retrieval-augmented generation, and agentic systems through personal project work."
     },
     {
-      "title": "Distributed Systems Engineering",
-      "description": "Built scalable event-driven architectures using Kafka, RabbitMQ, Temporal, PostgreSQL, and gRPC with a strong focus on reliability, fault tolerance, and operational excellence."
+      "title": "Distributed Systems",
+      "description": "Interested in service boundaries, asynchronous messaging, workflow orchestration, data consistency, and failure handling."
     },
     {
-      "title": "Multi-Tenant SaaS Architecture",
-      "description": "Designed systems supporting tenant isolation, secure authentication, authorization, billing, rate limiting, and resource governance across shared infrastructure."
+      "title": "Backend and SaaS Design",
+      "description": "Working with API design, data modeling, authentication, authorization, and multi-tenant system concepts."
     },
     {
-      "title": "Platform Engineering",
-      "description": "Built cloud-native deployment platforms using Kubernetes, Helm, Terraform, GitHub Actions, and ArgoCD to enable automated deployments and infrastructure management."
+      "title": "Cloud-Native Engineering",
+      "description": "Current technical focus includes Go, Docker, Kubernetes, CI/CD, infrastructure automation, and observability."
     },
     {
-      "title": "Client Delivery",
-      "description": "Delivered SaaS and backend solutions for international clients, including large-scale business applications, microservices migration projects, RBAC systems, multi-tenant architectures, and production deployments."
+      "title": "Freelance Delivery",
+      "description": "Software engineering work for international clients."
+    }
+  ],
+  "education": [
+    {
+      "degree": "BSc in Industrial and Production Engineering",
+      "institution": "Ahsanullah University of Science and Technology (AUST)",
+      "period": "2026",
+      "status": "Expected"
     }
   ],
   "workHistory": [
     {
-      "role": "Freelance Senior Backend & Platform Engineer",
-      "company": "Fiverr | Upwork | Direct Clients",
-      "period": "2022 – Present",
-      "description": "Working with international clients to design, architect, and build scalable backend systems, cloud-native platforms, and SaaS products. Responsibilities extend beyond coding to include system architecture, infrastructure planning, security, performance optimization, deployment automation, and technical leadership.",
+      "role": "Backend Developer (Seasonal)",
+      "company": "Alpha Notation",
+      "period": "Seasonal",
+      "description": "Seasonal backend developer experience. Dates and detailed responsibilities are not provided in the verified materials currently available.",
+      "bullets": []
+    },
+    {
+      "role": "Freelance Software Engineer",
+      "company": "Independent",
+      "period": "Freelance",
+      "description": "Software engineering and project delivery for international clients. Specific engagements and dates are not listed here because they have not been verified in the materials available to this site.",
       "bullets": [
-        "Architected distributed microservices systems in Go and designed PostgreSQL schemas with optimized indexes.",
-        "Designed and implemented multi-tenant SaaS platforms with secure authentication, role-based access control (RBAC), and session management.",
-        "Deployed applications on Kubernetes using Docker, Helm, Terraform, and GitOps with ArgoCD.",
-        "Integrated AI services, LLM APIs, vector search (pgvector), and automated multi-agent workflow engines.",
-        "Collaborated directly with founders and business stakeholders to scope, estimate, and deploy production projects."
+        "Delivered software engineering work for international clients."
       ]
     }
   ]

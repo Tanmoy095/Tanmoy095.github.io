@@ -1,6 +1,7 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import profile from '../data/profile.json';
+const profileWithMedia = profile as typeof profile & { avatarUrl?: string };
 import { getCollection } from 'astro:content';
 
 // Get latest 3 blog posts
@@ -43,33 +44,16 @@ const latestLearnings = (await getCollection('learning'))
                     )}
                 </div>
             </div>
-            {profile.avatarUrl && (
+            {profileWithMedia.avatarUrl && (
                 <div class="flex-shrink-0 relative group">
                     <div class="absolute -inset-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-1000 group-hover:duration-200"></div>
                     <div class="relative w-48 h-48 sm:w-64 sm:h-64 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-slate-100 dark:bg-slate-900">
-                        <img src={profile.avatarUrl} alt={profile.name} class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="eager" />
+                        <img src={profileWithMedia.avatarUrl} alt={profile.name} class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="eager" />
                     </div>
                 </div>
             )}
         </div>
-
-        <!-- Metrics Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-20">
-            <div class="p-8 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-sm">
-                <div class="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-2">4+</div>
-                <div class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Years Experience</div>
-            </div>
-            <div class="p-8 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-sm">
-                <div class="text-4xl font-extrabold text-purple-600 dark:text-purple-400 mb-2">15+</div>
-                <div class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Production Systems</div>
-            </div>
-            <div class="p-8 bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-sm">
-                <div class="text-4xl font-extrabold text-pink-600 dark:text-pink-400 mb-2">20+</div>
-                <div class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Projects Delivered</div>
-            </div>
-        </div>
-
-        <!-- Recent Blogs & Learnings Section for Recruiters -->
+        <!-- Recent Blogs & Learnings Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
             <!-- Latest Blog Posts -->
             <div>
@@ -79,7 +63,7 @@ const latestLearnings = (await getCollection('learning'))
                 </div>
                 <div class="space-y-4">
                     {latestPosts.map(post => (
-                        <a href={`/blog/${post.slug}`} class="block p-5 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:shadow-md transition-all duration-200 group">
+                        <a href={`/blog/${post.id}`} class="block p-5 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:shadow-md transition-all duration-200 group">
                             <div class="flex items-center gap-3 mb-2">
                                 <span class="text-xs font-mono text-slate-400">{new Date(post.data.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                 <span class="text-slate-300">|</span>
@@ -100,7 +84,7 @@ const latestLearnings = (await getCollection('learning'))
                 </div>
                 <div class="space-y-4">
                     {latestLearnings.map(entry => (
-                        <a href={`/learning/${entry.slug}`} class="block p-5 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:shadow-md transition-all duration-200 group">
+                        <a href={`/learning/${entry.id}`} class="block p-5 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:shadow-md transition-all duration-200 group">
                             <div class="flex items-center gap-3 mb-2">
                                 <span class="text-xs font-mono text-slate-400">{new Date(entry.data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                 <span class="bg-purple-100 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded">{entry.data.category}</span>

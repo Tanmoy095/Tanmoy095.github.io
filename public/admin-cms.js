@@ -1,14 +1,14 @@
-/* Portfolio Admin CMS - dual mode: Vercel server API or GitHub PAT fallback */
+/* Portfolio Admin CMS: all privileged operations use the server API. */
 (function () {
   const CFG = window.__ADMIN_CONFIG__ || {};
   const SESSION_KEY = 'portfolio_admin_session';
-  const GIT_KEY = 'git_cms_config';
+  const API_BASE = (CFG.apiBaseUrl || '').replace(/\/+$/, '');
 
   let state = {
     authenticated: false,
-    serverMode: false,
+    serverMode: true,
     token: null,
-    gitConfig: { owner: 'Tanmoy095', repo: 'Tanmoy095.github.io', branch: 'main', token: '' },
+    gitConfig: { branch: 'main' },
     profileData: null,
     profileSha: '',
     projectsData: [],
@@ -31,11 +31,6 @@
     el.classList.remove('hidden', 'opacity-0');
     setTimeout(() => el.classList.add('opacity-0'), 3200);
     setTimeout(() => el.classList.add('hidden'), 3600);
-  }
-
-  async function sha256(text) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
   function utf8_to_b64(str) {
@@ -65,40 +60,38 @@
 
   // ─── Auth ────────────────────────────────────────────────────
   async function detectServerMode() {
+    if (!API_BASE) return { serverMode: false, error: 'PUBLIC_API_BASE_URL is missing. Configure the Vercel API URL and rebuild the site.' };
     try {
-      const res = await fetch('/api/auth/verify');
-      if (!res.ok) return false;
+      const apiUrl = new URL(API_BASE);
+      if (apiUrl.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(apiUrl.hostname)) throw new Error('The CMS API must use HTTPS.');
+      const res = await fetch(`${API_BASE}/api/auth/verify`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `API returned ${res.status}`);
       state.serverMode = !!data.serverMode;
-      if (data.adminEmail) CFG.email = data.adminEmail;
       return data;
-    } catch { return false; }
+    } catch (error) { return { serverMode: false, error: `CMS API unavailable: ${error.message}` }; }
   }
 
   async function login(email, password) {
-    if (state.serverMode) {
-      const res = await fetch('/api/auth/login', {
+    if (!state.serverMode) throw new Error('CMS server is unavailable. Check PUBLIC_API_BASE_URL and Vercel configuration.');
+    {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
+      if (!data.token) throw new Error('CMS API did not return an authenticated session.');
       state.token = data.token;
       state.authenticated = true;
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ token: data.token, email, exp: Date.now() + 8 * 3600000, mode: 'server' }));
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ token: data.token, exp: Date.now() + 30 * 60 * 1000, mode: 'server' }));
       return;
     }
-    const hash = await sha256(password);
-    if (email.toLowerCase() !== (CFG.email || '').toLowerCase() || hash !== CFG.passwordHash) {
-      throw new Error('Invalid email or password');
-    }
-    state.authenticated = true;
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email, exp: Date.now() + 8 * 3600000, mode: 'client' }));
   }
 
   async function logout() {
-    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+    try { await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', headers: state.token ? { Authorization: `Bearer ${state.token}` } : {} }); } catch {}
     sessionStorage.removeItem(SESSION_KEY);
     state.authenticated = false;
     state.token = null;
@@ -111,8 +104,9 @@
     try {
       const s = JSON.parse(raw);
       if (Date.now() > s.exp) { sessionStorage.removeItem(SESSION_KEY); return false; }
+      if (!s.token) { sessionStorage.removeItem(SESSION_KEY); return false; }
       state.authenticated = true;
-      state.token = s.token || null;
+      state.token = s.token;
       return true;
     } catch { return false; }
   }
@@ -120,46 +114,24 @@
   // ─── GitHub API (server proxy or direct PAT) ─────────────────
   async function apiRequest(rawPath, options = {}) {
     const path = cleanPath(rawPath);
-    const ref = state.gitConfig.branch || 'main';
-
+    if (!API_BASE) throw new Error('PUBLIC_API_BASE_URL is not configured.');
     if (state.serverMode && state.token) {
       const method = options.method || 'GET';
+      const headers = { Authorization: `Bearer ${state.token}` };
       if (method === 'GET') {
-        const res = await fetch(`/api/github/proxy?path=${encodeURIComponent(path)}&ref=${ref}`, {
-          headers: { Authorization: `Bearer ${state.token}` },
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'API error');
-        return data;
+        return request(`${API_BASE}/api/github/proxy?path=${encodeURIComponent(path)}&ref=${encodeURIComponent(state.gitConfig.branch || 'main')}`, { headers });
       }
       const body = JSON.parse(options.body || '{}');
-      const res = await fetch('/api/github/proxy', {
-        method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${state.token}` },
-        body: JSON.stringify({ path, ...body }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'API error');
-      return data;
+      return request(`${API_BASE}/api/github/proxy`, { method, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ path, ...body }) });
     }
+    throw new Error('Sign in to the configured CMS API first.');
+  }
 
-    if (!state.gitConfig.token) throw new Error('Configure GitHub PAT in Settings tab');
-    const method = (options.method || 'GET').toUpperCase();
-    const url = `https://api.github.com/repos/${state.gitConfig.owner}/${state.gitConfig.repo}/contents/${path}${method === 'GET' ? `?ref=${ref}` : ''}`;
-    console.log('[CMS API Request]', method, url);
-    const res = await fetch(url, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${state.gitConfig.token}`,
-        Accept: 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-      },
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('[CMS API Error]', method, url, data);
-      throw new Error(data.message || 'GitHub API error');
-    }
+  async function request(url, options = {}) {
+    const res = await fetch(url, options);
+    let data;
+    try { data = await res.json(); } catch { data = {}; }
+    if (!res.ok) throw new Error(data.error || `CMS API request failed (${res.status})`);
     return data;
   }
 
@@ -171,7 +143,7 @@
   async function uploadImage(file, filename) {
     const base64 = await fileToBase64(file);
     if (state.serverMode && state.token) {
-      const res = await fetch('/api/github/upload-image', {
+      const res = await fetch(`${API_BASE}/api/github/upload-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${state.token}` },
         body: JSON.stringify({ filename, contentBase64: base64, message: `cms: upload ${filename}` }),
@@ -180,14 +152,7 @@
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       return data.path;
     }
-    const imgPath = `public/blog-assets/${filename}`;
-    let sha;
-    try { const ex = await apiGet(imgPath); sha = ex.sha; } catch {}
-    await apiRequest(imgPath, {
-      method: 'PUT',
-      body: JSON.stringify({ message: `cms: upload ${filename}`, content: base64, sha, branch: state.gitConfig.branch }),
-    });
-    return `/blog-assets/${filename}`;
+    throw new Error('Image upload requires an active server session.');
   }
 
   async function uploadCV(file) {
@@ -558,6 +523,8 @@
     renderRolesEditor(state.profileData.targetRoles);
     renderListEditor('highlights-editor', state.profileData.experienceHighlights,
       [{ key: 'title', label: 'Title' }, { key: 'description', label: 'Description', type: 'textarea', rows: 3 }]);
+    renderListEditor('education-editor', state.profileData.education || [],
+      [{ key: 'degree', label: 'Degree' }, { key: 'institution', label: 'Institution' }, { key: 'period', label: 'Year / Period' }, { key: 'status', label: 'Status' }]);
     renderListEditor('history-editor', state.profileData.workHistory,
       [{ key: 'role', label: 'Role' }, { key: 'company', label: 'Company' }, { key: 'period', label: 'Period' }, { key: 'description', label: 'Description', type: 'textarea', rows: 3 }], true);
     $('profile-form').classList.remove('hidden');
@@ -742,12 +709,7 @@
     if (failed.length === 0) {
       toast('All content loaded successfully!', 'success');
     } else if (failed.length === results.length) {
-      if (!state.serverMode && !state.gitConfig.token) {
-        toast('Configure GitHub PAT in Settings tab', 'error');
-        switchTab('tab-settings');
-      } else {
-        toast(`${failed.length} section(s) failed to load — check console`, 'error');
-      }
+      toast(`${failed.length} section(s) failed to load. Check the API configuration and try reloading.`, 'error');
     } else {
       toast(`Loaded with ${failed.length} error(s) — some sections unavailable`, 'info');
     }
@@ -759,7 +721,8 @@
     $('proj-index').value = idx;
     if (idx === -1) {
       $('project-form-title').textContent = 'New Project';
-      ['proj-id','proj-name','proj-tagline','proj-desc','proj-tech','proj-image'].forEach(id => $(id).value = '');
+      ['proj-id','proj-name','proj-tagline','proj-desc','proj-tech','proj-image','proj-type','proj-status'].forEach(id => $(id).value = '');
+      $('proj-type').value = 'Personal project'; $('proj-status').value = 'In development';
       renderProjFeaturesEditor([{ title: '', detail: '' }]);
     } else {
       const p = state.projectsData[idx];
@@ -767,6 +730,7 @@
       $('proj-id').value = p.id; $('proj-name').value = p.name; $('proj-tagline').value = p.tagline;
       $('proj-desc').value = p.description; $('proj-tech').value = (p.technologies || []).join(', ');
       $('proj-image').value = p.image || '';
+      $('proj-type').value = p.type || 'Personal project'; $('proj-status').value = p.status || 'In development';
       renderProjFeaturesEditor(p.features || []);
     }
     $('project-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -829,56 +793,27 @@
   }
 
   async function testGitConnection() {
-    const btn = $('btn-test-connection');
-    if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
-    try {
-      const url = `https://api.github.com/repos/${state.gitConfig.owner}/${state.gitConfig.repo}`;
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${state.gitConfig.token}`,
-          Accept: 'application/vnd.github.v3+json',
-        }
-      });
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          throw new Error('Invalid or expired Personal Access Token');
-        }
-        if (res.status === 404) {
-          throw new Error(`Repository '${state.gitConfig.owner}/${state.gitConfig.repo}' not found. Verify owner and repository name.`);
-        }
-        throw new Error(`GitHub API error (${res.status})`);
-      }
-      
-      const data = await res.json();
-      console.log('[CMS Test Connection]', data);
-      
-      if (data.permissions && data.permissions.push) {
-        toast('✅ Connection successful! Write access verified.', 'success');
-      } else {
-        toast('❌ Token has READ-ONLY access. You need to recreate your PAT with write/repo scopes.', 'error');
-      }
-    } catch (e) {
-      toast('❌ Connection failed: ' + e.message, 'error');
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Test Connection'; }
-    }
+    if (!API_BASE) return toast('Set PUBLIC_API_BASE_URL in the GitHub Pages build.', 'error');
+    try { const res = await request(`${API_BASE}/api/auth/verify`); toast(res.serverMode ? 'CMS API is available.' : 'CMS server credentials are not configured.', res.serverMode ? 'success' : 'error'); }
+    catch (e) { toast(e.message, 'error'); }
   }
 
   // ─── Init & Event Bindings ─────────────────────────────────────
   async function init() {
-    const saved = localStorage.getItem(GIT_KEY);
-    if (saved) state.gitConfig = { ...state.gitConfig, ...JSON.parse(saved) };
-
-    await detectServerMode();
-    if ($('login-email')) $('login-email').value = CFG.email || '';
+    const health = await detectServerMode();
+    if ($('login-email')) $('login-email').value = '';
     if ($('login-hint')) {
-      $('login-hint').textContent = state.serverMode
-        ? 'Vercel server mode: enter your admin email and password. No GitHub token needed.'
-        : 'GitHub Pages mode: enter admin email + password, then add PAT in Settings.';
+      $('login-hint').textContent = health.error || 'Enter your admin email and password. GitHub access is managed securely by the server.';
     }
 
-    if (restoreSession()) showDashboard();
-    else showLogin();
+    const restored = restoreSession();
+    if (restored && API_BASE) {
+      try {
+        const sessionCheck = await request(`${API_BASE}/api/auth/verify`, { headers: { Authorization: `Bearer ${state.token}` } });
+        if (sessionCheck.authenticated) showDashboard();
+        else { sessionStorage.removeItem(SESSION_KEY); state.token = null; state.authenticated = false; showLogin(); }
+      } catch { showLogin(); }
+    } else showLogin();
 
     $('login-form')?.addEventListener('submit', async e => {
       e.preventDefault();
@@ -957,26 +892,7 @@
 
     document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.target)));
 
-    $('config-form')?.addEventListener('submit', e => {
-      e.preventDefault();
-      state.gitConfig = {
-        owner: $('cfg-owner').value.trim(),
-        repo: $('cfg-repo').value.trim(),
-        branch: $('cfg-branch').value.trim(),
-        token: $('cfg-token').value.trim(),
-      };
-      localStorage.setItem(GIT_KEY, JSON.stringify(state.gitConfig));
-      toast('Git settings saved', 'success');
-    });
-
     $('btn-test-connection')?.addEventListener('click', testGitConnection);
-
-    if ($('cfg-owner')) {
-      $('cfg-owner').value = state.gitConfig.owner;
-      $('cfg-repo').value = state.gitConfig.repo;
-      $('cfg-branch').value = state.gitConfig.branch;
-      $('cfg-token').value = state.gitConfig.token || '';
-    }
 
     $('btn-add-proj-feature')?.addEventListener('click', () => {
       renderProjFeaturesEditor([...collectProjFeatures(), { title: '', detail: '' }]);
@@ -994,6 +910,12 @@
       items.push({ role: '', company: '', period: '', description: '', bullets: [] });
       renderListEditor('history-editor', items,
         [{ key: 'role', label: 'Role' }, { key: 'company', label: 'Company' }, { key: 'period', label: 'Period' }, { key: 'description', label: 'Description', type: 'textarea', rows: 3 }], true);
+    });
+    $('btn-add-education')?.addEventListener('click', () => {
+      const items = collectListEditor('education-editor', [{ key: 'degree' }, { key: 'institution' }, { key: 'period' }, { key: 'status' }]);
+      items.push({ degree: '', institution: '', period: '', status: '' });
+      renderListEditor('education-editor', items,
+        [{ key: 'degree', label: 'Degree' }, { key: 'institution', label: 'Institution' }, { key: 'period', label: 'Year / Period' }, { key: 'status', label: 'Status' }]);
     });
 
     $('profile-form')?.addEventListener('submit', async e => {
@@ -1032,6 +954,7 @@
           targetRoles: [...document.querySelectorAll('.role-item')].map(i => i.value.trim()).filter(Boolean),
           experienceHighlights: collectListEditor('highlights-editor', [{ key: 'title' }, { key: 'description' }]),
           workHistory: collectListEditor('history-editor', [{ key: 'role' }, { key: 'company' }, { key: 'period' }, { key: 'description' }], true),
+          education: collectListEditor('education-editor', [{ key: 'degree' }, { key: 'institution' }, { key: 'period' }, { key: 'status' }]),
         };
         const res = await apiRequest('src/data/profile.json', {
           method: 'PUT',
@@ -1049,10 +972,14 @@
     $('project-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       const idx = +$('proj-index').value;
+      const existing = idx >= 0 ? state.projectsData[idx] : {};
       const features = collectProjFeatures();
       const proj = {
+        ...existing,
         id: $('proj-id').value.trim(), name: $('proj-name').value.trim(), tagline: $('proj-tagline').value.trim(),
         description: $('proj-desc').value.trim(),
+        type: $('proj-type').value.trim() || 'Personal project',
+        status: $('proj-status').value.trim() || 'In development',
         image: $('proj-image').value.trim() || undefined,
         technologies: $('proj-tech').value.split(',').map(s => s.trim()).filter(Boolean),
         features,
@@ -1134,8 +1061,8 @@
         const oldPath = $('blog-old-path').value;
         const sha = $('blog-sha').value;
         if (oldPath && oldPath !== newPath && sha) {
-          await apiRequest(oldPath, { method: 'DELETE', body: JSON.stringify({ message: `cms: delete renamed blog ${slug}`, sha, branch: state.gitConfig.branch }) });
           await apiRequest(newPath, { method: 'PUT', body: JSON.stringify({ message: `cms: publish blog ${slug}`, content: utf8_to_b64(md), branch: state.gitConfig.branch }) });
+          await apiRequest(oldPath, { method: 'DELETE', body: JSON.stringify({ message: `cms: delete renamed blog ${slug}`, sha, branch: state.gitConfig.branch }) });
         } else {
           await apiRequest(newPath, { method: 'PUT', body: JSON.stringify({ message: `cms: publish blog ${slug}`, content: utf8_to_b64(md), sha: sha || undefined, branch: state.gitConfig.branch }) });
         }
@@ -1191,8 +1118,8 @@
         const oldPath = $('learn-old-path').value;
         const sha = $('learn-sha').value;
         if (oldPath && oldPath !== newPath && sha) {
-          await apiRequest(oldPath, { method: 'DELETE', body: JSON.stringify({ message: `cms: delete renamed learning ${slug}`, sha, branch: state.gitConfig.branch }) });
           await apiRequest(newPath, { method: 'PUT', body: JSON.stringify({ message: `cms: publish learning ${slug}`, content: utf8_to_b64(md), branch: state.gitConfig.branch }) });
+          await apiRequest(oldPath, { method: 'DELETE', body: JSON.stringify({ message: `cms: delete renamed learning ${slug}`, sha, branch: state.gitConfig.branch }) });
         } else {
           await apiRequest(newPath, { method: 'PUT', body: JSON.stringify({ message: `cms: publish learning ${slug}`, content: utf8_to_b64(md), sha: sha || undefined, branch: state.gitConfig.branch }) });
         }

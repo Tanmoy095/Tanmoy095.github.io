@@ -1,14 +1,13 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 
-const adminEmail = import.meta.env.PUBLIC_ADMIN_EMAIL || 'adtanmoy95@gmail.com';
-const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // default: admin123
+const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL || '';
 ---
 
 <MainLayout title="Admin Dashboard - CMS Panel">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" is:inline></script>
-    <script is:inline define:vars={{ adminEmail, passwordHash }}>
-        window.__ADMIN_CONFIG__ = { email: adminEmail, passwordHash };
+    <script is:inline define:vars={{ apiBaseUrl }}>
+        window.__ADMIN_CONFIG__ = { apiBaseUrl };
     </script>
     <script src="/admin-cms.js" defer></script>
 
@@ -23,11 +22,11 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd
         </div>
         <form id="login-form" class="bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/50 p-8 rounded-3xl shadow-sm space-y-5">
             <div>
-                <label class="label-heading">Admin Email</label>
+                <label for="login-email" class="label-heading">Admin Email</label>
                 <input type="email" id="login-email" required class="form-input" placeholder="your@email.com" />
             </div>
             <div>
-                <label class="label-heading">Password</label>
+                <label for="login-password" class="label-heading">Password</label>
                 <input type="password" id="login-password" required class="form-input" placeholder="••••••••" />
             </div>
             <button type="submit" id="login-submit" class="btn-primary w-full py-3 text-sm uppercase font-semibold tracking-wide">Unlock Dashboard</button>
@@ -77,7 +76,6 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd
                 <button class="nav-tab" data-target="tab-projects">📂 Projects</button>
                 <button class="nav-tab" data-target="tab-blogs">✍️ Blogs</button>
                 <button class="nav-tab" data-target="tab-learnings">📖 Learnings & ADRs</button>
-                <button class="nav-tab" data-target="tab-settings" id="pat-settings">⚙️ Settings</button>
             </div>
 
             <div class="lg:col-span-9 bg-white dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 p-6 sm:p-8 rounded-3xl shadow-sm min-h-[500px]">
@@ -181,6 +179,14 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd
 
                         <div>
                             <div class="flex justify-between items-center mb-3">
+                                <label class="label-heading mb-0">Education</label>
+                                <button type="button" id="btn-add-education" class="text-xs text-indigo-600 font-semibold">+ Add Education</button>
+                            </div>
+                            <div id="education-editor" class="space-y-4"></div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
                                 <label class="label-heading mb-0">Work History</label>
                                 <button type="button" id="btn-add-history" class="text-xs text-indigo-600 font-semibold">+ Add Job</button>
                             </div>
@@ -207,6 +213,10 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd
                             <div><label class="label-heading">Name</label><input type="text" id="proj-name" required class="form-input" /></div>
                         </div>
                         <div><label class="label-heading">Tagline</label><input type="text" id="proj-tagline" required class="form-input" /></div>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div><label class="label-heading">Project Type</label><input type="text" id="proj-type" class="form-input" placeholder="Personal project or client work" /></div>
+                            <div><label class="label-heading">Status</label><input type="text" id="proj-status" class="form-input" placeholder="In development" /></div>
+                        </div>
                         <div><label class="label-heading">Description</label><textarea id="proj-desc" rows="3" required class="form-input"></textarea></div>
                         <div><label class="label-heading">Cover Image URL</label><input type="text" id="proj-image" placeholder="/blog-assets/project-cover.jpg" class="form-input" /></div>
                         <div><label class="label-heading">Technologies (comma-separated)</label><input type="text" id="proj-tech" class="form-input" /></div>
@@ -319,28 +329,6 @@ const passwordHash = import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || '240be518fabd
                                 <button id="btn-cancel-learning" type="button" class="btn-secondary py-2 px-4 text-xs">Cancel</button>
                             </div>
                             <button id="btn-delete-learning" type="button" class="hidden px-4 py-2 text-xs bg-rose-600 text-white rounded-xl">Delete</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- SETTINGS -->
-                <div id="tab-settings" class="tab-panel hidden space-y-6">
-                    <h2 class="text-2xl font-bold border-b pb-3">GitHub PAT Settings</h2>
-                    <p class="text-xs text-slate-500">Required on <strong>GitHub Pages</strong> only. On Vercel, the server manages the GitHub token automatically.</p>
-                    <form id="config-form" class="space-y-4">
-                        <div><label class="label-heading">GitHub Owner</label><input type="text" id="cfg-owner" class="form-input" /></div>
-                        <div><label class="label-heading">Repository</label><input type="text" id="cfg-repo" class="form-input" /></div>
-                        <div><label class="label-heading">Branch</label><input type="text" id="cfg-branch" class="form-input" /></div>
-                        <div>
-                            <label class="label-heading">Personal Access Token</label>
-                            <input type="password" id="cfg-token" class="form-input" placeholder="ghp_..." />
-                            <p class="text-[10px] text-slate-400 mt-1">
-                                💡 Ensure your token has <strong>write permissions</strong>. For classic tokens, check the <code>repo</code> scope. For fine-grained tokens, grant <strong>Read and Write</strong> access to <strong>Repository Contents</strong>. Note: <em>Test Connection</em> only verifies read access.
-                            </p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button type="submit" class="btn-primary flex-1 py-3 text-sm uppercase font-semibold">Save Settings</button>
-                            <button type="button" id="btn-test-connection" class="btn-secondary py-3 px-5 text-sm font-semibold">Test Connection</button>
                         </div>
                     </form>
                 </div>

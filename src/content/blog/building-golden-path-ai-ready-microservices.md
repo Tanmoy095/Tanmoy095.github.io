@@ -1,5 +1,5 @@
 ---
-title: ""Hello, World" is Not a Demo: The First Service as Your Platform's Operating Model"
+title: "\"Hello, World\" is Not a Demo: The First Service as Your Platform's Operating Model"
 description: "Discover how to build a production-grade Golden Path for AI-ready Go microservices using Kubernetes, Helm, and GitOps to streamline platform engineering."
 pubDate: "2026-08-21"
 author: "Aunmoy Dey Tanmoy"

@@ -1,18 +1,17 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import MainLayout from '../../layouts/MainLayout.astro';
-import profile from '../../data/profile.json';
 
 export async function getStaticPaths() {
   const entries = await getCollection('learning');
   return entries.map(entry => ({
-    params: { slug: entry.slug },
+    params: { slug: entry.id },
     props: { entry }
   }));
 }
 
 const { entry } = Astro.props;
-const { Content } = await entry.render();
+const { Content } = await render(entry);
 ---
 
 <MainLayout title={entry.data.title} description={`Learning topic: ${entry.data.title}`}>

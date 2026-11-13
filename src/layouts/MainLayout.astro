@@ -1,6 +1,7 @@
 ---
 const { title, description } = Astro.props;
 import profile from '../data/profile.json';
+import '../styles/global.css';
 ---
 
 <!DOCTYPE html>
@@ -15,6 +16,16 @@ import profile from '../data/profile.json';
     <meta property="og:title" content={title || profile.name} />
     <meta property="og:description" content={description || profile.summary} />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site || 'https://tanmoy095.github.io').toString()} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title || profile.name} />
+    <meta name="twitter:description" content={description || profile.summary} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site || 'https://tanmoy095.github.io').toString()} />
+    <link rel="alternate" type="application/rss+xml" title="Engineering articles" href="/rss.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify([
+        { '@context': 'https://schema.org', '@type': 'Person', name: profile.name, jobTitle: profile.title, email: profile.email, url: 'https://tanmoy095.github.io/', sameAs: [profile.github, profile.linkedin].filter(Boolean) },
+        { '@context': 'https://schema.org', '@type': 'WebSite', name: `${profile.name} — Engineering Portfolio`, url: 'https://tanmoy095.github.io/' },
+    ]).replace(/</g, '\\u003c')} />
     
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -326,11 +337,11 @@ import profile from '../data/profile.json';
                 let answer = '';
 
                 if (query.includes('skill') || query.includes('experience') || query.includes('expert') || query.includes('tech') || query.includes('stack') || query.includes('language') || query.includes('go') || query.includes('golang')) {
-                    answer = "🛠️ Tanmoy is a Senior Go Backend & Platform Engineer with 4+ years of production experience.\n\nHis primary core stacks are:\n• Go (Microservices, gRPC, Domain-Driven Design)\n• Kubernetes operators, controllers, controllers-runtime, CRDs\n• Distributed systems: Kafka, RabbitMQ, Temporal Workflows\n• AI Infrastructure: LLM gateways, semantic caching, pgvector, RAG, and Model Context Protocol (MCP) integrations.";
+                    answer = "🛠️ The portfolio's technical focus includes Go backend engineering, REST/gRPC/GraphQL APIs, distributed systems, PostgreSQL, MySQL, Redis, messaging, Kubernetes, CI/CD, observability, and AI infrastructure.";
                 } else if (query.includes('logiflow') || query.includes('project') || query.includes('showcase') || query.includes('logisynapse')) {
-                    answer = "🚀 Tanmoy's featured project is LogiFlow AI, an enterprise-grade AI Infrastructure & Orchestration platform. It solves standard LLM orchestration challenges with:\n• Dynamic multi-provider routing (OpenAI, Anthropic, local vLLM)\n• Durable agent execution workflows built on Temporal\n• A custom Kubernetes operator for multi-tenant workspace isolation\n• A secure OIDC/JWT OAuth2 server for API key management.";
+                    answer = "🚀 LogiFlow AI and LogiSynapse are personal engineering projects. The project page describes their current development status and technical direction; production deployment is not claimed.";
                 } else if (query.includes('job') || query.includes('hire') || query.includes('available') || query.includes('remote') || query.includes('work') || query.includes('availability') || query.includes('recrut')) {
-                    answer = "💼 Tanmoy is currently open to full-time remote opportunities, contract roles, or technical consulting engagements.\n\nHe is looking for roles like:\n• Senior Go Backend Engineer\n• Platform / Infrastructure Engineer\n• AI Infrastructure/Platform Engineer\n• Distributed Systems Engineer";
+                    answer = "💼 Aunmoy is a software engineer focused on Go backend systems and distributed architecture, with freelance engineering experience for international clients. See the profile page for background and contact links.";
                 } else if (query.includes('contact') || query.includes('email') || query.includes('phone') || query.includes('linkedin') || query.includes('github') || query.includes('connect')) {
                     answer = "📞 You can connect with Tanmoy directly:\n• Email: adtanmoy95@gmail.com\n• Phone: +8801850371329\n• LinkedIn: linkedin.com/in/aunmoy-dey-tanmoy095\n• GitHub: github.com/Tanmoy095";
                 } else if (query.includes('resume') || query.includes('cv') || query.includes('pdf')) {

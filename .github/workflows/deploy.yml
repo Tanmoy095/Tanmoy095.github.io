@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install Dependencies
@@ -33,8 +33,7 @@ jobs:
 
       - name: Build
         env:
-          PUBLIC_ADMIN_EMAIL: adtanmoy95@gmail.com
-          PUBLIC_ADMIN_PASSWORD_HASH: ${{ secrets.ADMIN_PASSWORD_HASH }}
+          PUBLIC_API_BASE_URL: ${{ vars.PUBLIC_API_BASE_URL }}
         run: npm run build
 
       - name: Upload Pages artifact

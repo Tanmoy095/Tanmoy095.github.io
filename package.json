@@ -1,19 +1,25 @@
 {
   "name": "tanmoy-portfolio",
   "version": "1.0.0",
-  "description": "Senior AI Infrastructure Engineer Portfolio",
+  "description": "Go backend engineering and distributed systems portfolio",
   "type": "module",
+  "engines": { "node": ">=22.12.0" },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "check": "astro check",
+    "test": "node --test",
+    "lint": "node --check public/admin-cms.js && node --check api/_lib/auth.js && node --check api/_lib/http.js && node --check api/auth/login.js && node --check api/auth/verify.js && node --check api/auth/logout.js && node --check api/github/proxy.js && node --check api/github/upload-image.js && node --check scripts/generate-admin-hash.mjs",
     "preview": "astro preview",
     "hash-password": "node scripts/generate-admin-hash.mjs"
   },
   "dependencies": {
-    "astro": "^4.4.0"
+    "@tailwindcss/vite": "^4.3.5",
+    "astro": "^7.3.8",
+    "tailwindcss": "^4.3.5"
   },
   "devDependencies": {
-    "@astrojs/tailwind": "^5.1.0",
-    "tailwindcss": "^3.4.0"
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^5.9.3"
   }
 }

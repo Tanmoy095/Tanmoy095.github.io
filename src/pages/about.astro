@@ -43,6 +43,11 @@ import profile from '../data/profile.json';
                 {profile.objective}
             </p>
         </section>
+        <section class="mt-12 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+            <h2 class="text-2xl font-bold mb-3">Contact</h2>
+            <p class="text-slate-600 dark:text-slate-400 mb-5">Email is the direct contact route. This site does not currently send contact form submissions.</p>
+            <a class="inline-flex items-center rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700" href={`mailto:${profile.email}`}>Email {profile.name}</a>
+        </section>
 
         <!-- Core Skills & Expertise (Dynamic) -->
         <section class="mb-16">
@@ -81,6 +86,21 @@ import profile from '../data/profile.json';
                 ))}
             </div>
         </section>
+
+        {profile.education?.length > 0 && (
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold mb-5 text-slate-800 dark:text-slate-100">Education</h2>
+                <div class="space-y-4">
+                    {profile.education.map(item => (
+                        <article class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl">
+                            <h3 class="font-bold text-lg">{item.degree}</h3>
+                            <p class="text-indigo-600 dark:text-indigo-400">{item.institution}</p>
+                            <p class="text-sm text-slate-500 mt-1">{item.status} · {item.period}</p>
+                        </article>
+                    ))}
+                </div>
+            </section>
+        )}
 
         <!-- Professional Experience / Work History -->
         <section class="mb-12">
