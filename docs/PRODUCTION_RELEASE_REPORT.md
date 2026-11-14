@@ -1,6 +1,6 @@
 # Production Release Report
 
-**Status checked:** 2026-11-14. **Release status: BLOCKED.** Commit `462baf415e1f0434abd16c81f6d8600b78f08a36` was pushed to `main`; GitHub could not start the Pages runner because the account is locked due to a billing issue. This report distinguishes pushed source from a verified deployment.
+**Status checked:** 2026-11-14. **Release status: BLOCKED.** Feature commit `462baf415e1f0434abd16c81f6d8600b78f08a36` and follow-up `bd9c8a719cafa0b01721747634c5b2a2b65a6bbc` were pushed to `main`. GitHub could not start either runner because the account is locked due to a billing issue. This report distinguishes pushed source from a verified deployment.
 
 ## 1. Original issues
 
@@ -57,7 +57,7 @@ No authenticated production API or browser end-to-end CRUD tests ran. No real co
 
 ## 11. GitHub Actions deployment details
 
-Pages workflow runs on `main` pushes and manual dispatch, uses Node 22 and `npm ci`, performs checks/tests/build, checks seeded draft leakage, and deploys the root `dist` artifact with least-privilege Pages permissions. Run [43604403522](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604403522) failed before starting the build because GitHub reports the account is locked due to a billing issue; deploy was skipped. Vercel workflow run [43604402323](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604402323) also failed. Its credential guard has since been changed to step-level checks; no successful Vercel deployment is verified.
+Pages workflow runs on `main` pushes and manual dispatch, uses Node 22 and `npm ci`, performs checks/tests/build, checks seeded draft leakage, and deploys the root `dist` artifact with least-privilege Pages permissions. Latest run [43604799190](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604799190) failed before starting the build because GitHub reports the account is locked due to a billing issue; deploy was skipped. Latest Vercel run [43604799219](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604799219) was blocked by the same account lock. No successful Vercel deployment is verified.
 
 ## 12. Vercel deployment details
 
@@ -85,7 +85,7 @@ Use Admin → Academics & Life. Choose a module and fill its fields. Save Draft 
 - Repository: `https://github.com/Tanmoy095/Tanmoy095.github.io`
 - Intended branch: `main`
 - Prior implementation commit preserved locally: `f1180ded4d9d7246f2ec2cbd5987053d373c2cbe`
-- Remote `main`: `462baf415e1f0434abd16c81f6d8600b78f08a36` pushed 2026-11-14.
+- Feature commit `462baf415e1f0434abd16c81f6d8600b78f08a36` and follow-up `bd9c8a719cafa0b01721747634c5b2a2b65a6bbc` are on remote `main` (2026-11-14).
 - Previous implementation commit is an ancestor of the pushed commit.
 - Push succeeded as a fast-forward; no force push or protection bypass.
 - Deployment date and production commit: **none; not deployed**.

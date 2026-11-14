@@ -2,7 +2,7 @@
 
 ## Follow-up release audit (2026-11-14)
 
-Verified prior commit `f1180ded4d9d7246f2ec2cbd5987053d373c2cbe`, then pushed continuation commit `462baf415e1f0434abd16c81f6d8600b78f08a36` to `main`. The Pages run failed before starting because GitHub reports an account billing lock. Vercel CLI/project metadata and API origin were absent. See `PRODUCTION_RELEASE_REPORT.md`.
+Verified prior commit `f1180ded4d9d7246f2ec2cbd5987053d373c2cbe`, then pushed feature `462baf415e1f0434abd16c81f6d8600b78f08a36` and release follow-up `bd9c8a719cafa0b01721747634c5b2a2b65a6bbc` to `main`. GitHub Actions annotations report an account billing lock; the runners did not start. Vercel CLI/project metadata and API origin were absent. See `PRODUCTION_RELEASE_REPORT.md`.
 
 ## Inspection snapshot
 
