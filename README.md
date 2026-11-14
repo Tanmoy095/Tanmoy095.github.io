@@ -30,4 +30,4 @@ Profile and projects: `src/data/`. Engineering articles and notes: `src/content/
 
 ## Current limitations
 
-The repository and local build do not prove production deployment. The Vercel API origin, deployment credentials, durable Redis-compatible session/revocation and rate-limit store, live API integration, and browser CRUD have not been confirmed. Private entries are disabled because GitHub is the public content store. See [release report](docs/PRODUCTION_RELEASE_REPORT.md).
+The updated static website is live from `gh-pages`. The admin UI is present, but its API origin is currently empty, so login and CRUD are not functional. Vercel configuration, durable session/revocation and rate-limit storage, live API integration, and browser CRUD remain unverified. Private entries are disabled because GitHub is the public content store. See [release report](docs/PRODUCTION_RELEASE_REPORT.md).

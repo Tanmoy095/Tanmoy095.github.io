@@ -1,6 +1,6 @@
 # Production Release Report
 
-**Status checked:** 2026-11-14. **Release status: BLOCKED.** Feature commit `462baf415e1f0434abd16c81f6d8600b78f08a36` and follow-up `bd9c8a719cafa0b01721747634c5b2a2b65a6bbc` were pushed to `main`. GitHub could not start either runner because the account is locked due to a billing issue. This report distinguishes pushed source from a verified deployment.
+**Status checked:** 2026-11-14. **Release status: FRONTEND LIVE; CMS BLOCKED.** The source was pushed to `main`; a static artifact was separately published to `gh-pages` at `1eeb96d832eebfaba4b906aa0622825497381afa`. The new UI is live. The admin API origin is empty, so login and CRUD do not work yet.
 
 ## 1. Original issues
 
@@ -25,7 +25,7 @@ Existing project, profile, technical blog, learning/ADR, CV, and avatar editors 
 
 ## 5. Admin CMS functionality
 
-**Locally implemented, not production verified:** existing engineering editors and new knowledge editor. Knowledge create/read/update/delete code is wired to the authenticated GitHub proxy. Automated browser tests for those UI flows were unavailable. Do not treat the deployed admin as functional until API origin and server configuration are verified.
+**UI live; API not configured:** existing engineering editors and the new knowledge editor are on the site. The published admin HTML contains `apiBaseUrl = ""`, so login, reads, and CRUD are unavailable until the Vercel API is deployed/configured and its origin is embedded in the site build.
 
 ## 6. Academic and research management
 
@@ -57,7 +57,7 @@ No authenticated production API or browser end-to-end CRUD tests ran. No real co
 
 ## 11. GitHub Actions deployment details
 
-Pages workflow runs on `main` pushes and manual dispatch, uses Node 22 and `npm ci`, performs checks/tests/build, checks seeded draft leakage, and deploys the root `dist` artifact with least-privilege Pages permissions. Latest run [43604799190](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604799190) failed before starting the build because GitHub reports the account is locked due to a billing issue; deploy was skipped. Latest Vercel run [43604799219](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604799219) was blocked by the same account lock. No successful Vercel deployment is verified.
+Pages workflow runs on `main` pushes and manual dispatch, uses Node 22 and `npm ci`, performs checks/tests/build, checks seeded draft leakage, and deploys the root `dist` artifact with least-privilege Pages permissions. Latest observed Pages run [43604942832](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604942832) failed before starting because GitHub reports the account is locked due to a billing issue. Vercel run [43604942866](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604942866) was blocked by the same account lock. The static artifact was then pushed directly to `gh-pages`; Actions remain unsuccessful.
 
 ## 12. Vercel deployment details
 
@@ -65,11 +65,12 @@ Pages workflow runs on `main` pushes and manual dispatch, uses Node 22 and `npm 
 
 ## 13. Production verification results
 
-**NOT VERIFIED.** Both `https://tanmoy095.github.io/` and `https://tanmoy095.github.io/admin/` returned HTTP 200, but fetched HTML did not contain the new Academics & Life editor or navigation, so the pushed change is not live. No production API URL was discovered. Pages routes, CMS login, CORS, writes, and regeneration have not been smoke-tested.
+The homepage, `/admin/`, academics, research, writing, travel, books, quotes, contact, sitemap, and RSS returned HTTP 200 after the `gh-pages` publish. Homepage HTML contains the new navigation; admin HTML contains the knowledge editor. **CMS API NOT VERIFIED:** the admin bundle has an empty API origin, so authentication, CORS, CRUD, and content regeneration could not be tested.
 
 ## 14. Remaining limitations
 
-- GitHub account billing lock prevented the Pages runner from starting; the source push alone did not deploy the change.
+- GitHub account billing lock prevents the Pages and Vercel Actions runners from starting. The frontend was published directly to `gh-pages` as a fallback.
+- The Vercel production URL/secrets and the `PUBLIC_API_BASE_URL` repository variable are unavailable/unverified; the live admin therefore cannot connect to its API.
 - Vercel auth/API configuration is unavailable and production API is unverified.
 - Durable session revocation and serverless rate limiting are not implemented.
 - Private content is unavailable until private storage exists. Do not put sensitive data in drafts or unlisted content because source lives in a public repository.
@@ -88,4 +89,6 @@ Use Admin → Academics & Life. Choose a module and fill its fields. Save Draft 
 - Feature commit `462baf415e1f0434abd16c81f6d8600b78f08a36` and follow-up `bd9c8a719cafa0b01721747634c5b2a2b65a6bbc` are on remote `main` (2026-11-14).
 - Previous implementation commit is an ancestor of the pushed commit.
 - Push succeeded as a fast-forward; no force push or protection bypass.
-- Deployment date and production commit: **none; not deployed**.
+- Main source commits pushed: `462baf415e1f0434abd16c81f6d8600b78f08a36`, `bd9c8a719cafa0b01721747634c5b2a2b65a6bbc`, and the release report update on `main`.
+- Static artifact deployment: `gh-pages` commit `1eeb96d832eebfaba4b906aa0622825497381afa`, pushed 2026-11-14 and verified live.
+- Vercel API deployment: **none verified**.

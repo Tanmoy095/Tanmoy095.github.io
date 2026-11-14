@@ -2,7 +2,7 @@
 
 ## Workflow behavior and current status
 
-The Pages workflow triggers on main pushes and manual dispatch, uses Node 22 and `npm ci`, runs Astro diagnostics, syntax checks, tests, and the static build, checks that the seeded draft is absent, and uploads/deploys `dist/`. Its permissions are contents read, Pages write, and OIDC token write. The latest Pages run failed before starting because GitHub reports the account is locked due to a billing issue. No deployment has been verified for this change.
+The Pages workflow triggers on main pushes and manual dispatch, uses Node 22 and `npm ci`, runs Astro diagnostics, syntax checks, tests, and the static build, checks that the seeded draft is absent, and uploads/deploys `dist/`. Its runners are currently blocked by the GitHub account billing lock. As a fallback, the validated static output was pushed directly to `gh-pages` at `1eeb96d`; the new public routes and navigation were then verified live. The admin HTML currently embeds an empty API origin, so its login and CRUD do not work.
 
 Before enabling CMS use, configure the Vercel values listed in `ENVIRONMENT_VARIABLES.md`, set the Pages variable `PUBLIC_API_BASE_URL` to the verified Vercel origin, and implement a durable shared session/revocation and rate-limit store. No API URL is guessed in this documentation.
 
@@ -18,4 +18,4 @@ Import the same repository into Vercel, select Node.js 22, and keep its producti
 
 Check the Pages workflow run, inspect the public homepage and `/admin/`, check API verify and login, and perform a test content write with a dedicated test item before relying on production. Ensure Vercel has write access only to the intended repository and the Pages build receives no server secrets.
 
-The source push completed, but Pages deployment was blocked by the GitHub account billing lock. Vercel configuration and API origin remain unverified. See `PRODUCTION_RELEASE_REPORT.md`.
+The frontend fallback is live, but the Pages and Vercel Action workflows remain billing-blocked. Vercel configuration and API origin remain unverified. See `PRODUCTION_RELEASE_REPORT.md`.
