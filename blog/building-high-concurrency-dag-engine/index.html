@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>High-Concurrency DAG Execution Engine: Architecture &amp; Design | Aunmoy Dey Tanmoy</title><meta name="description" content="A deep technical dive into building a distributed DAG execution engine, covering scheduling, state consensus, idempotency, backpressure, and fault tolerance."><!-- SEO Meta tags --><meta property="og:title" content="High-Concurrency DAG Execution Engine: Architecture &#38; Design"><meta property="og:description" content="A deep technical dive into building a distributed DAG execution engine, covering scheduling, state consensus, idempotency, backpressure, and fault tolerance."><meta property="og:type" content="website"><!-- Modern Typography --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><!-- Inline Tailwind Config for Custom Colors & Styles --><script>
+<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>High-Concurrency DAG Execution Engine: Architecture &amp; Design | Aunmoy Dey Tanmoy</title><meta name="description" content="A deep technical dive into building a distributed DAG execution engine, covering scheduling, state consensus, idempotency, backpressure, and fault tolerance."><!-- SEO Meta tags --><meta property="og:title" content="High-Concurrency DAG Execution Engine: Architecture &amp; Design"><meta property="og:description" content="A deep technical dive into building a distributed DAG execution engine, covering scheduling, state consensus, idempotency, backpressure, and fault tolerance."><meta property="og:type" content="website"><meta property="og:url" content="https://tanmoy095.github.io/blog/building-high-concurrency-dag-engine/"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="High-Concurrency DAG Execution Engine: Architecture &amp; Design"><meta name="twitter:description" content="A deep technical dive into building a distributed DAG execution engine, covering scheduling, state consensus, idempotency, backpressure, and fault tolerance."><link rel="canonical" href="https://tanmoy095.github.io/blog/building-high-concurrency-dag-engine/"><link rel="alternate" type="application/rss+xml" title="Engineering articles" href="/rss.xml"><script type="application/ld+json">[{"@context":"https://schema.org","@type":"Person","name":"Aunmoy Dey Tanmoy","jobTitle":"Backend Engineer | Go, Distributed Systems & AI Infrastructure","email":"adtanmoy95@gmail.com","url":"https://tanmoy095.github.io/","sameAs":["https://github.com/Tanmoy095","https://www.linkedin.com/in/aunmoy-dey-tanmoy095"]},{"@context":"https://schema.org","@type":"WebSite","name":"Aunmoy Dey Tanmoy — Engineering Portfolio","url":"https://tanmoy095.github.io/"}]</script><!-- Modern Typography --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><!-- Inline Tailwind Config for Custom Colors & Styles --><script>
         // Inline script to prevent theme flash
         const theme = (() => {
             if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
@@ -15,375 +15,445 @@
         } else {
             document.documentElement.classList.remove('dark');
         }
-    </script><link rel="stylesheet" href="/_astro/about.vhhCuO7c.css">
-<style>.markdown-body{font-size:1.05rem;line-height:1.8;color:#334155}.dark .markdown-body{color:#cbd5e1}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{color:#0f172a;font-weight:800;letter-spacing:-.025em;margin-top:2.25rem;margin-bottom:1rem;font-family:Outfit,sans-serif}.dark .markdown-body h1,.dark .markdown-body h2,.dark .markdown-body h3,.dark .markdown-body h4{color:#f8fafc}.markdown-body h1{font-size:2.25rem}.markdown-body h2{font-size:1.75rem;border-b:1px solid rgba(226,232,240,.4);padding-bottom:.5rem}.markdown-body h3{font-size:1.35rem}.markdown-body h4{font-size:1.15rem}.markdown-body p{margin-top:0;margin-bottom:1.5rem}.markdown-body pre{background-color:#0f172a;color:#f8fafc;border-radius:1rem;padding:1.25rem;margin:1.5rem 0;overflow-x:auto;border:1px solid rgba(255,255,255,.05);font-size:.9rem;line-height:1.6}.markdown-body code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em;background-color:#6366f11a;color:#4f46e5;padding:.15em .4em;border-radius:.375em}.dark .markdown-body code{background-color:#6366f133;color:#c7d2fe}.markdown-body pre code{background-color:transparent;color:inherit;padding:0;font-size:inherit;border-radius:0}.markdown-body ul,.markdown-body ol{margin-top:0;margin-bottom:1.5rem;padding-left:1.5rem}.markdown-body ul{list-style-type:disc}.markdown-body ol{list-style-type:decimal}.markdown-body li{margin-bottom:.5rem}.markdown-body table{width:100%;border-collapse:collapse;margin:2rem 0;font-size:.95rem}.markdown-body th,.markdown-body td{padding:.75rem 1rem;border-bottom:1px solid #e2e8f0;text-align:left}.dark .markdown-body th,.dark .markdown-body td{border-bottom:1px solid #1e293b}.markdown-body th{font-weight:700;background-color:#f1f5f9;color:#0f172a}.dark .markdown-body th{background-color:#0f172a;color:#f8fafc}.markdown-body blockquote{margin:1.5rem 0;padding:.5rem 0 .5rem 1.25rem;border-left:4px solid #6366f1;background-color:#6366f10d;border-radius:0 .5rem .5rem 0;font-style:italic}.dark .markdown-body blockquote{background-color:#6366f11a}
-</style></head> <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col"> <!-- Header --> <header class="sticky top-0 z-50 glass-header border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300"> <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"> <a href="/" class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"> Tanmoy </a> <!-- Desktop Navigation --> <div class="hidden md:flex gap-8 items-center"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase"> Admin </a> <!-- Dark Mode Toggle --> <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-200 focus:outline-none" aria-label="Toggle theme"> <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg> <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg> </button> </div> <!-- Mobile Menu Toggle Button --> <div class="flex md:hidden items-center gap-4"> <button id="mobile-theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" aria-label="Toggle theme"> <span class="dark:hidden">🌙</span> <span class="hidden dark:inline">☀️</span> </button> <button id="menu-btn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg> </button> </div> </nav> <!-- Mobile Dropdown Menu --> <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex flex-col gap-4 bg-white/95 dark:bg-slate-950/95 transition-all duration-300"> <a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Home </a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> About </a><a href="/projects" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Projects </a><a href="/blog" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Blog </a><a href="/learning" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Learning </a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase"> Admin </a> </div> </header> <!-- Main Content --> <main class="flex-grow max-w-6xl w-full mx-auto px-6 py-12">  <div class="py-6 max-w-3xl mx-auto"> <!-- Back Link --> <a href="/blog" class="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm uppercase tracking-wider mb-8 transition-colors duration-200"> <span>←</span> Back to Blog
-</a> <div class="mb-8 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-sm"> <img src="/blog-assets/building-high-concurrency-dag-engine.jpg" alt="High-Concurrency DAG Execution Engine: Architecture &#38; Design" class="w-full max-h-80 object-cover"> </div> <!-- Article Header --> <header class="mb-10 pb-8 border-b border-slate-200/50 dark:border-slate-800/50"> <div class="flex items-center gap-4 text-xs text-slate-400 mb-4"> <span>Published on June 9, 2026</span> <span>•</span> <span>By Aunmoy Dey Tanmoy</span> </div> <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight"> High-Concurrency DAG Execution Engine: Architecture &amp; Design </h1> <!-- Tags --> <div class="flex flex-wrap gap-2"> <span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Go </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Distributed Systems </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Concurrency </span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30"> Database </span> </div> </header> <!-- Markdown Body --> <article class="markdown-body"> <p>High-Concurrency DAG Execution Engine
+    </script><style>.markdown-body{color:#334155;font-size:1.05rem;line-height:1.8}.dark .markdown-body{color:#cbd5e1}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{color:#0f172a;letter-spacing:-.025em;margin-top:2.25rem;margin-bottom:1rem;font-family:Outfit,sans-serif;font-weight:800}.dark .markdown-body h1,.dark .markdown-body h2,.dark .markdown-body h3,.dark .markdown-body h4{color:#f8fafc}.markdown-body h1{font-size:2.25rem}.markdown-body h2{border-b:1px solid #e2e8f066;padding-bottom:.5rem;font-size:1.75rem}.markdown-body h3{font-size:1.35rem}.markdown-body h4{font-size:1.15rem}.markdown-body p{margin-top:0;margin-bottom:1.5rem}.markdown-body pre{color:#f8fafc;background-color:#0f172a;border:1px solid #ffffff0d;border-radius:1rem;margin:1.5rem 0;padding:1.25rem;font-size:.9rem;line-height:1.6;overflow-x:auto}.markdown-body code{color:#4f46e5;background-color:#6366f11a;border-radius:.375em;padding:.15em .4em;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em}.dark .markdown-body code{color:#c7d2fe;background-color:#6366f133}.markdown-body pre code{color:inherit;font-size:inherit;background-color:#0000;border-radius:0;padding:0}.markdown-body ul,.markdown-body ol{margin-top:0;margin-bottom:1.5rem;padding-left:1.5rem}.markdown-body ul{list-style-type:disc}.markdown-body ol{list-style-type:decimal}.markdown-body li{margin-bottom:.5rem}.markdown-body table{border-collapse:collapse;width:100%;margin:2rem 0;font-size:.95rem}.markdown-body th,.markdown-body td{text-align:left;border-bottom:1px solid #e2e8f0;padding:.75rem 1rem}.dark .markdown-body th,.dark .markdown-body td{border-bottom:1px solid #1e293b}.markdown-body th{color:#0f172a;background-color:#f1f5f9;font-weight:700}.dark .markdown-body th{color:#f8fafc;background-color:#0f172a}.markdown-body blockquote{background-color:#6366f10d;border-left:4px solid #6366f1;border-radius:0 .5rem .5rem 0;margin:1.5rem 0;padding:.5rem 0 .5rem 1.25rem;font-style:italic}.dark .markdown-body blockquote{background-color:#6366f11a}
+</style><link rel="stylesheet" href="/_astro/MainLayout.CCZELn34.css"></head><body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col"><!-- Header --><header class="sticky top-0 z-50 glass-header border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300"><nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"><a href="/" class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200">Tanmoy</a><!-- Desktop Navigation --><div class="hidden xl:flex gap-5 items-center"><a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">Home</a><a href="/projects/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">Engineering</a><a href="/academics/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">Academics &amp; Research</a><a href="/writing/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">Writing</a><a href="/travel/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">Travel</a><a href="/books/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">Books &amp; Ideas</a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">About</a><a href="/contact/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">Contact</a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-200 text-sm uppercase">Admin</a><!-- Dark Mode Toggle --><button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-200 focus:outline-none" aria-label="Toggle theme"><svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg><svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg></button></div><!-- Mobile Menu Toggle Button --><div class="flex xl:hidden items-center gap-4"><button id="mobile-theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" aria-label="Toggle theme"><span class="dark:hidden">🌙</span><span class="hidden dark:inline">☀️</span></button><button id="menu-btn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none" aria-label="Toggle menu"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button></div></nav><!-- Mobile Dropdown Menu --><div id="mobile-menu" class="hidden xl:hidden border-t border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex flex-col gap-4 bg-white/95 dark:bg-slate-950/95 transition-all duration-300"><a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">Home</a><a href="/projects/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">Engineering</a><a href="/academics/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">Academics &amp; Research</a><a href="/writing/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">Writing</a><a href="/travel/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">Travel</a><a href="/books/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">Books &amp; Ideas</a><a href="/about" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">About</a><a href="/contact/" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">Contact</a><a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide py-2 text-sm uppercase">Admin</a></div></header><!-- Main Content --><main class="flex-grow max-w-6xl w-full mx-auto px-6 py-12"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"High-Concurrency DAG Execution Engine: Architecture & Design","description":"A deep technical dive into building a distributed DAG execution engine, covering scheduling, state consensus, idempotency, backpressure, and fault tolerance.","datePublished":"2026-06-09T00:00:00.000Z","author":{"@type":"Person","name":"Aunmoy Dey Tanmoy"},"image":"https://tanmoy095.github.io/blog-assets/building-high-concurrency-dag-engine.svg","mainEntityOfPage":"https://tanmoy095.github.io/blog/building-high-concurrency-dag-engine/"}</script><div class="py-6 max-w-3xl mx-auto"><!-- Back Link --><a href="/blog" class="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm uppercase tracking-wider mb-8 transition-colors duration-200"><span>←</span> Back to Blog</a><div class="mb-8 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-sm"><img src="/blog-assets/building-high-concurrency-dag-engine.svg" alt="High-Concurrency DAG Execution Engine: Architecture &amp; Design" class="w-full max-h-80 object-cover"></div><!-- Article Header --><header class="mb-10 pb-8 border-b border-slate-200/50 dark:border-slate-800/50"><div class="flex items-center gap-4 text-xs text-slate-400 mb-4"><span>Published on June 9, 2026</span><span>•</span><span>By Aunmoy Dey Tanmoy</span></div><h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight">High-Concurrency DAG Execution Engine: Architecture &amp; Design</h1><!-- Tags --><div class="flex flex-wrap gap-2"><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30">Go</span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30">Distributed Systems</span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30">Concurrency</span><span class="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs px-3 py-1 rounded-md font-semibold border border-indigo-100/30 dark:border-indigo-900/30">Database</span></div></header><!-- Markdown Body --><article class="markdown-body"><p>High-Concurrency DAG Execution Engine
 Real-World Senior-Level Architecture Note (AI Era 2026)</p>
 <p>A DAG Execution Engine is a distributed orchestration system that executes dependency-aware tasks with high concurrency, fault tolerance, durable state tracking, retry semantics, and scalable scheduling across distributed workers.</p>
 <h2 id="the-problem">The Problem</h2>
-<p>Imagine you are building an AI-powered platform like:
-OpenAI ChatGPT processing pipeline
-Netflix video encoding pipeline
-Uber real-time pricing pipeline
-AI document processing SaaS
-Distributed ML inference system
-Multi-agent AI workflow system
+<p>Imagine you are building an AI-powered platform like:</p>
+<ul>
+<li>OpenAI ChatGPT processing pipeline</li>
+<li>Netflix video encoding pipeline</li>
+<li>Uber real-time pricing pipeline</li>
+<li>AI document processing SaaS</li>
+<li>Distributed ML inference system</li>
+<li>Multi-agent AI workflow system
 Millions of events arrive simultaneously.
-Each request requires:
-validation
-enrichment
-AI inference
-parallel processing
-retries
-state tracking
-notifications
-analytics
+Each request requires:</li>
+<li>validation</li>
+<li>enrichment</li>
+<li>AI inference</li>
+<li>parallel processing</li>
+<li>retries</li>
+<li>state tracking</li>
+<li>notifications</li>
+<li>analytics
 A simple queue is NOT enough.
-You need:
-dependency management
-parallel execution
-fault tolerance
-distributed scheduling
-concurrency control
-recovery
-observability
-This is where a DAG Execution Engine comes in.</p>
+You need:</li>
+<li>dependency management</li>
+<li>parallel execution</li>
+<li>fault tolerance</li>
+<li>distributed scheduling</li>
+<li>concurrency control</li>
+<li>recovery</li>
+<li>observability
+This is where a DAG Execution Engine comes in.</li>
+</ul>
 <p>Coming into a Real-World Example System
 Think about AI Video Processing Platform
 Imagine users upload videos.
-The platform automatically:
-Virus scan
-Extract metadata
-Generate subtitles with AI
-Create thumbnails
-Generate multiple resolutions
-Run moderation AI
-Store outputs
-Notify users
-Update analytics</p>
+The platform automatically:</p>
+<ul>
+<li>Virus scan</li>
+<li>Extract metadata</li>
+<li>Generate subtitles with AI</li>
+<li>Create thumbnails</li>
+<li>Generate multiple resolutions</li>
+<li>Run moderation AI</li>
+<li>Store outputs</li>
+<li>Notify users</li>
+<li>Update analytics</li>
+</ul>
 <h2 id="3-dag-workflow-diagram">3. DAG Workflow Diagram</h2>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>                    ┌──────────────────┐                        │   Upload Video   │                        └────────┬─────────┘                                 │                ┌────────────────┴────────────────┐                ▼                                 ▼        ┌──────────────┐                 ┌────────────────┐        │ Virus Scan   │                 │ Extract Meta   │        └──────┬───────┘                 └──────┬─────────┘               │                                 │               └──────────────┬──────────────────┘                              ▼                    ┌─────────────────┐                    │  AI Moderation  │                    └────────┬────────┘                             │      ┌──────────────────────┼────────────────────────┐      ▼                      ▼                        ▼┌─────────────┐     ┌────────────────┐      ┌────────────────┐│Generate 480p│     │Generate 1080p │      │ AI Subtitles   │└──────┬──────┘     └───────┬────────┘      └──────┬─────────┘       │                    │                       │       └────────────┬───────┴──────────────┬────────┘                    ▼                      ▼              ┌────────────────────────────────┐              │ Store Outputs + CDN Publishing │              └──────────────┬─────────────────┘                             ▼                    ┌────────────────┐                    │ Notify User    │                    └────────────────┘</span></span>
-<span class="line"><span></span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>                        ┌──────────────────┐                        │   Upload Video   │                        └────────┬─────────┘                                 │                ┌────────────────┴────────────────┐                ▼                                 ▼        ┌──────────────┐                 ┌────────────────┐        │ Virus Scan   │                 │ Extract Meta   │        └──────┬───────┘                 └──────┬─────────┘               │                                 │               └──────────────┬──────────────────┘                              ▼                    ┌─────────────────┐                    │  AI Moderation  │                    └────────┬────────┘                             │      ┌──────────────────────┼────────────────────────┐      ▼                      ▼                        ▼┌─────────────┐     ┌────────────────┐      ┌────────────────┐│Generate 480p│     │Generate 1080p │      │ AI Subtitles   │└──────┬──────┘     └───────┬────────┘      └──────┬─────────┘       │                    │                       │       └────────────┬───────┴──────────────┬────────┘                    ▼                      ▼              ┌────────────────────────────────┐              │ Store Outputs + CDN Publishing │              └──────────────┬─────────────────┘                             ▼                    ┌────────────────┐                    │ Notify User    │                    └────────────────┘</span></span></code></pre>
 <p>Why DAG Matters Here
-Without DAG:
-tasks run randomly
-dependencies break
-duplicated work
-poor scaling
-impossible retries
-chaotic state management
-With DAG:
-dependencies are explicit
-parallelism is automatic
-recovery is deterministic
-system becomes horizontally scalable</p>
+Without DAG:</p>
+<ul>
+<li>tasks run randomly</li>
+<li>dependencies break</li>
+<li>duplicated work</li>
+<li>poor scaling</li>
+<li>impossible retries</li>
+<li>chaotic state management
+With DAG:</li>
+<li>dependencies are explicit</li>
+<li>parallelism is automatic</li>
+<li>recovery is deterministic</li>
+<li>system becomes horizontally scalable</li>
+</ul>
 <h2 id="core-concepts">Core Concepts</h2>
 <p>A. Node
 A node = executable task.
 Example:</p>
 <pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
 <span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Task</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    ID           </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    Dependencies []</span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    Execute      </span><span style="color:#F97583">func</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">Example tasks:</span></span>
+<span class="line"><span style="color:#E1E4E8">AI moderation </span></span>
+<span class="line"><span style="color:#E1E4E8">Generate subtitles </span></span>
+<span class="line"><span style="color:#E1E4E8">Store metadata </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">B. Edges</span></span>
+<span class="line"><span style="color:#E1E4E8">Edges represent dependencies.</span></span>
+<span class="line"><span style="color:#E1E4E8">A → B</span></span>
+<span class="line"><span style="color:#E1E4E8">Meaning:</span></span>
+<span class="line"><span style="color:#E1E4E8">B cannot start until A finishes </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">C. Parallel Execution</span></span>
+<span class="line"><span style="color:#E1E4E8">Independent nodes execute simultaneously.</span></span>
+<span class="line"><span style="color:#E1E4E8">Example:</span></span>
+<span class="line"><span style="color:#E1E4E8">Generate </span><span style="color:#FDAEB7;font-style:italic">480pGenerate</span><span style="color:#FDAEB7;font-style:italic"> 1080pAI</span><span style="color:#E1E4E8"> Subtitles</span></span>
+<span class="line"><span style="color:#E1E4E8">All can run concurrently.</span></span>
+<span class="line"><span style="color:#E1E4E8">This is where huge performance gain comes from.</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"></span>
 <span class="line"></span></code></pre>
-<p>    ID           string
-    Dependencies []string
-    Execute      func(ctx context.Context) error
-}</p>
-<p>Example tasks:
-AI moderation
-Generate subtitles
-Store metadata</p>
-<p>B. Edges
-Edges represent dependencies.
-A → B
-Meaning:
-B cannot start until A finishes</p>
-<p>C. Parallel Execution
-Independent nodes execute simultaneously.
-Example:
-Generate 480pGenerate 1080pAI Subtitles
-All can run concurrently.
-This is where huge performance gain comes from.</p>
 <h2 id="production-level-system">Production-Level System</h2>
-<p>                   ┌────────────────────┐
-                   │ API Gateway        │
-                   └─────────┬──────────┘
-                             │
-                             ▼
-                 ┌──────────────────────┐
-                 │ Workflow API Service │
-                 └─────────┬────────────┘
-                           │
-                           ▼
-                 ┌──────────────────────┐
-                 │ DAG Compiler         │
-                 │ Build Dependency Map │
-                 └─────────┬────────────┘
-                           │
-                           ▼
-              ┌────────────────────────────┐
-              │ Distributed Scheduler      │
-              │ Ready Queue Calculation    │
-              └─────────┬──────────────────┘
-                        │
-       ┌────────────────┼────────────────┐
-       ▼                ▼                ▼
-┌────────────┐  ┌────────────┐  ┌────────────┐
-│ Worker Pod │  │ Worker Pod │  │ Worker Pod │
-│ 1          │  │ 2          │  │ N          │
-└─────┬──────┘  └─────┬──────┘  └─────┬──────┘
-      │                │               │
-      ▼                ▼               ▼
- ┌─────────────────────────────────────────┐
- │ Kafka / NATS / RabbitMQ                │
- └─────────────────────────────────────────┘
-                    │
-                    ▼
-      ┌────────────────────────────┐
-      │ Redis State Store          │
-      │ DAG Progress Tracking      │
-      └────────────────────────────┘
-                    │
-                    ▼
-      ┌────────────────────────────┐
-      │ PostgreSQL                 │
-      │ Workflow Metadata          │
-      └────────────────────────────┘</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>                   ┌────────────────────┐</span></span>
+<span class="line"><span>                   │ API Gateway        │</span></span>
+<span class="line"><span>                   └─────────┬──────────┘</span></span>
+<span class="line"><span>                             │</span></span>
+<span class="line"><span>                             ▼</span></span>
+<span class="line"><span>                 ┌──────────────────────┐</span></span>
+<span class="line"><span>                 │ Workflow API Service │</span></span>
+<span class="line"><span>                 └─────────┬────────────┘</span></span>
+<span class="line"><span>                           │</span></span>
+<span class="line"><span>                           ▼</span></span>
+<span class="line"><span>                 ┌──────────────────────┐</span></span>
+<span class="line"><span>                 │ DAG Compiler         │</span></span>
+<span class="line"><span>                 │ Build Dependency Map │</span></span>
+<span class="line"><span>                 └─────────┬────────────┘</span></span>
+<span class="line"><span>                           │</span></span>
+<span class="line"><span>                           ▼</span></span>
+<span class="line"><span>              ┌────────────────────────────┐</span></span>
+<span class="line"><span>              │ Distributed Scheduler      │</span></span>
+<span class="line"><span>              │ Ready Queue Calculation    │</span></span>
+<span class="line"><span>              └─────────┬──────────────────┘</span></span>
+<span class="line"><span>                        │</span></span>
+<span class="line"><span>       ┌────────────────┼────────────────┐</span></span>
+<span class="line"><span>       ▼                ▼                ▼</span></span>
+<span class="line"><span>┌────────────┐  ┌────────────┐  ┌────────────┐</span></span>
+<span class="line"><span>│ Worker Pod │  │ Worker Pod │  │ Worker Pod │</span></span>
+<span class="line"><span>│ 1          │  │ 2          │  │ N          │</span></span>
+<span class="line"><span>└─────┬──────┘  └─────┬──────┘  └─────┬──────┘</span></span>
+<span class="line"><span>      │                │               │</span></span>
+<span class="line"><span>      ▼                ▼               ▼</span></span>
+<span class="line"><span> ┌─────────────────────────────────────────┐</span></span>
+<span class="line"><span> │ Kafka / NATS / RabbitMQ                │</span></span>
+<span class="line"><span> └─────────────────────────────────────────┘</span></span>
+<span class="line"><span>                    │</span></span>
+<span class="line"><span>                    ▼</span></span>
+<span class="line"><span>      ┌────────────────────────────┐</span></span>
+<span class="line"><span>      │ Redis State Store          │</span></span>
+<span class="line"><span>      │ DAG Progress Tracking      │</span></span>
+<span class="line"><span>      └────────────────────────────┘</span></span>
+<span class="line"><span>                    │</span></span>
+<span class="line"><span>                    ▼</span></span>
+<span class="line"><span>      ┌────────────────────────────┐</span></span>
+<span class="line"><span>      │ PostgreSQL                 │</span></span>
+<span class="line"><span>      │ Workflow Metadata          │</span></span>
+<span class="line"><span>      └────────────────────────────┘</span></span></code></pre>
 <h2 id="7-how-execution-actually-works">7. How Execution Actually Works</h2>
 <p>Step 1 — DAG Creation
 User uploads video.
 System generates workflow:
 {
-  “task”: “generate_subtitles”,
-  “depends_on”: [“extract_metadata”]
+“task”: “generate_subtitles”,
+“depends_on”: [“extract_metadata”]
 }</p>
 <p>Engine builds graph in memory.</p>
 <p>Step 2 — Topological Sorting
 The scheduler calculates execution order.
 This is called:
 Topological Sort
-The engine determines:
-what can run now
-what must wait</p>
+The engine determines:</p>
+<ul>
+<li>what can run now</li>
+<li>what must wait</li>
+</ul>
 <h2 id="8-example-execution-timeline">8. Example Execution Timeline</h2>
 <p>Time 0:UploadTime 1:Virus Scan + Metadata ExtractionTime 2:AI ModerationTime 3:480p + 1080p + SubtitlesTime 4:Store OutputsTime 5:Notify User
-Notice:
-parallel execution massively reduces total runtime
-Without concurrency:
-maybe 20 seconds
-With DAG concurrency:
-maybe 5 seconds</p>
+Notice:</p>
+<ul>
+<li>parallel execution massively reduces total runtime
+Without concurrency:</li>
+<li>maybe 20 seconds
+With DAG concurrency:</li>
+<li>maybe 5 seconds</li>
+</ul>
 <h2 id="concurrency-design-worker-pool">Concurrency Design Worker Pool</h2>
 <p>Each worker processes tasks independently.</p>
 <pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
 <span class="line"><span style="color:#E1E4E8">workerPool </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#B392F0"> Task</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">1000</span><span style="color:#E1E4E8">)</span></span>
 <span class="line"><span style="color:#6A737D">//Workers consume continuously:</span></span>
 <span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8"> task </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> workerPool {</span></span>
-<span class="line"><span style="color:#F97583">    go</span><span style="color:#B392F0"> executeTask</span><span style="color:#E1E4E8">(task)</span></span>
-<span class="line"><span style="color:#E1E4E8">}</span></span>
-<span class="line"></span></code></pre>
-<p>But production systems use:
-bounded concurrency
-rate limiting
-backpressure
-distributed locks</p>
+<span class="line"><span style="color:#F97583">    go</span><span style="color:#B392F0"> executeTask</span><span style="color:#E1E4E8">(task)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>But production systems use:</p>
+<ul>
+<li>bounded concurrency</li>
+<li>rate limiting</li>
+<li>backpressure</li>
+<li>distributed locks</li>
+</ul>
 <h2 id="10-critical-real-world-challenges">10. Critical Real-World Challenges</h2>
 <p>A. Dependency Resolution
-Problem:
-task should start ONLY after dependencies complete
-Solution:
-dependency counter
+Problem:</p>
+<ul>
+<li>task should start ONLY after dependencies complete
+Solution:</li>
+<li>dependency counter
 Example:
-remainingDeps[taskID]—
-When zero:
-enqueue task</p>
+remainingDeps[taskID]–
+When zero:</li>
+<li>enqueue task</li>
+</ul>
 <p>B. Distributed State Consistency
 Multiple workers across servers.
-Need:
-consistent task states
-Use:
-Redis
-PostgreSQL
-etcd
+Need:</p>
+<ul>
+<li>consistent task states
+Use:</li>
+<li>Redis</li>
+<li>PostgreSQL</li>
+<li>etcd
 Task states:
-PENDINGRUNNINGSUCCESSFAILEDRETRYING</p>
+PENDINGRUNNINGSUCCESSFAILEDRETRYING</li>
+</ul>
 <p>C. Idempotency
 Very important in distributed systems.
 A worker may retry same task.
-Must avoid:
-duplicate billing
-duplicate notifications
-duplicated AI inference
-Use:
-idempotency keys</p>
+Must avoid:</p>
+<ul>
+<li>duplicate billing</li>
+<li>duplicate notifications</li>
+<li>duplicated AI inference
+Use:</li>
+<li>idempotency keys</li>
+</ul>
 <p>D. Retry System
 AI APIs fail frequently.
-Need:
-exponential backoff
-retry policies
-dead letter queues
+Need:</p>
+<ul>
+<li>exponential backoff</li>
+<li>retry policies</li>
+<li>dead letter queues
 Example:
-Retry 1 → 5 secRetry 2 → 30 secRetry 3 → 2 min</p>
+Retry 1 → 5 secRetry 2 → 30 secRetry 3 → 2 min</li>
+</ul>
 <p>E. Backpressure
-Suppose:
-1 million uploads arrive
-Without backpressure:
-workers crash
-memory explodes
-Use:
-bounded queues
-rate limiting
-adaptive concurrency</p>
+Suppose:</p>
+<ul>
+<li>1 million uploads arrive
+Without backpressure:</li>
+<li>workers crash</li>
+<li>memory explodes
+Use:</li>
+<li>bounded queues</li>
+<li>rate limiting</li>
+<li>adaptive concurrency</li>
+</ul>
 <h2 id="11-ai--use-cases">11. AI- Use Cases</h2>
 <p>DAG systems became critical because AI workflows are naturally graph-based.</p>
-<p>AI Agent Pipeline Example
-User Query    │    ▼Intent Classification    │ ┌──┴──────────────┐ ▼                 ▼RAG Search     Web Search └──────┬──────────┘        ▼LLM Reasoning        ▼Code Generation        ▼Safety Validation        ▼Response
-This is literally a DAG.
-Modern AI orchestration frameworks:
-LangGraph
-Temporal
-Apache Airflow
-Prefect
-all rely heavily on DAG concepts.</p>
+<p>AI Agent Pipeline Example</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>User Query    │    ▼Intent Classification    │ ┌──┴──────────────┐ ▼                 ▼RAG Search     Web Search └──────┬──────────┘        ▼LLM Reasoning        ▼Code Generation        ▼Safety Validation        ▼Response</span></span></code></pre>
+<p>This is literally a DAG.
+Modern AI orchestration frameworks:</p>
+<ul>
+<li>LangGraph</li>
+<li>Temporal</li>
+<li>Apache Airflow</li>
+<li>Prefect
+all rely heavily on DAG concepts.</li>
+</ul>
 <h2 id="12-advanced-features">12. Advanced Features</h2>
 <p>A. Dynamic DAGs
 Tasks generated during execution.
-Example:
-AI detects language
-creates translation subtasks dynamically</p>
+Example:</p>
+<ul>
+<li>AI detects language</li>
+<li>creates translation subtasks dynamically</li>
+</ul>
 <p>B. Durable Execution
-If server crashes:
-workflow resumes automatically
-Popular system:
-Temporal</p>
+If server crashes:</p>
+<ul>
+<li>workflow resumes automatically
+Popular system:</li>
+<li>Temporal</li>
+</ul>
 <p>C. Event-Driven DAGs
-Tasks triggered by:
-Kafka events
-Webhooks
-AI outputs</p>
+Tasks triggered by:</p>
+<ul>
+<li>Kafka events</li>
+<li>Webhooks</li>
+<li>AI outputs</li>
+</ul>
 <p>D. Multi-Region Scheduling
 Global worker clusters.
-Scheduler decides:
-nearest GPU cluster
-cheapest region
-least loaded node</p>
+Scheduler decides:</p>
+<ul>
+<li>nearest GPU cluster</li>
+<li>cheapest region</li>
+<li>least loaded node</li>
+</ul>
 <h2 id="13-database-schema-example">13. Database Schema Example</h2>
 <pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"></span>
-<span class="line"><span style="color:#E1E4E8">CREATE TABLE tasks (    id UUID PRIMARY KEY,    workflow_id UUID,    status TEXT,    retries INT,    dependencies JSONB,    created_at TIMESTAMP);</span></span>
-<span class="line"></span>
-<span class="line"></span></code></pre>
+<span class="line"><span style="color:#E1E4E8">CREATE TABLE tasks (    id UUID PRIMARY KEY,    workflow_id UUID,    status TEXT,    retries INT,    dependencies JSONB,    created_at TIMESTAMP);</span></span></code></pre>
 <h2 id="14-production-stack-2026">14. Production Stack (2026)</h2>
-<p>Typical stack:
-Layer
-Technology
-API
-Go + gRPC
-Queue
-Kafka / NATS
-State Store
-Redis
-Persistent DB
-PostgreSQL
-Scheduler
-Custom Go service
-Container Runtime
-Kubernetes
-Observability
-Prometheus + Grafana
-Tracing
-OpenTelemetry
-AI Tasks
-GPU Worker Pools
-Workflow Engine
-Temporal / Argo</p>
+<p>Typical stack:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API</td>
+<td>Go + gRPC</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td>Kafka / NATS</td>
+</tr>
+<tr>
+<td>State Store</td>
+<td>Redis</td>
+</tr>
+<tr>
+<td>Persistent DB</td>
+<td>PostgreSQL</td>
+</tr>
+<tr>
+<td>Scheduler</td>
+<td>Custom Go service</td>
+</tr>
+<tr>
+<td>Container Runtime</td>
+<td>Kubernetes</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>Prometheus + Grafana</td>
+</tr>
+<tr>
+<td>Tracing</td>
+<td>OpenTelemetry</td>
+</tr>
+<tr>
+<td>AI Tasks</td>
+<td>GPU Worker Pools</td>
+</tr>
+<tr>
+<td>Workflow Engine</td>
+<td>Temporal / Argo</td>
+</tr>
+</tbody>
+</table>
 <h2 id="15-why-this-is-valuable-for-your-career">15. Why This Is Valuable for Your Career</h2>
-<p>If you deeply understand DAG execution systems, you understand:
-distributed systems
-concurrency
-scheduling
-fault tolerance
-orchestration
-workflow engines
-scalable AI infrastructure
-cloud-native systems
-This is senior/staff-level backend engineering.</p>
+<p>If you deeply understand DAG execution systems, you understand:</p>
+<ul>
+<li>distributed systems</li>
+<li>concurrency</li>
+<li>scheduling</li>
+<li>fault tolerance</li>
+<li>orchestration</li>
+<li>workflow engines</li>
+<li>scalable AI infrastructure</li>
+<li>cloud-native systems
+This is senior/staff-level backend engineering.</li>
+</ul>
 <h2 id="16-simplified-mental-model">16. Simplified Mental Model</h2>
 <p>DAG Engine = Smart Factory Manager
-Imagine a giant factory:
-some jobs depend on others
-some jobs can happen together
-workers are distributed
-failures happen
-manager tracks everything
+Imagine a giant factory:</p>
+<ul>
+<li>some jobs depend on others</li>
+<li>some jobs can happen together</li>
+<li>workers are distributed</li>
+<li>failures happen</li>
+<li>manager tracks everything
 The DAG engine is that manager.
-It decides:
-who works
-when they work
-retry failed work
-avoid duplication
-maximize throughput</p>
+It decides:</li>
+<li>who works</li>
+<li>when they work</li>
+<li>retry failed work</li>
+<li>avoid duplication</li>
+<li>maximize throughput</li>
+</ul>
 <h2 id="17-final-senior-level-definition">17. Final Senior-Level Definition</h2>
 <p>A DAG execution engine is a distributed orchestration system that executes dependency-aware tasks with high concurrency, fault tolerance, durable state tracking, retry semantics, and scalable scheduling across distributed workers.
-🔒 Security &#x26; Compliance
+🔒 Security &amp; Compliance
 Problem: Distributed DAGs often handle sensitive AI data (videos, documents, user queries). Without strong security, workflows risk leaks and compliance violations.
-Solution:
-Zero-trust execution: every worker authenticates tasks with signed tokens.
-Encryption: TLS for in-transit, AES-256 for at-rest.
-Immutable audit logs: every DAG execution recorded for compliance.
-Regulatory alignment: GDPR, HIPAA, SOC2 enforced at workflow level.
+Solution:</p>
+<ul>
+<li>Zero-trust execution: every worker authenticates tasks with signed tokens.</li>
+<li>Encryption: TLS for in-transit, AES-256 for at-rest.</li>
+<li>Immutable audit logs: every DAG execution recorded for compliance.</li>
+<li>Regulatory alignment: GDPR, HIPAA, SOC2 enforced at workflow level.
 💰 Cost-Aware Scheduling
 Problem: AI workloads (GPU-heavy) are expensive. Naive scheduling wastes resources.
-Solution:
-Multi-cloud optimization: scheduler picks cheapest GPU region.
-Spot/preemptible instances: resilient DAGs checkpoint progress before eviction.
-Cost observability: dashboards show $/workflow.
+Solution:</li>
+<li>Multi-cloud optimization: scheduler picks cheapest GPU region.</li>
+<li>Spot/preemptible instances: resilient DAGs checkpoint progress before eviction.</li>
+<li>Cost observability: dashboards show $/workflow.
 Example: 480p transcoding → run on CPU spot instance. AI moderation → run on GPU cluster in cheapest region.
 🤖 AI-Augmented Scheduling
 Problem: Static scheduling ignores workload variability.
-Solution:
-ML-driven task placement: predict resource needs based on historical DAG runs.
-Adaptive concurrency: scheduler learns optimal parallelism dynamically.
-Self-healing DAGs: AI detects stuck workflows and restructures execution.
-🏷️ Multi-Tenancy &#x26; Isolation
+Solution:</li>
+<li>ML-driven task placement: predict resource needs based on historical DAG runs.</li>
+<li>Adaptive concurrency: scheduler learns optimal parallelism dynamically.</li>
+<li>Self-healing DAGs: AI detects stuck workflows and restructures execution.
+🏷️ Multi-Tenancy &amp; Isolation
 Problem: SaaS DAG engines serve multiple customers. Without isolation, noisy neighbors break SLAs.
-Solution:
-Namespace isolation per tenant.
-Quotas + fair scheduling.
-Sandboxed execution for untrusted AI tasks.
+Solution:</li>
+<li>Namespace isolation per tenant.</li>
+<li>Quotas + fair scheduling.</li>
+<li>Sandboxed execution for untrusted AI tasks.
 🌊 Streaming + DAG Hybrid
 Problem: Modern AI systems mix batch + streaming.
-Solution:
-Event-driven DAG nodes consuming Kafka streams.
-Hybrid workflows: batch transcoding + real-time moderation.
-Continuous DAG execution with checkpointing.
+Solution:</li>
+<li>Event-driven DAG nodes consuming Kafka streams.</li>
+<li>Hybrid workflows: batch transcoding + real-time moderation.</li>
+<li>Continuous DAG execution with checkpointing.
 📊 Advanced Observability
 Problem: Debugging DAGs across distributed workers is hard.
-Solution:
-DAG-aware tracing (OpenTelemetry + causal graph visualization).
-SLA/SLO enforcement: alerts if DAG latency > threshold.
-Replay/debugging: full DAG state snapshots for forensic analysis.
-🛡️ Resilience &#x26; Chaos Engineering
+Solution:</li>
+<li>DAG-aware tracing (OpenTelemetry + causal graph visualization).</li>
+<li>SLA/SLO enforcement: alerts if DAG latency &gt; threshold.</li>
+<li>Replay/debugging: full DAG state snapshots for forensic analysis.
+🛡️ Resilience &amp; Chaos Engineering
 Problem: Failures are inevitable.
-Solution:
-Chaos testing: simulate worker crashes, DB outages.
-Automatic failover across regions.
-DAG-level rollback strategies (undo partial workflows).
+Solution:</li>
+<li>Chaos testing: simulate worker crashes, DB outages.</li>
+<li>Automatic failover across regions.</li>
+<li>DAG-level rollback strategies (undo partial workflows).
 👨‍💻 Developer Experience
 Problem: Engineers need fast iteration.
-Solution:
-Declarative DAG DSL (YAML/JSON + Go SDK).
-Visual DAG editor for debugging.
-GitOps integration: DAGs as code, CI/CD pipelines.
+Solution:</li>
+<li>Declarative DAG DSL (YAML/JSON + Go SDK).</li>
+<li>Visual DAG editor for debugging.</li>
+<li>GitOps integration: DAGs as code, CI/CD pipelines.
 🎯 AI-Specific Enhancements
 Problem: AI workloads are unique.
-Solution:
-GPU-aware scheduling (CUDA version, VRAM).
-Model versioning + rollback in DAG nodes.
-Dynamic DAG expansion for multi-agent workflows (agents spawn subtasks).
+Solution:</li>
+<li>GPU-aware scheduling (CUDA version, VRAM).</li>
+<li>Model versioning + rollback in DAG nodes.</li>
+<li>Dynamic DAG expansion for multi-agent workflows (agents spawn subtasks).
 🚀 Final 2026 Senior-Level Definition
 A 2026 DAG execution engine is not just dependency-aware orchestration—it is a secure, cost-optimized, AI-augmented, multi-tenant, hybrid batch+streaming system with advanced observability, resilience, and developer experience, designed to run distributed AI workflows at global scale.
 👉 This extended version makes your note interview-proof for 2026. It shows you understand not only the mechanics of DAGs but also the business, security, cost, and AI orchestration realities that senior/staff engineers must handle.
-Would you like me to merge these new sections directly into your existing DAG note so you have a single polished document, or keep them as an “add-on appendix” for interview prep?</p> </article> </div>  </main> <!-- Footer --> <footer class="bg-slate-900 dark:bg-black text-slate-300 dark:text-slate-400 border-t border-slate-800 py-12 mt-auto transition-colors duration-300"> <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left"> <div> <p class="font-bold text-white text-lg tracking-wide">Aunmoy Dey Tanmoy</p> <p class="text-sm text-slate-400 mt-1">AI Infrastructure Engineer | Senior Go Backend Engineer | Platform Engineer</p> </div> <div class="flex flex-col md:items-end text-sm gap-2"> <p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p> <p class="text-slate-500">adtanmoy95@gmail.com | +8801850371329</p> </div> </div> </footer> <!-- Theme & Menu Scripts --> <script>
+Would you like me to merge these new sections directly into your existing DAG note so you have a single polished document, or keep them as an “add-on appendix” for interview prep?</li>
+</ul>
+</article></div></main><!-- Footer --><footer class="bg-slate-900 dark:bg-black text-slate-300 dark:text-slate-400 border-t border-slate-800 py-12 mt-auto transition-colors duration-300"><div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left"><div><p class="font-bold text-white text-lg tracking-wide">Aunmoy Dey Tanmoy</p><p class="text-sm text-slate-400 mt-1">Backend Engineer | Go, Distributed Systems &amp; AI Infrastructure</p></div><div class="flex flex-col md:items-end text-sm gap-2"><p>&copy; 2026 Aunmoy Dey Tanmoy. All rights reserved.</p><p class="text-slate-500">adtanmoy95@gmail.com | +8801850371329</p></div></div></footer><!-- Theme & Menu Scripts --><script>
         const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
         const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
         const themeToggleBtn = document.getElementById('theme-toggle');
@@ -421,4 +491,126 @@ Would you like me to merge these new sections directly into your existing DAG no
         menuBtn.addEventListener('click', () => {
             mobileMenu.classList.toggle('hidden');
         });
-    </script> </body> </html> 
+    </script><!-- Recruiter AI Assistant --><div id="ai-assistant-container" class="fixed bottom-6 right-6 z-[100] font-sans"><!-- Floating Chat Icon --><button id="ai-chat-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none" aria-label="Open AI Assistant"><span class="text-2xl">🤖</span></button><!-- Chat Panel --><div id="ai-chat-panel" class="hidden absolute bottom-18 right-0 w-[320px] sm:w-[380px] h-[480px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden transition-all duration-200"><!-- Chat Header --><div class="p-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white flex justify-between items-center"><div class="flex items-center gap-2"><span class="text-xl">🤖</span><div><h3 class="font-bold text-sm leading-tight">Tanmoy's AI Copilot</h3><p class="text-[9px] text-indigo-100 font-semibold tracking-wider uppercase">RECRUITER ASSISTANT</p></div></div><button id="close-chat-btn" class="text-white hover:text-indigo-100 text-sm font-bold font-mono focus:outline-none">✕</button></div><!-- Chat Messages Area --><div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3 bg-slate-50/50 dark:bg-slate-950/20 text-xs"><!-- Welcome Message --><div class="flex gap-2 items-start max-w-[85%]"><div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xs flex-shrink-0">🤖</div><div class="p-3 bg-white dark:bg-slate-900 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800/80 shadow-sm leading-relaxed text-slate-700 dark:text-slate-200">Hi! I am Tanmoy's AI Platform Assistant. Ask me anything about his Go backend engineering, Kubernetes platform work, or AI gateways!</div></div></div><!-- Quick Suggestions --><div class="p-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap gap-1.5 bg-white dark:bg-slate-900"><button class="chat-suggest-btn text-[10px] px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition text-left text-slate-600 dark:text-slate-400 font-medium" data-q="What are your core technical skills?">🛠️ Skills</button><button class="chat-suggest-btn text-[10px] px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition text-left text-slate-600 dark:text-slate-400 font-medium" data-q="Tell me about your LogiFlow AI project.">🚀 LogiFlow AI</button><button class="chat-suggest-btn text-[10px] px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition text-left text-slate-600 dark:text-slate-400 font-medium" data-q="Are you open to remote jobs?">💼 Hiring Info</button></div><!-- Input area --><form id="chat-input-form" class="p-2.5 border-t border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-900 flex gap-2"><input type="text" id="chat-input" placeholder="Type a question..." required class="flex-grow bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-200"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold transition">Send</button></form></div></div><!-- AI Bot Logic --><script>
+        (function() {
+            const chatBtn = document.getElementById('ai-chat-btn');
+            const chatPanel = document.getElementById('ai-chat-panel');
+            const closeBtn = document.getElementById('close-chat-btn');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatForm = document.getElementById('chat-input-form');
+            const chatInput = document.getElementById('chat-input');
+            const suggestBtns = document.querySelectorAll('.chat-suggest-btn');
+
+            // Toggle Panel
+            chatBtn.addEventListener('click', () => {
+                chatPanel.classList.toggle('hidden');
+                chatInput.focus();
+            });
+
+            closeBtn.addEventListener('click', () => {
+                chatPanel.classList.add('hidden');
+            });
+
+            // Quick suggestions
+            suggestBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const q = btn.getAttribute('data-q');
+                    handleUserQuestion(q);
+                });
+            });
+
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const q = chatInput.value.trim();
+                if (!q) return;
+                chatInput.value = '';
+                handleUserQuestion(q);
+            });
+
+            function appendMessage(sender, text) {
+                const isBot = sender === 'bot';
+                const msgWrap = document.createElement('div');
+                msgWrap.className = `flex gap-2 items-start ${isBot ? 'max-w-[85%]' : 'max-w-[85%] ml-auto flex-row-reverse'}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${isBot ? 'bg-indigo-100 dark:bg-indigo-950' : 'bg-pink-100 dark:bg-pink-950'}`;
+                avatar.textContent = isBot ? '🤖' : '💼';
+                
+                const msgBox = document.createElement('div');
+                msgBox.className = `p-3 rounded-2xl border shadow-sm leading-relaxed ${
+                    isBot 
+                        ? 'bg-white dark:bg-slate-900 rounded-tl-none border-slate-100 dark:border-slate-800/80 text-slate-700 dark:text-slate-200' 
+                        : 'bg-indigo-600 border-indigo-700 text-white rounded-tr-none'
+                }`;
+                
+                msgBox.innerHTML = text.replace(/\n/g, '<br/>');
+                msgWrap.appendChild(avatar);
+                msgWrap.appendChild(msgBox);
+                chatMessages.appendChild(msgWrap);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return msgBox;
+            }
+
+            function simulateTyping(answer, callback) {
+                // Show typing indicator
+                const indicator = document.createElement('div');
+                indicator.className = 'flex gap-2 items-start max-w-[85%] typing-indicator';
+                indicator.innerHTML = `
+                    <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xs flex-shrink-0">🤖</div>
+                    <div class="p-3 bg-white dark:bg-slate-900 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800/80 shadow-sm flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                    </div>
+                `;
+                chatMessages.appendChild(indicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                setTimeout(() => {
+                    indicator.remove();
+                    const box = appendMessage('bot', '');
+                    let i = 0;
+                    const interval = setInterval(() => {
+                        if (i < answer.length) {
+                            // handles simple tags/newlines
+                            if (answer.slice(i, i + 4) === '<br>') {
+                                box.innerHTML += '<br>';
+                                i += 4;
+                            } else {
+                                box.textContent += answer[i];
+                                // re-parse newlines to HTML
+                                box.innerHTML = box.textContent.replace(/\n/g, '<br/>');
+                                i++;
+                            }
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        } else {
+                            clearInterval(interval);
+                            if (callback) callback();
+                        }
+                    }, 12);
+                }, 800);
+            }
+
+            function handleUserQuestion(q) {
+                appendMessage('user', q);
+                const query = q.toLowerCase();
+                let answer = '';
+
+                if (query.includes('skill') || query.includes('experience') || query.includes('expert') || query.includes('tech') || query.includes('stack') || query.includes('language') || query.includes('go') || query.includes('golang')) {
+                    answer = "🛠️ The portfolio's technical focus includes Go backend engineering, REST/gRPC/GraphQL APIs, distributed systems, PostgreSQL, MySQL, Redis, messaging, Kubernetes, CI/CD, observability, and AI infrastructure.";
+                } else if (query.includes('logiflow') || query.includes('project') || query.includes('showcase') || query.includes('logisynapse')) {
+                    answer = "🚀 LogiFlow AI and LogiSynapse are personal engineering projects. The project page describes their current development status and technical direction; production deployment is not claimed.";
+                } else if (query.includes('job') || query.includes('hire') || query.includes('available') || query.includes('remote') || query.includes('work') || query.includes('availability') || query.includes('recrut')) {
+                    answer = "💼 Aunmoy is a software engineer focused on Go backend systems and distributed architecture, with freelance engineering experience for international clients. See the profile page for background and contact links.";
+                } else if (query.includes('contact') || query.includes('email') || query.includes('phone') || query.includes('linkedin') || query.includes('github') || query.includes('connect')) {
+                    answer = "📞 You can connect with Tanmoy directly:\n• Email: adtanmoy95@gmail.com\n• Phone: +8801850371329\n• LinkedIn: linkedin.com/in/aunmoy-dey-tanmoy095\n• GitHub: github.com/Tanmoy095";
+                } else if (query.includes('resume') || query.includes('cv') || query.includes('pdf')) {
+                    answer = "📄 You can download Tanmoy's latest resume directly from the homepage or by clicking the link below:\n\n👉 <a href='/cv.pdf' download class='text-indigo-400 font-bold hover:underline'>Download Resume (PDF)</a>";
+                } else {
+                    answer = "💡 I can answer detailed questions about Tanmoy's Go experience, his Kubernetes operator projects, distributed systems design, or his availability.\n\nTry asking: 'Tell me about LogiFlow AI' or 'What is his Go experience?'";
+                }
+
+                simulateTyping(answer);
+            }
+        })();
+    </script></body></html>
