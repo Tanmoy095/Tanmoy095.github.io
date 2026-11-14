@@ -31,10 +31,25 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Validate and test
+        run: npm run check && npm run lint && npm test
+
       - name: Build
         env:
           PUBLIC_API_BASE_URL: ${{ vars.PUBLIC_API_BASE_URL }}
         run: npm run build
+
+      - name: Verify draft privacy in static output
+        shell: bash
+        run: |
+          if grep -R -F "Optimization of CNC Milling Parameters" dist; then
+            echo "Draft knowledge content leaked into the public build." >&2
+            exit 1
+          fi
+          if grep -F "/aust-ipe-thesis" dist/sitemap.xml; then
+            echo "Draft knowledge route leaked into the sitemap." >&2
+            exit 1
+          fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

@@ -3,19 +3,22 @@
   "version": "1.0.0",
   "description": "Go backend engineering and distributed systems portfolio",
   "type": "module",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "check": "astro check",
     "test": "node --test",
-    "lint": "node --check public/admin-cms.js && node --check api/_lib/auth.js && node --check api/_lib/http.js && node --check api/auth/login.js && node --check api/auth/verify.js && node --check api/auth/logout.js && node --check api/github/proxy.js && node --check api/github/upload-image.js && node --check scripts/generate-admin-hash.mjs",
+    "lint": "node --check public/admin-cms.js && node --check api/_lib/auth.js && node --check api/_lib/http.js && node --check api/auth/login.js && node --check api/auth/verify.js && node --check api/auth/logout.js && node --check api/github/proxy.js && node --check api/github/upload-image.js && node --check api/github/upload-document.js && node --check scripts/generate-admin-hash.mjs",
     "preview": "astro preview",
     "hash-password": "node scripts/generate-admin-hash.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.5",
     "astro": "^7.3.8",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.5"
   },
   "devDependencies": {

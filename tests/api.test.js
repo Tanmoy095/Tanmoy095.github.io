@@ -7,6 +7,8 @@ import { setCors, validContentPath } from '../api/_lib/http.js';
 import proxy from '../api/github/proxy.js';
 import loginHandler from '../api/auth/login.js';
 import uploadImage from '../api/github/upload-image.js';
+import sharp from 'sharp';
+import uploadDocument from '../api/github/upload-document.js';
 
 const scrypt = promisify(crypto.scrypt);
 const env = { ...process.env };
@@ -42,6 +44,14 @@ test('write proxy denies requests without a signed session', async () => {
   const result = { statusCode: 0, body: null, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; }, setHeader() {} };
   await proxy(req, result);
   assert.equal(result.statusCode, 401);
+});
+
+test('write proxy refuses private knowledge in the public repository', async () => {
+  const token = createSessionToken('admin@example.test');
+  const res = fakeResponse();
+  const content = Buffer.from('---\ntype: essay\nstatus: private\n---\nsecret').toString('base64');
+  await proxy({ method:'PUT', headers:{authorization:`Bearer ${token}`}, body:{path:'src/content/knowledge/secret.md',content,message:'test'} }, res);
+  assert.equal(res.statusCode,400);
 });
 
 test('content path allowlist accepts CMS data and blocks arbitrary or traversal paths', () => {
@@ -107,10 +117,29 @@ test('duplicate image filenames update the current GitHub SHA', async () => {
     return new Response(JSON.stringify({ content: { sha: 'updated-sha' } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   };
   try {
-    const png = Buffer.from([137,80,78,71,13,10,26,10,0]);
+    const png = await sharp({ create: { width: 2, height: 2, channels: 3, background: 'red' } }).png().toBuffer();
     const res = fakeResponse();
     await uploadImage({ method: 'POST', headers: { authorization: `Bearer ${token}` }, body: { filename: 'cover.png', contentBase64: png.toString('base64') } }, res);
     assert.equal(res.statusCode, 200);
     assert.equal(JSON.parse(requests[1].options.body).sha, 'existing-sha');
+    const saved = Buffer.from(JSON.parse(requests[1].options.body).content, 'base64');
+    assert.equal((await sharp(saved).metadata()).exif, undefined, 'uploaded image should not contain EXIF metadata');
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test('research PDF upload validates bytes and stores through GitHub API', async () => {
+  const token=createSessionToken('admin@example.test'), originalFetch=globalThis.fetch, requests=[];
+  globalThis.fetch=async(url,options)=>{
+    requests.push({url,options});
+    return !options.method || options.method==='GET'
+      ? new Response('Not Found',{status:404})
+      : new Response(JSON.stringify({content:{sha:'pdf-sha'}}),{status:201,headers:{'Content-Type':'application/json'}});
+  };
+  try {
+    const res=fakeResponse(), pdf=Buffer.from('%PDF-1.4\nminimal');
+    await uploadDocument({method:'POST',headers:{authorization:`Bearer ${token}`},body:{filename:'notes.pdf',contentBase64:pdf.toString('base64')}},res);
+    assert.equal(res.statusCode,200);
+    assert.equal(res.body.path,'/research-assets/notes.pdf');
+    assert.equal(requests.length,2);
+  } finally { globalThis.fetch=originalFetch; }
 });

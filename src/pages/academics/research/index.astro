@@ -1,0 +1,10 @@
+---
+import { getCollection } from 'astro:content';
+import MainLayout from '../../../layouts/MainLayout.astro';
+import KnowledgeCard from '../../../components/KnowledgeCard.astro';
+const items = (await getCollection('knowledge')).filter(entry => entry.data.status === 'published' && ['research', 'research-note'].includes(entry.data.type)).sort((a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order || b.data.date.valueOf() - a.data.date.valueOf());
+---
+<MainLayout title="Research" description="Research projects, thesis work, methodology notes and discoveries.">
+    <header class="mb-10 max-w-3xl"><p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-300">Academics & Research</p><h1 class="mt-3 text-4xl font-bold md:text-6xl">Research notebook</h1><p class="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">Research questions, methods, observations and reflections. Unpublished work is not described as peer-reviewed research.</p></header>
+    {items.length ? <div class="grid gap-6 md:grid-cols-2">{items.map(entry => <KnowledgeCard entry={entry} href={`/academics/research/${entry.id}/`} />)}</div> : <p class="rounded-2xl border border-dashed border-slate-300 p-8 text-slate-500 dark:border-slate-700">There are no published research entries yet.</p>}
+</MainLayout>

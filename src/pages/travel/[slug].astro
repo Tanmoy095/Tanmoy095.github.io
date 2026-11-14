@@ -1,0 +1,24 @@
+---
+import { getCollection, render } from 'astro:content';
+import MainLayout from '../../layouts/MainLayout.astro';
+export async function getStaticPaths() { return (await getCollection('knowledge')).filter(e => e.data.type === 'travel' && ['published', 'unlisted'].includes(e.data.status)).map(entry => ({ params: { slug: entry.id }, props: { entry } })); }
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+<MainLayout title={entry.data.seoTitle || entry.data.title} description={entry.data.seoDescription || entry.data.description}>
+    <article class="mx-auto max-w-5xl">
+        <a href="/travel/" class="text-sm font-semibold text-blue-700 dark:text-blue-300">← Travel Journal</a>
+        <header class="my-8 max-w-3xl"><p class="text-sm font-semibold uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">{entry.data.location}, {entry.data.country}{entry.data.status === 'unlisted' && <span class="ml-2 rounded-full bg-amber-100 px-2 py-1 text-amber-800">Unlisted</span>}</p><h1 class="mt-3 text-4xl font-bold tracking-tight md:text-6xl">{entry.data.title}</h1><p class="mt-5 text-xl leading-8 text-slate-600 dark:text-slate-300">{entry.data.description}</p></header>
+        {entry.data.coverImage && <img class="mb-10 aspect-[16/8] w-full rounded-3xl object-cover" src={entry.data.coverImage} alt={entry.data.coverAlt || entry.data.title} />}
+        <div class="markdown-body mx-auto max-w-3xl"><Content /></div>
+        {entry.data.gallery.length > 0 && <section class="mt-14"><h2 class="mb-6 text-2xl font-bold">Photo journal</h2><div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{entry.data.gallery.map((src, index) => <figure><button class="travel-photo block w-full overflow-hidden rounded-2xl" data-src={src} aria-label={`Open travel photo ${index + 1}`}><img src={src} alt={`${entry.data.location} travel photograph ${index + 1}`} class="aspect-[4/3] w-full object-cover transition hover:scale-105" loading="lazy" /></button><figcaption class="mt-2 text-sm text-slate-500">{entry.data.galleryCaptions[index] || ''}</figcaption></figure>)}</div></section>}
+        <dialog id="travel-lightbox" class="max-h-[90vh] max-w-[92vw] rounded-2xl bg-transparent p-0 backdrop:bg-black/80"><button id="travel-lightbox-close" class="absolute right-3 top-3 rounded-full bg-black/70 px-4 py-2 text-white">Close</button><img id="travel-lightbox-image" src="" alt="Expanded travel photograph" class="max-h-[88vh] max-w-[90vw] rounded-2xl object-contain" /></dialog>
+    </article>
+    <script is:inline>
+      const modal = document.getElementById('travel-lightbox');
+      const modalImage = document.getElementById('travel-lightbox-image');
+      document.querySelectorAll('.travel-photo').forEach(button => button.addEventListener('click', () => { modalImage.src = button.dataset.src; modal.showModal(); }));
+      document.getElementById('travel-lightbox-close')?.addEventListener('click', () => modal.close());
+      modal?.addEventListener('click', event => { if (event.target === modal) modal.close(); });
+    </script>
+</MainLayout>

@@ -1,6 +1,6 @@
 import { getTokenFromRequest, parseSessionToken } from '../_lib/auth.js';
 import { githubRequest, getGitHubConfig } from '../_lib/github.js';
-import { setCors, validContentPath } from '../_lib/http.js';
+import { setCors, validContentPath, isContentDirectory } from '../_lib/http.js';
 
 export default async function handler(req, res) {
   if (setCors(req, res)) return;
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'PUT' || req.method === 'DELETE') {
       const { path, message, content, sha } = req.body || {};
-      if (!validContentPath(path) || !message || (req.method === 'PUT' && (typeof content !== 'string' || !content)) || (req.method === 'DELETE' && !sha)) {
+      if (!validContentPath(path) || isContentDirectory(path) || !message || (req.method === 'PUT' && (typeof content !== 'string' || !content)) || (req.method === 'DELETE' && !sha)) {
         return res.status(400).json({ error: 'Valid path, message, content, and current file SHA are required' });
       }
       if (req.method === 'PUT' && (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(content) || content.length > 12_000_000)) {
@@ -30,6 +30,9 @@ export default async function handler(req, res) {
       }
       if (req.method === 'PUT' && path === 'public/cv.pdf' && !Buffer.from(content, 'base64').subarray(0, 5).equals(Buffer.from('%PDF-'))) {
         return res.status(400).json({ error: 'The CV upload must be a valid PDF file.' });
+      }
+      if (req.method === 'PUT' && path.startsWith('src/content/knowledge/') && /(?:^|\n)status:\s*(?:"private"|'private'|private)\s*(?:\n|$)/i.test(Buffer.from(content, 'base64').toString('utf8'))) {
+        return res.status(400).json({ error: 'Private entries cannot be saved in the public content repository.' });
       }
 
       const body = { message, branch, ...(sha ? { sha } : {}), ...(content ? { content } : {}) };

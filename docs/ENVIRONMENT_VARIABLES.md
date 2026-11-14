@@ -13,3 +13,5 @@
 | `CMS_ALLOWED_ORIGINS` | Server config | Vercel | Comma-separated exact browser origins; defaults to Pages and local Astro origins. |
 
 Never put server values in GitHub Pages build variables, browser code, `.env.example`, or documentation.
+
+The current API code still uses process-local rate limits and stateless signed sessions. Redis support is not implemented or configured in this release, so logout cannot revoke a copied bearer token and rate limits may reset between serverless invocations. A managed Redis-compatible URL and token will be required when this is implemented. Do not treat the API as production-ready until this is resolved and verified.

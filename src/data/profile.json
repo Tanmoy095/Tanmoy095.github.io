@@ -10,10 +10,13 @@
   "cvUrl": "",
   "nav": [
     { "label": "Home", "url": "/" },
+    { "label": "Engineering", "url": "/projects/" },
+    { "label": "Academics & Research", "url": "/academics/" },
+    { "label": "Writing", "url": "/writing/" },
+    { "label": "Travel", "url": "/travel/" },
+    { "label": "Books & Ideas", "url": "/books/" },
     { "label": "About", "url": "/about" },
-    { "label": "Projects", "url": "/projects" },
-    { "label": "Blog", "url": "/blog" },
-    { "label": "Learning", "url": "/learning" },
+    { "label": "Contact", "url": "/contact/" },
     { "label": "Admin", "url": "/admin" }
   ],
   "summary": "I am a software engineer focused on Go backend development, APIs, distributed systems, and AI infrastructure. I build and document personal engineering projects including LogiFlow AI and LogiSynapse, with an emphasis on clear architecture, reliable services, and practical trade-offs.",

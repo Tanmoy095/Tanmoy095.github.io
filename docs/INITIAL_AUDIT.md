@@ -1,5 +1,9 @@
 # Initial Repository Audit
 
+## Follow-up release audit (2026-11-14)
+
+Verified that prior implementation commit `f1180ded4d9d7246f2ec2cbd5987053d373c2cbe` exists on `codex/portfolio-cms-rebuild`; fetched `origin/main` at `442f251`. New work is local and not pushed. Vercel CLI/project metadata and authentication variables were absent; GitHub CLI was unavailable. Production URL and Actions results therefore remain unverified. See `PRODUCTION_RELEASE_REPORT.md`.
+
 ## Inspection snapshot
 
 - Branch at start: `main`; HEAD `442f251` (`cms: publish blog building-golden-path-ai-ready-microservices`).

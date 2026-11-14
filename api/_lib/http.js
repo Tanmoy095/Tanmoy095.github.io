@@ -20,5 +20,7 @@ export function clientKey(req) {
 
 export function validContentPath(path) {
   return typeof path === 'string' && !path.includes('..') && !path.startsWith('/') && !path.includes('\\') &&
-    /^(src\/data\/(profile|projects)\.json|src\/content\/(blog|learning)\/[a-z0-9][a-z0-9-]*\.md|public\/(blog-assets|profile-assets)\/[a-zA-Z0-9._-]+|public\/cv\.pdf)$/.test(path);
+    (/^(src\/data\/(profile|projects)\.json|src\/content\/(blog|learning|knowledge)\/[a-z0-9][a-z0-9-]*\.md|public\/(blog-assets|profile-assets|research-assets|travel-assets|book-assets|personal-assets)\/[a-zA-Z0-9._-]+|public\/cv\.pdf)$/.test(path) || ['src/content/knowledge', 'src/content/blog', 'src/content/learning'].includes(path));
 }
+
+export const isContentDirectory = path => ['src/content/knowledge', 'src/content/blog', 'src/content/learning'].includes(path);

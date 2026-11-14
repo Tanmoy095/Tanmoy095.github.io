@@ -1,0 +1,10 @@
+---
+import { getCollection } from 'astro:content';
+import MainLayout from '../../layouts/MainLayout.astro';
+import KnowledgeCard from '../../components/KnowledgeCard.astro';
+const items = (await getCollection('knowledge')).filter(entry => entry.data.status === 'published' && entry.data.type === 'quote').sort((a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order || b.data.date.valueOf() - a.data.date.valueOf());
+---
+<MainLayout title="Quotes & Reflections" description="Short attributed quotations with personal context and reflections.">
+    <header class="mb-12 max-w-3xl"><p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-300">Books & Ideas</p><h1 class="mt-3 text-4xl font-bold md:text-6xl">Quotes & Reflections</h1><p class="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">Short quotations with source attribution and my own commentary. Unverified attributions are not published.</p></header>
+    {items.length ? <div class="grid gap-6 md:grid-cols-2">{items.map(entry => <KnowledgeCard entry={entry} href={`/quotes/${entry.id}/`} eyebrow={entry.data.quoteAuthor || 'Reflection'} />)}</div> : <p class="rounded-2xl border border-dashed border-slate-300 p-8 text-slate-500 dark:border-slate-700">No quotes have been published yet.</p>}
+</MainLayout>

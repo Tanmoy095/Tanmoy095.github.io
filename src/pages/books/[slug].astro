@@ -1,0 +1,20 @@
+---
+import { getCollection, render } from 'astro:content';
+import MainLayout from '../../layouts/MainLayout.astro';
+export async function getStaticPaths() { return (await getCollection('knowledge')).filter(e => e.data.type === 'book' && ['published', 'unlisted'].includes(e.data.status)).map(entry => ({ params: { slug: entry.id }, props: { entry } })); }
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+<MainLayout title={entry.data.seoTitle || entry.data.bookTitle || entry.data.title} description={entry.data.seoDescription || entry.data.description}>
+    <script type="application/ld+json" set:html={JSON.stringify({ '@context': 'https://schema.org', '@type': 'Book', name: entry.data.bookTitle, author: { '@type': 'Person', name: entry.data.bookAuthor }, publisher: entry.data.publisher || undefined, bookEdition: entry.data.edition || undefined }).replace(/</g, '\\u003c')} />
+    <article class="mx-auto max-w-3xl"><a href="/books/" class="text-sm font-semibold text-blue-700 dark:text-blue-300">← Books & Ideas</a>
+        {entry.data.coverImage && <img class="mt-8 aspect-[3/4] max-h-[28rem] rounded-2xl object-cover" src={entry.data.coverImage} alt={entry.data.coverAlt || `Cover of ${entry.data.bookTitle}`} />}
+        <p class="mt-8 text-sm font-semibold uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">{entry.data.category || 'Reading notes'}{entry.data.status === 'unlisted' && <span class="ml-2 rounded-full bg-amber-100 px-2 py-1 text-amber-800">Unlisted</span>}</p>
+        <h1 class="mt-3 text-4xl font-bold md:text-5xl">{entry.data.bookTitle || entry.data.title}</h1><p class="mt-3 text-lg text-slate-600 dark:text-slate-300">{entry.data.bookAuthor}{entry.data.publisher && ` · ${entry.data.publisher}`}{entry.data.edition && ` · ${entry.data.edition}`}</p>
+        <p class="mt-4 text-sm text-slate-500">Reading status: {entry.data.readingStatus || 'Not specified'}</p>
+        {entry.data.concepts.length > 0 && <section class="mt-8 rounded-2xl bg-slate-100 p-6 dark:bg-slate-900"><h2 class="font-bold">Ideas to remember</h2><ul class="mt-3 list-disc space-y-2 pl-5">{entry.data.concepts.map(item => <li>{item}</li>)}</ul></section>}
+        <div class="markdown-body mt-10"><Content /></div>
+        {entry.data.takeaways.length > 0 && <section class="mt-8"><h2 class="text-xl font-bold">Practical takeaways</h2><ul class="mt-3 list-disc space-y-2 pl-5">{entry.data.takeaways.map(item => <li>{item}</li>)}</ul></section>}
+        {entry.data.interpretation && <section class="mt-8"><h2 class="text-xl font-bold">My interpretation</h2><p class="mt-3 whitespace-pre-line leading-7">{entry.data.interpretation}</p></section>}
+    </article>
+</MainLayout>

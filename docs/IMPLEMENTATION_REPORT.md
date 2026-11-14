@@ -1,5 +1,9 @@
 # Implementation Report
 
+## 2026-11-14 continuation status
+
+The original implementation commit remains preserved. New knowledge modules, visibility-aware static routes, CMS controls, EXIF-stripping uploads, PDF upload, and Pages workflow checks were added locally. Local check/lint/test/build passed (9 tests). No deployment, remote push, Vercel origin, or production CMS integration was verified. See `PRODUCTION_RELEASE_REPORT.md` for limits and blockers. Private saves are disabled because the content repository is public; durable session revocation and rate limiting remain outstanding.
+
 ## Completed in this workspace
 
 - Documented the initial audit and root causes.

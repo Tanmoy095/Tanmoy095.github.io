@@ -15,6 +15,7 @@
     projectsSha: '',
     blogsList: [],
     learningsList: [],
+    knowledgeList: [],
     pendingImage: null,
   };
 
@@ -140,19 +141,28 @@
     return apiRequest(path + '?ref=' + (state.gitConfig.branch || 'main'));
   }
 
-  async function uploadImage(file, filename) {
+  async function uploadImage(file, filename, target = 'blog-assets') {
     const base64 = await fileToBase64(file);
     if (state.serverMode && state.token) {
       const res = await fetch(`${API_BASE}/api/github/upload-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${state.token}` },
-        body: JSON.stringify({ filename, contentBase64: base64, message: `cms: upload ${filename}` }),
+        body: JSON.stringify({ filename, contentBase64: base64, target, message: `cms: upload ${filename}` }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       return data.path;
     }
     throw new Error('Image upload requires an active server session.');
+  }
+
+  async function uploadDocument(file, filename) {
+    const base64 = await fileToBase64(file);
+    const result = await request(`${API_BASE}/api/github/upload-document`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${state.token}` },
+      body: JSON.stringify({ filename, contentBase64: base64 }),
+    });
+    return result.path;
   }
 
   async function uploadCV(file) {
@@ -240,12 +250,10 @@
       if (idx < 1) return;
       const k = line.slice(0, idx).trim();
       let v = line.slice(idx + 1).trim();
-      if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1);
+      if (v.startsWith('"') && v.endsWith('"')) { try { v = JSON.parse(v); } catch { v = v.slice(1, -1); } }
       if (v === 'true') v = true;
       if (v === 'false') v = false;
-      if (v.startsWith('[') && v.endsWith(']')) {
-        v = v.slice(1, -1).split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-      }
+      if (v.startsWith('[') && v.endsWith(']')) { try { v = JSON.parse(v); } catch { v = v.slice(1, -1).split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean); } }
       data[k] = v;
     });
     return { data, body: match[2] };
@@ -262,6 +270,106 @@
     if (data.isADR && data.adrStatus) yaml += `adrStatus: "${data.adrStatus}"\n`;
     if (data.image) yaml += `image: "${data.image}"\n`;
     return yaml + `---\n\n${body}`;
+  }
+
+  const KNOWLEDGE_FIELDS = {
+    type:'type',status:'status',title:'title',description:'description',category:'category',tags:'tags',date:'date',order:'order',featured:'featured',seoTitle:'seo-title',seoDescription:'seo-description',coverImage:'cover',coverAlt:'cover-alt',gallery:'gallery',galleryCaptions:'gallery-captions',abstract:'abstract',researchQuestion:'question',objectives:'objectives',background:'background',literatureReview:'literature',methodology:'methodology',materialsAndMethods:'materials',findings:'findings',discussion:'discussion',conclusion:'conclusion',references:'references',documents:'documents',university:'university',degree:'degree',department:'department',faculty:'faculty',graduationYear:'graduation',startDate:'start',endDate:'end',academicInterests:'interests',academicQualifications:'qualifications',achievements:'achievements',coursework:'coursework',researchInterests:'research-interests',relevantLinks:'relevant-links',relatedProjects:'related-projects',thesisTitle:'thesis',country:'country',location:'location',visitedPlaces:'places',travelStart:'travel-start',travelEnd:'travel-end',bookTitle:'book-title',bookAuthor:'book-author',publisher:'publisher',edition:'edition',readingStatus:'reading-status',readingStart:'reading-start',readingEnd:'reading-end',concepts:'concepts',quoteText:'quote',quoteAuthor:'quote-author',quoteSource:'quote-source',quotePage:'quote-page',interpretation:'interpretation',takeaways:'takeaways'
+  };
+  const KNOWLEDGE_ARRAYS = new Set(['gallery','galleryCaptions','references','documents','academicInterests','academicQualifications','achievements','coursework','researchInterests','relevantLinks','relatedProjects','visitedPlaces','concepts','takeaways']);
+  function knowledgeValue(data, key) {
+    if (KNOWLEDGE_ARRAYS.has(key)) return (data[key] || []).map(x => JSON.stringify(String(x))).join(', ');
+    if (key === 'featured') return String(!!data[key]);
+    if (key === 'order') return String(data[key] ?? 0);
+    return JSON.stringify(data[key] ?? '');
+  }
+  function buildKnowledgeFrontmatter(data, body) {
+    const lines = ['---'];
+    for (const [key, id] of Object.entries(KNOWLEDGE_FIELDS)) {
+      const v = data[key];
+      if (v === undefined || v === '' || (Array.isArray(v) && !v.length)) continue;
+      lines.push(`${key}: ${knowledgeValue(data, key)}`);
+    }
+    lines.push('---', '', body || '');
+    return lines.join('\n');
+  }
+  function knowledgeFormData() {
+    const out = {};
+    for (const [key,id] of Object.entries(KNOWLEDGE_FIELDS)) {
+      const el = $(`knowledge-${id}`); if (!el) continue;
+      if (key === 'featured') out[key] = el.checked;
+      else if (key === 'tags') out[key] = el.value.split(',').map(x=>x.trim()).filter(Boolean);
+      else if (KNOWLEDGE_ARRAYS.has(key)) out[key] = el.value.split('\n').map(x=>x.trim()).filter(Boolean);
+      else if (key === 'order') out[key] = Number(el.value || 0);
+      else out[key] = el.value.trim();
+    }
+    return out;
+  }
+  function setKnowledgeForm(data = {}) {
+    for (const [key,id] of Object.entries(KNOWLEDGE_FIELDS)) {
+      const el = $(`knowledge-${id}`); if (!el) continue;
+      if (key === 'featured') el.checked = !!data[key];
+      else if (key === 'tags') el.value = (data[key] || []).join(', ');
+      else if (KNOWLEDGE_ARRAYS.has(key)) el.value = (data[key] || []).join('\n');
+      else el.value = data[key] instanceof Date ? data[key].toISOString().slice(0,10) : (data[key] ?? '');
+    }
+    document.querySelectorAll('.knowledge-fields').forEach(el => el.classList.toggle('hidden', !el.dataset.types.split(',').includes($('knowledge-type').value)));
+  }
+  function renderKnowledge() {
+    const list = $('knowledge-list'); if (!list) return;
+    const q = ($('knowledge-search').value || '').toLowerCase();
+    const type = $('knowledge-type-filter').value, status = $('knowledge-status-filter').value;
+    const items = state.knowledgeList.filter(x => (type === 'all' || x.data.type === type) && (status === 'all' || x.data.status === status) && `${x.data.title} ${x.data.description} ${(x.data.tags||[]).join(' ')}`.toLowerCase().includes(q));
+    $('knowledge-prompt').classList.toggle('hidden', items.length > 0);
+    if (!items.length) $('knowledge-prompt').textContent = 'No entries match. Create a draft to start.';
+    list.replaceChildren(...items.map(x => {
+      const card = document.createElement('article'); card.className='rounded-xl border border-slate-200 p-4 dark:border-slate-800';
+      const title = document.createElement('h3'); title.className='font-bold'; title.textContent=x.data.title || x.path;
+      const meta = document.createElement('p'); meta.className='my-2 text-xs text-slate-500'; meta.textContent=`${x.data.type} · ${x.data.status} · ${x.path}`;
+      const actions=document.createElement('div'); actions.className='flex gap-2';
+      const edit=document.createElement('button'); edit.type='button'; edit.className='btn-secondary rounded-lg px-3 py-2 text-xs'; edit.textContent='Edit'; edit.onclick=()=>openKnowledge(x);
+      const del=document.createElement('button'); del.type='button'; del.className='rounded-lg px-3 py-2 text-xs text-rose-600'; del.textContent='Delete'; del.onclick=()=>deleteKnowledge(x);
+      actions.append(edit,del); card.append(title,meta,actions); return card;
+    }));
+  }
+  async function loadKnowledge() {
+    const list = await apiGet('src/content/knowledge');
+    state.knowledgeList = await Promise.all((Array.isArray(list) ? list : []).filter(f=>f.type==='file' && f.name.endsWith('.md')).map(async f=>{
+      const res=await apiGet(f.path); const parsed=parseFrontmatter(b64_to_utf8(res.content.replace(/\s/g,'')));
+      let data=parsed.data;
+      for (const [key,value] of Object.entries(data)) {
+        if (typeof value === 'string' && value.startsWith('[')) { try { data[key]=JSON.parse(value); } catch {} }
+        else if (typeof value === 'string' && value.startsWith('"')) { try { data[key]=JSON.parse(value); } catch {} }
+      }
+      return {path:f.path,sha:res.sha,data,body:parsed.body};
+    }));
+    renderKnowledge();
+  }
+  function openKnowledge(item) {
+    $('knowledge-form').classList.remove('hidden'); $('knowledge-sha').value=item?.sha||''; $('knowledge-path').value=item?.path||'';
+    $('knowledge-form-title').textContent=item?'Edit: '+(item.data.title||item.path):'New knowledge entry';
+    $('knowledge-slug').value=item?.path?.split('/').pop().replace(/\.md$/,'')||'';
+    setKnowledgeForm(item?{...item.data,date:item.data.date instanceof Date?item.data.date.toISOString().slice(0,10):item.data.date}:{});
+    $('knowledge-body').value=item?.body||'';
+    $('knowledge-delete').classList.toggle('hidden',!item); $('knowledge-form').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  async function deleteKnowledge(item) {
+    if (!confirm('Delete this entry permanently?')) return;
+    try { await apiRequest(item.path,{method:'DELETE',body:JSON.stringify({message:'cms: delete knowledge entry',sha:item.sha,branch:state.gitConfig.branch})}); toast('Entry deleted','success'); await loadKnowledge(); }
+    catch(e){toast(e.message,'error');}
+  }
+  async function saveKnowledge(status) {
+    if (status === 'private') { toast('Private entries are disabled until a private content store is configured; this repository is public.','error'); return; }
+    const slug=$('knowledge-slug').value.trim();
+    if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)){toast('Use a lowercase URL slug with letters, numbers, and hyphens.','error');return;}
+    const data=knowledgeFormData(); data.status=status;
+    if(!data.title){toast('Title is required.','error');return;}
+    const oldPath=$('knowledge-path').value, sha=$('knowledge-sha').value, path=`src/content/knowledge/${slug}.md`;
+    const md=buildKnowledgeFrontmatter(data,$('knowledge-body').value);
+    try{
+      await apiRequest(path,{method:'PUT',body:JSON.stringify({message:`cms: save ${status} knowledge entry ${slug}`,content:utf8_to_b64(md),sha:oldPath===path?sha:undefined,branch:state.gitConfig.branch})});
+      if(oldPath&&oldPath!==path&&sha) await apiRequest(oldPath,{method:'DELETE',body:JSON.stringify({message:`cms: remove renamed knowledge entry ${slug}`,sha,branch:state.gitConfig.branch})});
+      $('knowledge-form').classList.add('hidden'); toast(status==='published'?'Entry published; site deployment will update shortly.':'Draft saved; this entry remains private.','success'); await loadKnowledge();
+    }catch(err){toast(err.message,'error');}
   }
 
   // ─── UI: Login / Dashboard ───────────────────────────────────
@@ -703,6 +811,7 @@
       loadProjects().catch(e => { setTabError('projects-prompt', e.message); $('btn-add-project').classList.remove('hidden'); throw e; }),
       loadBlogs().catch(e => { setTabError('blogs-prompt', e.message); $('btn-create-blog').classList.remove('hidden'); throw e; }),
       loadLearnings().catch(e => { setTabError('learnings-prompt', e.message); $('btn-create-learning').classList.remove('hidden'); throw e; }),
+      loadKnowledge().catch(e => { setTabError('knowledge-prompt', e.message); throw e; }),
     ]);
 
     const failed = results.filter(r => r.status === 'rejected');
@@ -1140,9 +1249,52 @@
       } catch (e) { toast(e.message, 'error'); }
     });
 
+    $('btn-create-knowledge')?.addEventListener('click', () => openKnowledge(null));
+    $('knowledge-cancel')?.addEventListener('click', () => $('knowledge-form').classList.add('hidden'));
+    ['knowledge-search','knowledge-type-filter','knowledge-status-filter'].forEach(id => $(id)?.addEventListener('input', renderKnowledge));
+    $('knowledge-type')?.addEventListener('change', () => document.querySelectorAll('.knowledge-fields').forEach(el => el.classList.toggle('hidden', !el.dataset.types.split(',').includes($('knowledge-type').value))));
+    $('knowledge-cover-file')?.addEventListener('change', async e => {
+      const file=e.target.files?.[0]; if(!file) return;
+      try { const path=await uploadImage(file, `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'-')}`, 'personal-assets'); $('knowledge-cover').value=path; toast('Cover uploaded (metadata stripped)','success'); }
+      catch(err){toast(err.message,'error');}
+    });
+    $('knowledge-gallery-files')?.addEventListener('change', async e => {
+      const urls=$('knowledge-gallery').value.split('\n').map(x=>x.trim()).filter(Boolean);
+      for(const file of [...(e.target.files||[])]) { try { const path=await uploadImage(file, `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'-')}`, 'travel-assets'); urls.push(path); } catch(err){toast(err.message,'error');break;} }
+      $('knowledge-gallery').value=urls.join('\n');
+    });
+    $('knowledge-doc-file')?.addEventListener('change', async e => {
+      const file=e.target.files?.[0]; if(!file) return;
+      try { const path=await uploadDocument(file,`${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'-')}`); const urls=$('knowledge-documents').value.split('\n').filter(Boolean); urls.push('/'+path.replace(/^public\//,'')); $('knowledge-documents').value=urls.join('\n'); toast('PDF uploaded','success'); }
+      catch(err){toast(err.message,'error');}
+    });
+    $('knowledge-write-tab')?.addEventListener('click',()=>{$('knowledge-body').classList.remove('hidden');$('knowledge-preview').classList.add('hidden');});
+    $('knowledge-preview-tab')?.addEventListener('click',()=>{
+      $('knowledge-body').classList.add('hidden'); const preview=$('knowledge-preview'); preview.classList.remove('hidden');
+      const raw=typeof marked!=='undefined'?marked.parse($('knowledge-body').value):$('knowledge-body').value;
+      const doc=new DOMParser().parseFromString(raw,'text/html');
+      const allowed=new Set(['P','BR','HR','H1','H2','H3','H4','BLOCKQUOTE','UL','OL','LI','STRONG','B','EM','I','DEL','S','CODE','PRE','TABLE','THEAD','TBODY','TR','TH','TD','A','IMG']);
+      doc.querySelectorAll('*').forEach(n=>{
+        if(!allowed.has(n.tagName)){n.replaceWith(doc.createTextNode(n.textContent||''));return;}
+        [...n.attributes].forEach(a=>{
+          const name=a.name.toLowerCase();
+          if(name.startsWith('on')||!(['href','src','alt','title','colspan','rowspan'].includes(name)))n.removeAttribute(a.name);
+          else if(name==='href'&&!/^(https?:|mailto:|#|\/)/i.test(a.value))n.removeAttribute(a.name);
+          else if(name==='src'&&!/^(https?:|\/)/i.test(a.value))n.removeAttribute(a.name);
+        });
+      });
+      preview.replaceChildren(...[...doc.body.childNodes].map(n=>document.importNode(n,true)));
+    });
+    $('knowledge-save-draft')?.addEventListener('click',()=>saveKnowledge('draft'));
+    $('knowledge-form')?.addEventListener('submit',e=>{e.preventDefault();saveKnowledge($('knowledge-status').value || 'published');});
+    $('knowledge-delete')?.addEventListener('click',async()=>{
+      if(!confirm('Delete this entry permanently?'))return;
+      try{await apiRequest($('knowledge-path').value,{method:'DELETE',body:JSON.stringify({message:'cms: delete knowledge entry',sha:$('knowledge-sha').value,branch:state.gitConfig.branch})});$('knowledge-form').classList.add('hidden');toast('Entry deleted','success');await loadKnowledge();}catch(err){toast(err.message,'error');}
+    });
+
     $('btn-reload-all')?.addEventListener('click', () => {
       // Reset prompts
-      ['profile-prompt','projects-prompt','blogs-prompt','learnings-prompt'].forEach(id => {
+      ['profile-prompt','projects-prompt','blogs-prompt','learnings-prompt','knowledge-prompt'].forEach(id => {
         const el = $(id);
         if (el) { el.textContent = 'Loading...'; el.className = 'text-slate-400 text-sm hidden'; }
       });

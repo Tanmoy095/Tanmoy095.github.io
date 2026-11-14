@@ -26,8 +26,8 @@ The CMS requires a Vercel deployment and the server settings described in [envir
 
 ## Content
 
-Profile and projects: `src/data/`. Blog, learning notes, and ADRs: `src/content/`. The CMS writes these GitHub paths and Actions rebuilds the public site.
+Profile and projects: `src/data/`. Engineering articles and notes: `src/content/blog/` and `src/content/learning/`. Academic research, personal writing, travel stories, books, and quotes use the typed shared collection in `src/content/knowledge/`. New knowledge entries start as drafts. Published and unlisted entries get static pages; unlisted pages are omitted from section listings and sitemap.
 
 ## Current limitations
 
-Production API setup, live credentials, deployment, external profile/CV verification, and full browser CRUD validation have not been confirmed in this workspace. Consult [implementation report](docs/IMPLEMENTATION_REPORT.md).
+The repository and local build do not prove production deployment. The Vercel API origin, deployment credentials, durable Redis-compatible session/revocation and rate-limit store, live API integration, and browser CRUD have not been confirmed. Private entries are disabled because GitHub is the public content store. See [release report](docs/PRODUCTION_RELEASE_REPORT.md).

@@ -1,0 +1,10 @@
+---
+import { getCollection } from 'astro:content';
+import MainLayout from '../../layouts/MainLayout.astro';
+import KnowledgeCard from '../../components/KnowledgeCard.astro';
+const items = (await getCollection('knowledge')).filter(entry => entry.data.status === 'published' && entry.data.type === 'travel').sort((a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order || b.data.date.valueOf() - a.data.date.valueOf());
+---
+<MainLayout title="Travel Journal" description="Travel stories, photo journals and personal observations.">
+    <header class="mb-12 max-w-3xl"><p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-300">Travel Journal</p><h1 class="mt-3 text-4xl font-bold md:text-6xl">Places, people and moments</h1><p class="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">Personal travel stories and memories. Location details are shown only when deliberately published.</p></header>
+    {items.length ? <div class="grid gap-6 md:grid-cols-2">{items.map(entry => <KnowledgeCard entry={entry} href={`/travel/${entry.id}/`} eyebrow={`${entry.data.location}, ${entry.data.country}`} />)}</div> : <p class="rounded-2xl border border-dashed border-slate-300 p-8 text-slate-500 dark:border-slate-700">No travel stories have been published yet.</p>}
+</MainLayout>

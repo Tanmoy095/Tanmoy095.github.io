@@ -1,0 +1,17 @@
+---
+import { getCollection, render } from 'astro:content';
+import MainLayout from '../../layouts/MainLayout.astro';
+export async function getStaticPaths() { return (await getCollection('knowledge')).filter(e => ['essay', 'personal-story', 'reflection'].includes(e.data.type) && ['published', 'unlisted'].includes(e.data.status)).map(entry => ({ params: { slug: entry.id }, props: { entry } })); }
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+<MainLayout title={entry.data.seoTitle || entry.data.title} description={entry.data.seoDescription || entry.data.description}>
+    <article class="mx-auto max-w-3xl">
+        <a href="/writing/" class="text-sm font-semibold text-blue-700 dark:text-blue-300">← Writing & Journal</a>
+        <p class="mt-8 text-sm font-semibold uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">{entry.data.category || 'Personal writing'}{entry.data.status === 'unlisted' && <span class="ml-2 rounded-full bg-amber-100 px-2 py-1 text-amber-800">Unlisted</span>}</p>
+        <h1 class="mt-3 text-4xl font-bold tracking-tight md:text-5xl">{entry.data.title}</h1><p class="mt-5 text-xl leading-8 text-slate-600 dark:text-slate-300">{entry.data.description}</p>
+        {entry.data.coverImage && <figure class="mt-8"><img class="w-full rounded-3xl" src={entry.data.coverImage} alt={entry.data.coverAlt || entry.data.title} />{entry.data.coverAlt && <figcaption class="mt-2 text-center text-sm text-slate-500">{entry.data.coverAlt}</figcaption>}</figure>}
+        <div class="markdown-body mt-10"><Content /></div>
+        {entry.data.takeaways.length > 0 && <aside class="mt-10 rounded-2xl bg-blue-50 p-6 dark:bg-blue-950/30"><h2 class="font-bold">What I’m taking away</h2><ul class="mt-3 list-disc space-y-2 pl-5">{entry.data.takeaways.map(item => <li>{item}</li>)}</ul></aside>}
+    </article>
+</MainLayout>

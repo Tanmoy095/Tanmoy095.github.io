@@ -1,5 +1,13 @@
 # Admin User Guide
 
+## Academics & Life module
+
+The Academics & Life tab manages academic profiles, research projects and notes, personal writing, travel journals, book notes, quotes, and reflections through the shared typed knowledge collection. Choose a type, complete its fields, and use the Markdown editor and preview. Search/filter entries, edit, and delete from the list.
+
+New records start as drafts. **Save Draft** keeps an entry out of generated public pages. To publish, select Published and submit. Select Draft to unpublish. Unlisted entries can be opened by anyone with the URL and stay out of section indexes and sitemap; they are not private.
+
+Photo uploads are re-encoded and lose EXIF/GPS metadata. Research PDFs are limited to 3 MB. Private entries are disabled because this GitHub repository is public. Draft and unlisted Markdown are still readable in the repository, so do not store sensitive information there.
+
 Open `/admin/` on the public website after `PUBLIC_API_BASE_URL` and Vercel server variables have been configured. If the API cannot be reached, the login page displays the configuration error; it never enables local password authentication.
 
 Sign in with `ADMIN_EMAIL` and the password corresponding to the server's scrypt `ADMIN_PASSWORD_HASH`. The session expires after 30 minutes. Log out when finished.

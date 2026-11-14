@@ -12,9 +12,9 @@
 
 ## CMS deployment
 
-1. Deploy the repository to Vercel and configure server values from `.env.example`.
+1. Deploy the repository to Vercel and configure server values from `.env.example` plus a managed Redis-compatible store for durable sessions/rate limiting.
 2. Set GitHub Actions variable `PUBLIC_API_BASE_URL` to the Vercel origin.
-3. Push through the protected workflow and verify the Pages deployment.
+3. Push through the protected workflow and verify the Pages deployment. Current release status is in `docs/PRODUCTION_RELEASE_REPORT.md`.
 4. Use `/admin/`, log in, edit content, and wait for the Pages workflow.
 
-Do not configure GitHub PATs in the browser. See `docs/ADMIN_USER_GUIDE.md` and `docs/DEPLOYMENT.md`.
+New academic/personal knowledge entries default to drafts. Private entries are disabled until private storage exists. Do not configure GitHub PATs in the browser. See `docs/ADMIN_USER_GUIDE.md` and `docs/DEPLOYMENT.md`.

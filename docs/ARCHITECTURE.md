@@ -1,5 +1,11 @@
 # Architecture
 
+## Typed editorial content
+
+The `src/content/knowledge/` Astro collection defines academic profiles, research, research notes, essays, personal stories, travel, books, quotes, and reflections with one validated schema. Shared cards and type-specific static routes keep these areas distinct. Only `published` entries appear in section listings, homepage highlights, and sitemap. `unlisted` entries have a direct route but are omitted from discovery. Draft and private-status entries do not receive public static routes; new entries default to draft.
+
+The CMS reads and writes knowledge Markdown through the authenticated GitHub Contents API. Photos are re-encoded with Sharp to remove EXIF/GPS metadata. PDFs use a bounded upload endpoint. The repository is public, so the CMS blocks private status; private storage is not implemented.
+
 ## Frontend and content
 
 Astro 4 builds the public site as static HTML with Tailwind styling. Profile and project data live in `src/data/*.json`; articles, engineering journal entries and ADRs live in Astro content collections under `src/content/`. GitHub is the source of truth: a successful CMS write commits repository content and GitHub Actions rebuilds Pages.
@@ -15,6 +21,8 @@ Login compares the submitted password with an `scrypt` hash in `ADMIN_PASSWORD_H
 ## Persistence and hosting
 
 GitHub Contents API writes use each file's SHA for updates/deletes; commits trigger the Pages build workflow. GitHub Pages serves the public site at `https://tanmoy095.github.io/`. Vercel serves the API. The public hostname is retained. Vercel API credentials must be configured separately from the Pages build.
+
+The current API uses stateless sessions and process-local login rate limiting. Logout clears the browser token but cannot revoke a copied token immediately. A shared durable store is not yet implemented, so the API is not production-ready for CMS use.
 
 ## Request flow
 
