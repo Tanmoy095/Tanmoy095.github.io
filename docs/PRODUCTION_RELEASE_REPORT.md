@@ -1,6 +1,6 @@
 # Production Release Report
 
-**Status checked:** 2026-11-14. **Release status: BLOCKED.** This report distinguishes local implementation from a verified deployment.
+**Status checked:** 2026-11-14. **Release status: BLOCKED.** Commit `462baf415e1f0434abd16c81f6d8600b78f08a36` was pushed to `main`; GitHub could not start the Pages runner because the account is locked due to a billing issue. This report distinguishes pushed source from a verified deployment.
 
 ## 1. Original issues
 
@@ -57,7 +57,7 @@ No authenticated production API or browser end-to-end CRUD tests ran. No real co
 
 ## 11. GitHub Actions deployment details
 
-Pages workflow now runs on `main` pushes and manual dispatch, uses Node 22 and `npm ci`, performs checks/tests/build, checks seeded draft leakage, and deploys the root `dist` artifact with least-privilege Pages permissions. The Vercel workflow is gated on all three Vercel secrets. No GitHub Actions run ID exists for this change because it has not been pushed.
+Pages workflow runs on `main` pushes and manual dispatch, uses Node 22 and `npm ci`, performs checks/tests/build, checks seeded draft leakage, and deploys the root `dist` artifact with least-privilege Pages permissions. Run [43604403522](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604403522) failed before starting the build because GitHub reports the account is locked due to a billing issue; deploy was skipped. Vercel workflow run [43604402323](https://github.com/Tanmoy095/Tanmoy095.github.io/actions/runs/43604402323) also failed. Its credential guard has since been changed to step-level checks; no successful Vercel deployment is verified.
 
 ## 12. Vercel deployment details
 
@@ -65,11 +65,11 @@ Pages workflow now runs on `main` pushes and manual dispatch, uses Node 22 and `
 
 ## 13. Production verification results
 
-**NOT TESTED.** Live URLs remain `https://tanmoy095.github.io/` and `https://tanmoy095.github.io/admin/`; no deployment of this change was confirmed. No production API URL was discovered. Pages routes, CMS login, CORS, writes, and regeneration have not been smoke-tested.
+**NOT VERIFIED.** Both `https://tanmoy095.github.io/` and `https://tanmoy095.github.io/admin/` returned HTTP 200, but fetched HTML did not contain the new Academics & Life editor or navigation, so the pushed change is not live. No production API URL was discovered. Pages routes, CMS login, CORS, writes, and regeneration have not been smoke-tested.
 
 ## 14. Remaining limitations
 
-- Changes are local and uncommitted at report creation; remote `main` was not updated.
+- GitHub account billing lock prevented the Pages runner from starting; the source push alone did not deploy the change.
 - Vercel auth/API configuration is unavailable and production API is unverified.
 - Durable session revocation and serverless rate limiting are not implemented.
 - Private content is unavailable until private storage exists. Do not put sensitive data in drafts or unlisted content because source lives in a public repository.
@@ -85,6 +85,7 @@ Use Admin → Academics & Life. Choose a module and fill its fields. Save Draft 
 - Repository: `https://github.com/Tanmoy095/Tanmoy095.github.io`
 - Intended branch: `main`
 - Prior implementation commit preserved locally: `f1180ded4d9d7246f2ec2cbd5987053d373c2cbe`
-- Remote `main` last fetched: `442f251` (2026-11-14 local verification)
-- Final commit: **none**
-- Push/deployment date and commit: **none; not deployed**
+- Remote `main`: `462baf415e1f0434abd16c81f6d8600b78f08a36` pushed 2026-11-14.
+- Previous implementation commit is an ancestor of the pushed commit.
+- Push succeeded as a fast-forward; no force push or protection bypass.
+- Deployment date and production commit: **none; not deployed**.

@@ -2,7 +2,7 @@
 
 ## Workflow behavior and current status
 
-The Pages workflow triggers on main pushes and manual dispatch, uses Node 22 and `npm ci`, runs Astro diagnostics, syntax checks, tests, and the static build, checks that the seeded draft is absent, and uploads/deploys `dist/`. Its permissions are contents read, Pages write, and OIDC token write. Vercel auto-deploy is configured to run only when token, organization, and project secrets are all present. No workflow run or deployment has been verified for this change.
+The Pages workflow triggers on main pushes and manual dispatch, uses Node 22 and `npm ci`, runs Astro diagnostics, syntax checks, tests, and the static build, checks that the seeded draft is absent, and uploads/deploys `dist/`. Its permissions are contents read, Pages write, and OIDC token write. The latest Pages run failed before starting because GitHub reports the account is locked due to a billing issue. No deployment has been verified for this change.
 
 Before enabling CMS use, configure the Vercel values listed in `ENVIRONMENT_VARIABLES.md`, set the Pages variable `PUBLIC_API_BASE_URL` to the verified Vercel origin, and implement a durable shared session/revocation and rate-limit store. No API URL is guessed in this documentation.
 
@@ -18,4 +18,4 @@ Import the same repository into Vercel, select Node.js 22, and keep its producti
 
 Check the Pages workflow run, inspect the public homepage and `/admin/`, check API verify and login, and perform a test content write with a dedicated test item before relying on production. Ensure Vercel has write access only to the intended repository and the Pages build receives no server secrets.
 
-No deployment was run from this workspace: Git metadata is read-only, no branch could be created, and no authenticated remote deployment status or Vercel configuration is available here.
+The source push completed, but Pages deployment was blocked by the GitHub account billing lock. Vercel configuration and API origin remain unverified. See `PRODUCTION_RELEASE_REPORT.md`.
