@@ -11,7 +11,9 @@
 | `ADMIN_PASSWORD_HASH` | Secret | Vercel | Encoded scrypt password hash. |
 | `ADMIN_SESSION_SECRET` | Secret | Vercel | Independent HMAC signing key, 32+ characters. |
 | `CMS_ALLOWED_ORIGINS` | Server config | Vercel | Comma-separated exact browser origins; defaults to Pages and local Astro origins. |
+| `UPSTASH_REDIS_REST_URL` | Secret/config | Vercel | Upstash Redis REST endpoint for shared login throttling, revocation, and private knowledge. |
+| `UPSTASH_REDIS_REST_TOKEN` | Secret | Vercel | Upstash REST bearer token. Keep server side; never put it in a `PUBLIC_` variable. |
 
 Never put server values in GitHub Pages build variables, browser code, `.env.example`, or documentation.
 
-The current API code still uses process-local rate limits and stateless signed sessions. Redis support is not implemented or configured in this release, so logout cannot revoke a copied bearer token and rate limits may reset between serverless invocations. A managed Redis-compatible URL and token will be required when this is implemented. Do not treat the API as production-ready until this is resolved and verified.
+The API now uses the shared Redis store for atomic login throttling, logout revocation, and private knowledge entries. Set both Upstash variables in Vercel before using the CMS; the API fails closed when Redis is missing or unavailable. Production readiness still requires verifying these values and exercising login, logout, and CRUD against the deployed service.

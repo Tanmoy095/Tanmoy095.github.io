@@ -4,7 +4,7 @@ import { setCors, validContentPath, isContentDirectory } from '../_lib/http.js';
 
 export default async function handler(req, res) {
   if (setCors(req, res)) return;
-  const session = parseSessionToken(getTokenFromRequest(req));
+  const session = await parseSessionToken(getTokenFromRequest(req));
   if (!session) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

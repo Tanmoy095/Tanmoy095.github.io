@@ -1,7 +1,9 @@
 import crypto from 'node:crypto';
+import { isRedisConfigured, redisCommand } from './redis.js';
 
 const SESSION_MAX_AGE_MS = 30 * 60 * 1000;
-const attempts = new Map();
+const RATE_LIMIT_WINDOW_SECONDS = 15 * 60;
+export { isRedisConfigured };
 
 export function getAdminEmail() { return process.env.ADMIN_EMAIL || ''; }
 
@@ -16,14 +18,17 @@ export async function verifyCredentials(email, password) {
   return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
 }
 
-export function isRateLimited(key) {
-  const now = Date.now();
-  const current = attempts.get(key);
-  if (!current || now - current.started > 15 * 60 * 1000) { attempts.set(key, { started: now, count: 1 }); return false; }
-  current.count += 1;
-  return current.count > 8;
+export async function isRateLimited(key) {
+  const identifier = crypto.createHash('sha256').update(key).digest('hex');
+  const redisKey = `cms:login-rate:${identifier}`;
+  const script = "local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end; return n";
+  const count = await redisCommand('EVAL', script, 1, redisKey, RATE_LIMIT_WINDOW_SECONDS);
+  return Number(count) > 8;
 }
-export function clearRateLimit(key) { attempts.delete(key); }
+export async function clearRateLimit(key) {
+  const identifier = crypto.createHash('sha256').update(key).digest('hex');
+  await redisCommand('DEL', `cms:login-rate:${identifier}`);
+}
 
 export function createSessionToken(email) {
   const secret = process.env.ADMIN_SESSION_SECRET;
@@ -33,7 +38,7 @@ export function createSessionToken(email) {
   return `${body}.${crypto.createHmac('sha256', secret).update(body).digest('base64url')}`;
 }
 
-export function parseSessionToken(token) {
+export async function parseSessionToken(token) {
   if (!token || typeof token !== 'string') return null;
   const secret = process.env.ADMIN_SESSION_SECRET;
   if (!secret || secret.length < 32) return null;
@@ -45,9 +50,17 @@ export function parseSessionToken(token) {
   if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) return null;
   try {
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
-    if (payload.email !== getAdminEmail().toLowerCase() || !Number.isFinite(payload.exp) || Date.now() >= payload.exp) return null;
+    if (payload.email !== getAdminEmail().toLowerCase() || !Number.isFinite(payload.exp) || Date.now() >= payload.exp || !/^[a-f0-9]{32}$/.test(payload.nonce || '')) return null;
+    if (await redisCommand('GET', `cms:revoked:${payload.nonce}`)) return null;
     return payload;
   } catch { return null; }
+}
+
+export async function revokeSession(session) {
+  if (!session?.nonce || !Number.isFinite(session.exp)) return false;
+  const remainingSeconds = Math.max(1, Math.ceil((session.exp - Date.now()) / 1000));
+  await redisCommand('SET', `cms:revoked:${session.nonce}`, '1', 'EX', remainingSeconds);
+  return true;
 }
 
 export function getTokenFromRequest(req) {

@@ -7,7 +7,7 @@ const TARGETS = new Set(['blog-assets', 'profile-assets', 'research-assets', 'tr
 
 export default async function handler(req, res) {
   if (setCors(req, res)) return;
-  if (!parseSessionToken(getTokenFromRequest(req))) return res.status(401).json({ error: 'Unauthorized' });
+  if (!await parseSessionToken(getTokenFromRequest(req))) return res.status(401).json({ error: 'Unauthorized' });
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {

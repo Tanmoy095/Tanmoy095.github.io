@@ -30,4 +30,4 @@ Profile and projects: `src/data/`. Engineering articles and notes: `src/content/
 
 ## Current limitations
 
-The updated static website is live from `gh-pages`. The admin UI is present, but its API origin is currently empty, so login and CRUD are not functional. Vercel configuration, durable session/revocation and rate-limit storage, live API integration, and browser CRUD remain unverified. Private entries are disabled because GitHub is the public content store. See [release report](docs/PRODUCTION_RELEASE_REPORT.md).
+The static website is live from `gh-pages`. The CMS now supports Redis-backed throttling, logout revocation, and private entries, but Vercel/Upstash production configuration is not connected or verified here, so the live admin API may still be unavailable. See [deployment](docs/DEPLOYMENT.md) and [release report](docs/PRODUCTION_RELEASE_REPORT.md).

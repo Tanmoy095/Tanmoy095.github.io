@@ -11,7 +11,7 @@
     "build": "astro build",
     "check": "astro check",
     "test": "node --test",
-    "lint": "node --check public/admin-cms.js && node --check api/_lib/auth.js && node --check api/_lib/http.js && node --check api/auth/login.js && node --check api/auth/verify.js && node --check api/auth/logout.js && node --check api/github/proxy.js && node --check api/github/upload-image.js && node --check api/github/upload-document.js && node --check scripts/generate-admin-hash.mjs",
+    "lint": "node --check public/admin-cms.js && node --check api/_lib/auth.js && node --check api/_lib/redis.js && node --check api/_lib/http.js && node --check api/auth/login.js && node --check api/auth/verify.js && node --check api/auth/logout.js && node --check api/knowledge/private.js && node --check api/github/proxy.js && node --check api/github/upload-image.js && node --check api/github/upload-document.js && node --check scripts/generate-admin-hash.mjs",
     "preview": "astro preview",
     "hash-password": "node scripts/generate-admin-hash.mjs"
   },

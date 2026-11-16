@@ -9,13 +9,13 @@ export default async function handler(req, res) {
 
   try {
     const key = clientKey(req);
-    if (isRateLimited(key)) return res.status(429).json({ error: 'Too many sign-in attempts. Try again in 15 minutes.' });
+    if (await isRateLimited(key)) return res.status(429).json({ error: 'Too many sign-in attempts. Try again in 15 minutes.' });
     const { email, password } = req.body || {};
     if (!await verifyCredentials(email, password)) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    clearRateLimit(key);
+    await clearRateLimit(key);
     const token = createSessionToken(email);
     return res.status(200).json({
       success: true,

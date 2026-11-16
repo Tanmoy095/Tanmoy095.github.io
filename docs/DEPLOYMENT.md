@@ -1,21 +1,23 @@
 # Deployment
 
-## Workflow behavior and current status
+## Free Vercel deployment
 
-The Pages workflow triggers on main pushes and manual dispatch, uses Node 22 and `npm ci`, runs Astro diagnostics, syntax checks, tests, and the static build, checks that the seeded draft is absent, and uploads/deploys `dist/`. Its runners are currently blocked by the GitHub account billing lock. As a fallback, the validated static output was pushed directly to `gh-pages` at `1eeb96d`; the new public routes and navigation were then verified live. The admin HTML currently embeds an empty API origin, so its login and CRUD do not work.
+Vercel Hobby is a $0 plan suitable for a personal, non-commercial portfolio. If you do not already have a Vercel account, you need to create one and authorize Vercel to access this GitHub repository. Vercel's Git integration builds the site and serverless API on pushes to the selected production branch, independently of the repository's GitHub Actions runners.
 
-Before enabling CMS use, configure the Vercel values listed in `ENVIRONMENT_VARIABLES.md`, set the Pages variable `PUBLIC_API_BASE_URL` to the verified Vercel origin, and implement a durable shared session/revocation and rate-limit store. No API URL is guessed in this documentation.
+1. In Vercel, add a new project and import `Tanmoy095/Tanmoy095.github.io`.
+2. Use the repository's `vercel.json` settings and Node.js 22 runtime. Set `main` as the production branch.
+3. Create/claim a persistent Upstash Redis database, then add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in Vercel Project Settings → Environment Variables.
+4. Add `GITHUB_TOKEN` with contents read/write access to this repository, plus `GITHUB_OWNER=Tanmoy095`, `GITHUB_REPO=Tanmoy095.github.io`, and `GITHUB_BRANCH=main`.
+5. Add `ADMIN_EMAIL`, an `ADMIN_PASSWORD_HASH` generated with `npm run hash-password`, and a unique random `ADMIN_SESSION_SECRET` of at least 32 characters. Add `CMS_ALLOWED_ORIGINS` with the Vercel project origin and any other site origins that should access the API.
+6. Deploy Production and note its `https://<project>.vercel.app` origin. The admin page automatically uses same-origin API requests when hosted on Vercel. For the GitHub Pages copy, set the GitHub Actions variable `PUBLIC_API_BASE_URL` to this origin and redeploy Pages.
+7. Confirm `/api/auth/verify` reports `serverMode: true`, then verify admin login, logout, content create/update/delete, and upload using a disposable test item.
+
+Vercel Hobby is free but is restricted by Vercel's terms to personal, non-commercial use and has plan limits. Upstash's free tier also has usage limits; review current pricing before production traffic grows. A temporary unclaimed Redis credential expires and is not a production database.
 
 ## GitHub Pages
 
-Keep Pages as the public site at `https://tanmoy095.github.io/`. In repository Actions variables set `PUBLIC_API_BASE_URL` to the Vercel project origin (no trailing slash). The `Deploy to GitHub Pages` workflow builds with Node 22 and `npm ci`, then publishes `dist/`. Pages deployment needs the workflow's existing `pages: write` and `id-token: write` permissions.
+The public Pages copy is served at `https://tanmoy095.github.io/`. Its workflow builds `dist/`, checks for draft leakage, and publishes with the repository's Pages permissions. GitHub has previously blocked this account's Actions runners due to a billing lock. Vercel's direct Git integration can still deploy independently; it does not fix a blocked Pages workflow.
 
-## Vercel API
+## Current verification state
 
-Import the same repository into Vercel, select Node.js 22, and keep its production project URL for `PUBLIC_API_BASE_URL`. Configure every server variable from `.env.example` under Project Settings > Environment Variables for Production and Preview as appropriate. Redeploy after changing variables. Vercel's Git integration or the existing optional workflow deploys the API. Confirm `/api/auth/verify` returns JSON with `serverMode: true` before enabling CMS use.
-
-## Verification
-
-Check the Pages workflow run, inspect the public homepage and `/admin/`, check API verify and login, and perform a test content write with a dedicated test item before relying on production. Ensure Vercel has write access only to the intended repository and the Pages build receives no server secrets.
-
-The frontend fallback is live, but the Pages and Vercel Action workflows remain billing-blocked. Vercel configuration and API origin remain unverified. See `PRODUCTION_RELEASE_REPORT.md`.
+Local build, diagnostics, syntax checks, and API tests pass. The deployed Vercel project, Upstash database, production secrets, and live CRUD have not been verified from this workspace. Do not treat production CMS use as ready until the seven-step deployment and verification above are complete.

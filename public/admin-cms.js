@@ -2,7 +2,7 @@
 (function () {
   const CFG = window.__ADMIN_CONFIG__ || {};
   const SESSION_KEY = 'portfolio_admin_session';
-  const API_BASE = (CFG.apiBaseUrl || '').replace(/\/+$/, '');
+  const API_BASE = (CFG.apiBaseUrl || (location.hostname === 'tanmoy095.github.io' ? '' : location.origin)).replace(/\/+$/, '');
 
   let state = {
     authenticated: false,
@@ -126,6 +126,15 @@
       return request(`${API_BASE}/api/github/proxy`, { method, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ path, ...body }) });
     }
     throw new Error('Sign in to the configured CMS API first.');
+  }
+
+  async function privateKnowledgeRequest(method, data) {
+    if (!state.serverMode || !state.token) throw new Error('Private content requires an active authenticated server session.');
+    return request(`${API_BASE}/api/knowledge/private`, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${state.token}` },
+      ...(data ? { body: JSON.stringify(data) } : {}),
+    });
   }
 
   async function request(url, options = {}) {
@@ -332,8 +341,11 @@
     }));
   }
   async function loadKnowledge() {
-    const list = await apiGet('src/content/knowledge');
-    state.knowledgeList = await Promise.all((Array.isArray(list) ? list : []).filter(f=>f.type==='file' && f.name.endsWith('.md')).map(async f=>{
+    const [list, privateResult] = await Promise.all([
+      apiGet('src/content/knowledge'),
+      privateKnowledgeRequest('GET').catch(() => ({ entries: [] })),
+    ]);
+    const publicEntries = await Promise.all((Array.isArray(list) ? list : []).filter(f=>f.type==='file' && f.name.endsWith('.md')).map(async f=>{
       const res=await apiGet(f.path); const parsed=parseFrontmatter(b64_to_utf8(res.content.replace(/\s/g,'')));
       let data=parsed.data;
       for (const [key,value] of Object.entries(data)) {
@@ -342,33 +354,56 @@
       }
       return {path:f.path,sha:res.sha,data,body:parsed.body};
     }));
+    const privateEntries = (privateResult.entries || []).map(item => {
+      const parsed=parseFrontmatter(item.content);
+      let data=parsed.data;
+      for (const [key,value] of Object.entries(data)) {
+        if (typeof value === 'string' && value.startsWith('[')) { try { data[key]=JSON.parse(value); } catch {} }
+        else if (typeof value === 'string' && value.startsWith('"')) { try { data[key]=JSON.parse(value); } catch {} }
+      }
+      return {path:`private:${item.slug}`,sha:'private',data,body:parsed.body};
+    });
+    state.knowledgeList = [...publicEntries,...privateEntries];
     renderKnowledge();
   }
   function openKnowledge(item) {
     $('knowledge-form').classList.remove('hidden'); $('knowledge-sha').value=item?.sha||''; $('knowledge-path').value=item?.path||'';
     $('knowledge-form-title').textContent=item?'Edit: '+(item.data.title||item.path):'New knowledge entry';
-    $('knowledge-slug').value=item?.path?.split('/').pop().replace(/\.md$/,'')||'';
+    $('knowledge-slug').value=item?.path?.startsWith('private:')?item.path.slice(8):(item?.path?.split('/').pop().replace(/\.md$/,'')||'');
     setKnowledgeForm(item?{...item.data,date:item.data.date instanceof Date?item.data.date.toISOString().slice(0,10):item.data.date}:{});
     $('knowledge-body').value=item?.body||'';
     $('knowledge-delete').classList.toggle('hidden',!item); $('knowledge-form').scrollIntoView({behavior:'smooth',block:'start'});
   }
   async function deleteKnowledge(item) {
     if (!confirm('Delete this entry permanently?')) return;
-    try { await apiRequest(item.path,{method:'DELETE',body:JSON.stringify({message:'cms: delete knowledge entry',sha:item.sha,branch:state.gitConfig.branch})}); toast('Entry deleted','success'); await loadKnowledge(); }
+    try {
+      if(item.path.startsWith('private:')) await privateKnowledgeRequest('DELETE',{slug:item.path.slice(8)});
+      else await apiRequest(item.path,{method:'DELETE',body:JSON.stringify({message:'cms: delete knowledge entry',sha:item.sha,branch:state.gitConfig.branch})});
+      toast('Entry deleted','success'); await loadKnowledge();
+    }
     catch(e){toast(e.message,'error');}
   }
   async function saveKnowledge(status) {
-    if (status === 'private') { toast('Private entries are disabled until a private content store is configured; this repository is public.','error'); return; }
     const slug=$('knowledge-slug').value.trim();
     if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)){toast('Use a lowercase URL slug with letters, numbers, and hyphens.','error');return;}
     const data=knowledgeFormData(); data.status=status;
     if(!data.title){toast('Title is required.','error');return;}
     const oldPath=$('knowledge-path').value, sha=$('knowledge-sha').value, path=`src/content/knowledge/${slug}.md`;
+    const oldPrivate=oldPath.startsWith('private:');
     const md=buildKnowledgeFrontmatter(data,$('knowledge-body').value);
     try{
-      await apiRequest(path,{method:'PUT',body:JSON.stringify({message:`cms: save ${status} knowledge entry ${slug}`,content:utf8_to_b64(md),sha:oldPath===path?sha:undefined,branch:state.gitConfig.branch})});
-      if(oldPath&&oldPath!==path&&sha) await apiRequest(oldPath,{method:'DELETE',body:JSON.stringify({message:`cms: remove renamed knowledge entry ${slug}`,sha,branch:state.gitConfig.branch})});
-      $('knowledge-form').classList.add('hidden'); toast(status==='published'?'Entry published; site deployment will update shortly.':'Draft saved; this entry remains private.','success'); await loadKnowledge();
+      if(status==='private'){
+        const method=oldPrivate&&oldPath===`private:${slug}`?'PUT':'POST';
+        await privateKnowledgeRequest(method,{slug,content:md});
+        if(oldPrivate&&oldPath!==`private:${slug}`) await privateKnowledgeRequest('DELETE',{slug:oldPath.slice(8)});
+        if(oldPath&&!oldPrivate&&sha) await apiRequest(oldPath,{method:'DELETE',body:JSON.stringify({message:`cms: move knowledge entry to private storage ${slug}`,sha,branch:state.gitConfig.branch})});
+      }else{
+        if(oldPrivate&&!confirm('This moves the entry from private storage into the public GitHub repository. Continue?')) return;
+        await apiRequest(path,{method:'PUT',body:JSON.stringify({message:`cms: save ${status} knowledge entry ${slug}`,content:utf8_to_b64(md),sha:oldPath===path&&!oldPrivate?sha:undefined,branch:state.gitConfig.branch})});
+        if(oldPrivate) await privateKnowledgeRequest('DELETE',{slug:oldPath.slice(8)});
+        else if(oldPath&&oldPath!==path&&sha) await apiRequest(oldPath,{method:'DELETE',body:JSON.stringify({message:`cms: remove renamed knowledge entry ${slug}`,sha,branch:state.gitConfig.branch})});
+      }
+      $('knowledge-form').classList.add('hidden'); toast(status==='published'?'Entry published; site deployment will update shortly.':status==='private'?'Private entry saved to protected storage.':'Draft saved.','success'); await loadKnowledge();
     }catch(err){toast(err.message,'error');}
   }
 
@@ -1289,7 +1324,12 @@
     $('knowledge-form')?.addEventListener('submit',e=>{e.preventDefault();saveKnowledge($('knowledge-status').value || 'published');});
     $('knowledge-delete')?.addEventListener('click',async()=>{
       if(!confirm('Delete this entry permanently?'))return;
-      try{await apiRequest($('knowledge-path').value,{method:'DELETE',body:JSON.stringify({message:'cms: delete knowledge entry',sha:$('knowledge-sha').value,branch:state.gitConfig.branch})});$('knowledge-form').classList.add('hidden');toast('Entry deleted','success');await loadKnowledge();}catch(err){toast(err.message,'error');}
+      try{
+        const path=$('knowledge-path').value;
+        if(path.startsWith('private:')) await privateKnowledgeRequest('DELETE',{slug:path.slice(8)});
+        else await apiRequest(path,{method:'DELETE',body:JSON.stringify({message:'cms: delete knowledge entry',sha:$('knowledge-sha').value,branch:state.gitConfig.branch})});
+        $('knowledge-form').classList.add('hidden');toast('Entry deleted','success');await loadKnowledge();
+      }catch(err){toast(err.message,'error');}
     });
 
     $('btn-reload-all')?.addEventListener('click', () => {
